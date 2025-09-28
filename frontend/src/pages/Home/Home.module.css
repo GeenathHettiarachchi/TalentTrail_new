@@ -1,0 +1,543 @@
+.container {
+  min-height: calc(100vh - 140px);
+  display: flex;
+  flex-direction: column;
+}
+
+.hero {
+  background: linear-gradient(135deg, #46e0a0 0%, #03118b 100%);
+  color: white;
+  padding: 4rem 1rem;
+  text-align: center;
+}
+
+.heroContent {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: 0.1rem;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.subtitle {
+  font-size: 1rem;
+  font-weight: 300;
+  margin: 0 0 2rem 0;
+  line-height: 1.4;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.bulkDataBtn,
+.exportBtn {
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 150px;
+}
+
+.bulkDataBtn {
+  background: #0111a8;
+  color: white;
+}
+
+.bulkDataBtn:hover {
+  background: #000e8f;
+  transform: translateY(-2px);
+}
+
+.exportBtn {
+  background: #27ae60;
+  color: white;
+}
+
+.exportBtn:hover:not(:disabled) {
+  background: #229954;
+  transform: translateY(-2px);
+}
+
+.exportBtn:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+}
+
+.features {
+  padding: 4rem 1rem;
+  background-color: #f8f9fa;
+}
+
+.featureGrid {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.featureCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.featureCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.featureIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.featureTitle {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.featureDescription {
+  color: #6c757d;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.stats {
+  padding: 4rem 0rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  /* background-color: white; */
+}
+
+.statsContainer {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.statsTitle {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: black;
+  margin: 0rem 0rem 1rem 0rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.statsSubtitle {
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #4b5563;
+  margin: 0rem 0rem 2.5rem 0rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.statCard {
+  background: white;
+  padding: 2rem 1.5rem;
+  border-radius: 12px;
+  text-align: left;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.statCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.statIcon {
+  font-size: 2rem;
+  padding: 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.statContent {
+  flex: 1;
+}
+
+.statNumber {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  line-height: 0.75;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: color 0.3s ease;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+}
+
+/* === TOTAL METRICS === */
+.totalInterns,
+.totalProjects,
+.totalTeams {
+  background: linear-gradient(135deg, #4e9df8 0%, #bdd3ec 90%);
+  color: #060053;
+}
+
+.totalInterns .statIcon,
+.totalProjects .statIcon,
+.totalTeams .statIcon {
+  background: rgba(0, 0, 110, 0.1);
+  color: #060053;
+}
+
+.totalInterns .statNumber,
+.totalInterns .statLabel,
+.totalProjects .statNumber,
+.totalProjects .statLabel,
+.totalTeams .statNumber,
+.totalTeams .statLabel {
+  color: #060053;
+}
+
+
+/* === ACTIVE / ONGOING === */
+.activeInterns,
+.ongoingProjects {
+  background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%);
+  color: #2f5233;
+}
+
+.activeInterns .statIcon,
+.ongoingProjects .statIcon {
+  background: rgba(47, 82, 51, 0.2);
+  color: #2f5233;
+}
+
+.activeInterns .statNumber,
+.activeInterns .statLabel,
+.ongoingProjects .statNumber,
+.ongoingProjects .statLabel {
+  color: #2f5233;
+}
+
+
+/* === COMPLETED === */
+.completedProjects {
+  background: linear-gradient(135deg, #80deea 0%, #bdfae0 100%);
+  color: #005662;
+}
+
+.completedProjects .statIcon {
+  background: rgba(0, 86, 98, 0.2);
+  color: #005662;
+}
+
+.completedProjects .statNumber,
+.completedProjects .statLabel {
+  color: #005662;
+}
+
+
+/* === ATTENTION NEEDED === */
+.unassignedInterns,
+.pendingRepositoryInfo {
+  background: linear-gradient(135deg, #f78c96 0%, #f8c6a5 100%);
+  color: #990000;
+}
+
+.unassignedInterns .statIcon,
+.pendingRepositoryInfo .statIcon {
+  background: rgba(110, 1, 1, 0.15);
+  color: #990000;
+}
+
+.unassignedInterns .statNumber,
+.unassignedInterns .statLabel,
+.pendingRepositoryInfo .statNumber,
+.pendingRepositoryInfo .statLabel {
+  color: #990000;
+}
+
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #1f2937;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+}
+
+.modalClose:hover {
+  background: #f3f4f6;
+}
+
+.modalContent {
+  padding: 1.5rem;
+}
+
+.modalContent p {
+  margin: 0 0 1.5rem 0;
+  color: #6b7280;
+}
+
+.exportOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.exportOption {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.exportOption:hover {
+  border-color: #3498db;
+  background: #f8fafc;
+}
+
+.exportOption:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.exportIcon {
+  font-size: 2rem;
+}
+
+.exportOption strong {
+  display: block;
+  color: #1f2937;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.exportOption span {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 3rem 1rem;
+  }
+  
+  .title {
+    font-size: 2.5rem;
+  }
+  
+  .subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .features {
+    padding: 3rem 1rem;
+  }
+  
+  .featureGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .featureCard {
+    padding: 1.5rem;
+  }
+  
+  .stats {
+    padding: 3rem 1rem;
+  }
+  
+  .statsTitle {
+    font-size: 1.75rem;
+    margin-bottom: 2rem;
+  }
+  
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .statCard {
+    padding: 1.5rem 1rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .statIcon {
+    font-size: 2rem;
+    min-width: 50px;
+    min-height: 50px;
+  }
+
+  .statNumber {
+    font-size: 2rem;
+  }
+  
+  .statLabel {
+    font-size: 0.9rem;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .bulkDataBtn,
+  .exportBtn {
+    width: 100%;
+    max-width: 250px;
+  }
+  
+  .modal {
+    margin: 1rem;
+    width: calc(100% - 2rem);
+  }
+  
+  .exportOptions {
+    gap: 0.75rem;
+  }
+  
+  .exportOption {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 2rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+  
+  .statsTitle {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .statCard {
+    padding: 1.25rem 0.75rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .statIcon {
+    font-size: 1.75rem;
+    min-width: 45px;
+    min-height: 45px;
+  }
+
+  .statNumber {
+    font-size: 1.75rem;
+  }
+  
+  .statLabel {
+    font-size: 0.85rem;
+  }
+  
+  .bulkDataBtn,
+  .exportBtn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}

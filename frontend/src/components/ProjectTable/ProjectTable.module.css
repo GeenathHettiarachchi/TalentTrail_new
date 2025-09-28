@@ -1,0 +1,333 @@
+/* ProjectTable.module.css */
+.container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+thead {
+  background: linear-gradient(90deg, #08025f 0%, #02644c 75%);
+  height: 4rem;
+}
+
+.table th {
+  padding: 16px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: white;
+  border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table td {
+  padding: 16px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.row:hover {
+  background: #f8fafc;
+}
+
+.row:last-child td {
+  border-bottom: none;
+}
+
+.projectInfo {
+  min-width: 200px;
+}
+
+.projectNameRow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.projectName { font-weight: 600; color: #1f2937; margin-bottom: 4px; }
+.inlineActions { margin-left: 8px; display: inline-flex; position: relative; }
+
+.expandCell { width: 40px; }
+.expandBtn { border: none; background: none; cursor: pointer; padding: 0.25rem; border-radius: 6px; font-size: 1.1rem; color: #6b7280; }
+.expandBtn:hover { background: #f1f5f9; color: #111827; }
+
+.teamCount {font-weight: 600; margin-left: 0.25rem;}
+
+.expandRow { background: #f9fafb; }
+.expandedContent { padding: 0.5rem 0; }
+.teamsHeader { font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; display: inline-block; background-color: rgb(221, 221, 221); padding: 0.2rem 0.75rem; border-radius: 0.5rem;}
+.teamsExpandedList { display: flex; flex-direction: column; gap: 4px; color: #374151; margin-left: 0.75rem;}
+.teamNameItem { color: #374151; font-weight: 400; }
+.noTeams { color: #9ca3af; font-style: italic; }
+
+.projectDescription {
+  color: #6b7280;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statusPlanned {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.statusInProgress {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.statusCompleted {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.statusOnHold {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.teamName,
+.managerName {
+  color: #374151;
+  font-weight: 500;
+}
+
+.overdue {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.dueToday {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.dueSoon {
+  color: #d97706;
+  font-weight: 500;
+}
+
+.dueLater {
+  color: #6b7280;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* old inline action buttons removed in favor of menu */
+
+/* 3-dot menu */
+.actionsCell { position: relative; width: 50px; text-align: center; }
+.menuButton { background: none; border: none; padding: 4px; border-radius: 6px; cursor: pointer; font-size: 1.25rem; color: #6b7280; display: inline-flex; align-items: center; justify-content: center; }
+.menuButton:hover { background: #f1f5f9; color: #111827; }
+.menu { position: absolute; top: 28px; right: 0; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); min-width: 140px; z-index: 2; padding: 6px; }
+.menuItem { width: 100%; background: none; border: none; text-align: left; padding: 8px 10px; border-radius: 6px; font-size: 0.9rem; color: #374151; cursor: pointer; }
+.menuItem:hover { background: #f8fafc; }
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #6b7280;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.emptyTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.emptyText {
+  color: #6b7280;
+  font-size: 1rem;
+  max-width: 400px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.teamNames {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.multipleTeams {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.noTeam {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .table th,
+  .table td {
+    padding: 12px 8px;
+  }
+  
+  .projectInfo {
+    min-width: 150px;
+  }
+  
+  .projectDescription {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .tableWrapper {
+    border-radius: 0;
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .table {
+    font-size: 0.8rem;
+    min-width: 800px; /* Ensure horizontal scrolling */
+  }
+  
+  .table th,
+  .table td {
+    padding: 10px 6px;
+  }
+  
+  .projectInfo {
+    min-width: 120px;
+  }
+  
+  .projectName {
+    font-size: 0.875rem;
+  }
+  
+  .statusBadge {
+    padding: 3px 8px;
+    font-size: 0.7rem;
+  }
+  
+  .actions {
+    gap: 4px;
+  }
+  
+  .editBtn,
+  .deleteBtn {
+    padding: 4px;
+    font-size: 0.8rem;
+  }
+  
+  /* Hide only non-essential columns on mobile */
+  .table th:nth-child(6),
+  .table td:nth-child(6) {
+    display: none; /* Hide Days Remaining column */
+  }
+  
+  .table th:nth-child(7),
+  .table td:nth-child(7) {
+    display: none; /* Hide Project Manager column */
+  }
+}
+
+@media (max-width: 480px) {
+  .table {
+    min-width: 700px; /* Increased minimum width to show more columns */
+  }
+  
+  /* On very small screens, also hide start date but keep target date and status */
+  .table th:nth-child(4),
+  .table td:nth-child(4) {
+    display: none; /* Hide Start Date column */
+  }
+  
+  .empty {
+    padding: 40px 20px;
+  }
+  
+  .emptyIcon {
+    font-size: 3rem;
+  }
+  
+  .emptyTitle {
+    font-size: 1.25rem;
+  }
+  
+  .emptyText {
+    font-size: 0.875rem;
+  }
+}
+
+/* Role-based styles */
+.row.clickable {
+  cursor: pointer;
+}
+
+.row:not(.clickable) {
+  cursor: default;
+}
+
+.viewOnly {
+  color: #6c757d;
+  font-style: italic;
+  font-size: 0.85rem;
+}

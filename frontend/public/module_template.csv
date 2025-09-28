@@ -1,0 +1,5 @@
+﻿module_name,module_description,module_owner_intern_code,module_status,function_name,function_description,function_developer_intern_code,function_status
+Authentication,Enables a user to log in to the system,1234,NOT_STARTED,Admin Login,Enables an admin to login via credentials,1234,PENDING
+Authentication,Enables a user to log in to the system,1234,NOT_STARTED,Intern Login via Google,Enables an intern to login via Google OAuth,1235,IN_DEVELOPMENT
+Bulk Data IO,Enables an admin to import data in bulks,1236,IN_PROGRESS,Import Bulk Data,Enables admin to import data of all Project Managers (and others),1236,IN_DEVELOPMENT
+Bulk Data IO,Enables an admin to import data in bulks,1236,IN_PROGRESS,Export Data,Enables admin to export data,1236,PENDING

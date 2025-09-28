@@ -1,0 +1,67 @@
+# ===== GENERAL =====
+.DS_Store
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.orig
+
+*.local
+
+# ===== FRONTEND (Vite + npm) =====
+frontend/node_modules/
+frontend/dist/
+
+frontend/.vite/
+frontend/.cache/
+frontend/.eslintcache
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/package-lock.json
+
+# Vite preview server cache
+frontend/.vite-deploy/
+
+# ===== BACKEND (Spring Boot + Maven) =====
+backend/target/
+
+backend/.idea
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/*.log
+backend/*.iml
+backend/.classpath
+backend/.project
+backend/.settings/
+
+# Maven wrapper jar (optional: keep if version control is needed)
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# ===== IDEs =====
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# ===== OS-SPECIFIC =====
+# macOS
+*.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# Logs (general)
+logs/
+spring.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

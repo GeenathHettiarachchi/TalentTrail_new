@@ -1,0 +1,598 @@
+/* TeamProfile.module.css */
+.container {
+  max-width: 1440px;
+  min-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  color: #475569;
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.editBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editBtn:hover {
+  background: #2563eb;
+}
+
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteBtn:hover {
+  background: #dc2626;
+}
+
+.content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  padding: 32px;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 12px;
+}
+
+.teamInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.teamName {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.teamStats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 1.125rem;
+}
+
+.statItem {
+  font-weight: 500;
+}
+
+.statDivider {
+  font-weight: bold;
+}
+
+.topGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 32px;
+  margin-top: 32px;
+}
+
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 300px;
+}
+
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 300px;
+}
+
+.leftColumn .section {
+  flex: 1;
+  min-height: 250px;
+}
+
+.rightColumn .section {
+  flex: 1;
+  min-height: 250px;
+}
+
+.scrollableContent {
+  overflow-y: visible;
+  flex: 1;
+}
+
+.membersSection {
+  width: 100%;
+}
+
+.membersSection .section {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+}
+
+.section {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 16px 0;
+  flex-shrink: 0;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.infoLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.infoValue {
+  font-size: 1rem;
+  color: #374151;
+  font-weight: 600;
+}
+
+.clickableValue {
+  color: #3b82f6;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.clickableValue:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.assignmentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.assignmentCard {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.assignmentCard:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.projectIcon {
+  width: 48px;
+  height: 48px;
+  background: #3b82f6;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.assignmentInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.assignmentName {
+  font-weight: 600;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.assignmentMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.projectDates {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: fit-content;
+}
+
+.statusPlanned {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.statusInProgress {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.statusCompleted {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.statusOnHold {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.unassigned {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.unassignedIcon {
+  width: 48px;
+  height: 48px;
+  background: #f3f4f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.tableContainer {
+  margin-top: 16px;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #6b7280;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.errorIcon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.error h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.error p {
+  color: #6b7280;
+  margin: 0 0 24px 0;
+}
+
+.retryBtn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #3b82f6;
+  color: white;
+  border: none;
+}
+
+.retryBtn:hover {
+  background: #2563eb;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .container {
+    min-width: auto; /* Override desktop min-width for mobile */
+    max-width: 100%;
+    padding: 20px 16px;
+  }
+  
+  .topGrid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  
+  .leftColumn,
+  .rightColumn {
+    min-height: auto;
+  }
+  
+  .leftColumn {
+    order: 1;
+  }
+  
+  .rightColumn {
+    order: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    min-width: auto; /* Override desktop min-width for mobile */
+    max-width: 100%;
+    padding: 16px 12px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .editBtn,
+  .deleteBtn {
+    padding: 8px 12px;
+    font-size: 0.875rem;
+  }
+  
+  .titleSection {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 20px;
+  }
+  
+  .teamName {
+    font-size: 1.875rem;
+  }
+  
+  .content {
+    padding: 20px;
+  }
+  
+  .topGrid {
+    gap: 16px;
+  }
+  
+  .leftColumn,
+  .rightColumn {
+    min-height: auto;
+  }
+  
+  .section {
+    padding: 16px;
+  }
+  
+  .assignmentCard,
+  .unassigned {
+    padding: 14px;
+  }
+  
+  .projectIcon,
+  .unassignedIcon {
+    width: 44px;
+    height: 44px;
+    font-size: 1.375rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    min-width: auto; /* Override desktop min-width for mobile */
+    max-width: 100%;
+    padding: 12px 8px;
+  }
+  
+  .header {
+    gap: 12px;
+  }
+  
+  .actions {
+    gap: 8px;
+  }
+  
+  .editBtn,
+  .deleteBtn {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    min-width: 70px;
+  }
+  
+  .titleSection {
+    padding: 16px;
+  }
+  
+  .teamName {
+    font-size: 1.5rem;
+  }
+  
+  .content {
+    padding: 16px;
+  }
+  
+  .topGrid {
+    gap: 12px;
+  }
+  
+  .section {
+    padding: 12px;
+  }
+  
+  .sectionTitle {
+    font-size: 1.125rem;
+  }
+  
+  .assignmentCard,
+  .unassigned {
+    padding: 12px;
+  }
+  
+  .projectIcon,
+  .unassignedIcon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.125rem;
+  }
+  
+  .teamStats {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    font-size: 1rem;
+  }
+  
+  .statDivider {
+    display: none;
+  }
+  
+  .assignmentName {
+    font-size: 0.9rem;
+  }
+  
+  .projectDates {
+    font-size: 0.8rem;
+  }
+  
+  .manageMembersBtn {
+    padding: 8px 12px;
+    font-size: 0.875rem;
+  }
+}
+
+/* Manage Members Button */
+.manageMembersBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.manageMembersBtn:hover {
+  background: #7c3aed;
+  transform: translateY(-1px);
+}

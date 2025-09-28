@@ -1,0 +1,10 @@
+export { default as Home } from './Home/Home';
+export { default as Interns } from './Interns/Interns';
+export { default as InternProfile } from './InternProfile/InternProfile';
+export { default as Teams } from './Teams/Teams';
+export { default as TeamProfile } from './TeamProfile/TeamProfile';
+export { default as Projects } from './Projects/Projects';
+export { default as ProjectProfile } from './ProjectProfile/ProjectProfile';
+export { default as DevOps } from './DevOps/DevOps';
+export { default as QA } from './QA/QA';
+export { default as AddBulkData } from './AddBulkData/AddBulkData';

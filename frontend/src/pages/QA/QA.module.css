@@ -1,0 +1,255 @@
+.container { min-height: calc(100vh - 140px); padding: 2rem 1rem; max-width: 1440px; min-width: 1440px; margin: 0 auto; }
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.title {
+  color: #2c3e50;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #6c757d;
+  font-size: 1.1rem;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.content { min-width: calc(1440px - 2rem); margin: 0 auto; }
+
+.actionSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.primaryBtn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.625rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.primaryBtn:hover {
+  background-color: #2563eb;
+}
+
+.filterSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.searchSection { display: flex; align-items: center; gap: 0.5rem; }
+.sortSection { display: flex; align-items: center; gap: 0.75rem; }
+.filterSelect { padding: 0.625rem 1.5rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 0.875rem; background: #fff; cursor: pointer; outline: none; min-width: 220px; }
+.filterSelect:focus { border-color: #3498db; }
+
+.searchInput {
+  padding: 0.685rem 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  min-width: 280px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.searchInput:focus {
+  border-color: #3498db;
+}
+
+.errorAlert {
+  background-color: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-left: 4px solid #e53e3e;
+  color: #c53030;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.errorIcon {
+  font-size: 1.2rem;
+}
+
+.errorText {
+  flex: 1;
+  font-weight: 500;
+}
+
+.errorClose {
+  background: none;
+  border: none;
+  color: #c53030;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.errorClose:hover {
+  background-color: #fed7d7;
+}
+
+.tableSection {
+  margin-top: 1rem;
+}
+
+.tableHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tableTitle {
+  color: #2c3e50;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.searchInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.clearSearch {
+  background: none;
+  border: none;
+  color: #3498db;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.clearSearch:hover {
+  color: #2980b9;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .container {
+    min-width: auto;
+    max-width: 100%;
+    padding: 1.5rem 1rem;
+  }
+  
+  .content {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .actionSection {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .sortSection {
+    justify-content: center;
+  }
+  
+  .filterSelect {
+    min-width: auto;
+    flex: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    min-width: auto;
+    max-width: 100%;
+    padding: 1.5rem 0.5rem;
+  }
+  
+  .content {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+  
+  .actionSection {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .searchSection {
+    justify-content: center;
+  }
+  
+  .searchInput {
+    min-width: 200px;
+    flex: 1;
+  }
+  
+  .tableHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    min-width: auto;
+    max-width: 100%;
+    padding: 1rem 0.5rem;
+  }
+  
+  .content {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .title {
+    font-size: 1.75rem;
+  }
+  
+  .searchSection {
+    flex-direction: column;
+  }
+  
+  .searchInput {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .filterSelect {
+    width: 100%;
+    min-width: auto;
+  }
+}

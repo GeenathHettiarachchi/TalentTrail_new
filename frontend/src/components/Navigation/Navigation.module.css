@@ -1,0 +1,174 @@
+.navbar {
+  background-color: #050142;
+  background: linear-gradient(90deg, #050142 0%, #014736 90%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navContainer {
+  margin: 0 auto;
+  /* padding: 0 2.5rem; */
+  display: flex;
+  justify-content: space-between; /* Make space between logo and right section */
+  align-items: center;
+  height: 90px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #ecf0f1;
+  font-weight: 600;
+  font-size: 1rem;
+  padding-left: 1rem;
+}
+
+.logoImg {
+  height: 60px;
+  width: auto;
+  margin-right: 0.5rem;
+}
+
+.logoText2 {
+  background: linear-gradient(90deg, #5fda59, #1CB3E8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.logoText {
+  color: #ecf0f1;
+  font-size: 0.8rem;
+  margin-left: 1.5rem;
+  font-weight: 400;
+  letter-spacing: 0.05rem;
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-right: 2.5rem;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  color: #ecf0f1;
+  font-size: 0.85rem;
+}
+
+.userGreeting {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  color: #bdc3c7;
+}
+
+.menuButton {
+  display: none; /* Hidden on desktop */
+  background: none;
+  border: none;
+  color: #bdc3c7;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.menuButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.userName {
+  font-weight: 600;
+  margin-bottom: 0.125rem;
+}
+
+.userRole {
+  color: #bdc3c7;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.logoutButton {
+  /* background-color: #e74c3c; */
+  background-color: transparent;
+  color: #bdc3c7;
+  border: none;
+  padding: 0 1.5rem; /* Remove top/bottom padding */
+  border-radius: 0; /* Remove border radius for full height effect */
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 100%; /* Take full height */
+  display: flex;
+  align-items: center; /* Center text vertically */
+}
+
+.logoutButton:hover {
+  background-color: maroon;
+  color: white;
+  transform: none; /* Remove transform to maintain full height */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navContainer {
+    padding: 0 1rem;
+    height: 60px;
+  }
+
+  .logo {
+    padding-left: 0;
+  }
+
+  .logoText {
+    display: none;
+  }
+
+  .logoImg {
+    height: 40px;
+  }
+
+  .rightSection {
+    padding-right: 0;
+    gap: 0.5rem;
+  }
+
+  .userInfo {
+    font-size: 0.8rem;
+  }
+
+  .menuButton {
+    display: flex; /* Show on mobile */
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .logoText2 {
+    font-size: 1.25rem;
+  }
+
+  .userInfo {
+    display: none;
+  }
+  
+  .rightSection {
+    gap: 0;
+  }
+}

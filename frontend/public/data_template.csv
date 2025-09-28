@@ -1,0 +1,7 @@
+﻿intern_code,name,email,institute,training_start_date,training_end_date,team_name,team_leader_intern_code,project_name,project_description,project_manager_id,project_status,project_start_date,project_target_date
+INT001,John Doe,john.doe@email.com,ABC University,15/01/2024,15/06/2024,Alpha - Web Dev,INT002,Alpha,Building a web/mobile application for Alpha,INT002,IN_PROGRESS,01/02/2024,31/05/2024
+INT002,Jane Smith,jane.smith@email.com,XYZ Institute,20/01/2024,20/06/2024,Alpha - Web Dev,INT002,Alpha,Building a web/mobile application for Alpha,INT002,IN_PROGRESS,01/02/2024,31/05/2024
+INT003,Bob Johnson,bob.johnson@email.com,DEF College,01/02/2024,01/07/2024,Alpha - Mobile Dev,INT003,Alpha,Building a web/mobile application for Alpha,INT002,IN_PROGRESS,01/02/2024,31/05/2024
+INT001,John Doe,john.doe@email.com,ABC University,15/01/2024,15/06/2024,Alpha - Mobile Dev,INT003,Alpha,Building a web/mobile application for Alpha,INT002,IN_PROGRESS,01/02/2024,31/05/2024
+INT003,Bob Johnson,bob.johnson@email.com,DEF College,01/02/2024,01/07/2024,E-commerce Platform,INT003,E-commerce Platform,Building a modern e-commerce platform,INT003,IN_PROGRESS,15/02/2024,15/06/2024
+INT002,Jane Smith,jane.smith@email.com,XYZ Institute,20/01/2024,20/06/2024,E-commerce Platform,INT003,E-commerce Platform,Building a modern e-commerce platform,INT003,IN_PROGRESS,15/02/2024,15/06/2024
