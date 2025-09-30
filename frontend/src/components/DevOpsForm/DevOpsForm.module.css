@@ -308,3 +308,10 @@
     font-size: 1.125rem;
   }
 }
+
+.multiSelect {
+  position: relative;
+  display: block;
+}
+
+
