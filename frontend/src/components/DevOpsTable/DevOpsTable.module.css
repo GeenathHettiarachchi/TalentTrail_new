@@ -84,6 +84,31 @@
   font-weight: 500;
 }
 
+.mobile {
+  white-space: nowrap;
+}
+
+.projectsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.projectBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #374151;
+  font-size: 12px;
+  line-height: 18px;
+  border: 1px solid #e5e7eb;
+}
+
+.projects {
+  color: #6c757d;
+}
+
 .resourceType {
   color: #495057;
 }
