@@ -64,6 +64,18 @@ const DevOpsForm = ({
     'Ansible'
   ];
 
+  const projects = [
+    'CI/CD',
+    'Monitoring',
+    'Cloud Migration',
+    'Containerization',
+    'Infrastructure as Code',
+    'Observability',
+    'DevSecOps',
+    'Release Automation'
+  ];
+
+
   const validateForm = () => {
     const newErrors = {};
 
