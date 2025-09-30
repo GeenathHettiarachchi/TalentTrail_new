@@ -19,6 +19,9 @@ const DevOpsForm = ({
     projects: []
   });
 
+
+  const [isRTOpen, setIsRTOpen] = useState(false);
+  const [isProjOpen, setIsProjOpen] = useState(false);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
