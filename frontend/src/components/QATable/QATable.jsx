@@ -41,7 +41,39 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
     // navigate(`/qa/${intern.internId}`); // enable when detail page exists
   }, []);
 
-  
+  // --- Helpers to normalize values into arrays and split CSV strings ---
+  const splitCSV = (val) =>
+    val
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+  const toToolsList = (intern) => {
+    // Prefer 'tools'; fallback to 'skills'
+    const v = intern?.tools ?? intern?.skills;
+    if (!v) return [];
+    if (Array.isArray(v)) return v.map(String).map((s) => s.trim()).filter(Boolean);
+    if (typeof v === 'string') return splitCSV(v);
+    return [];
+  };
+
+  const toProjectsList = (intern) => {
+    const v = intern?.projects;
+    if (!v) return [];
+    // Accept: ['A','B'] or [{id,name}, ...]
+    if (Array.isArray(v)) {
+      return v
+        .map((x) => (typeof x === 'string' ? { name: x.trim() } : x))
+        .filter((p) => (p?.name || '').trim())
+        .map((p) => ({ id: p.id, name: p.name.trim() }));
+    }
+    // Accept: "A, B, C"
+    if (typeof v === 'string') {
+      return splitCSV(v).map((name) => ({ name }));
+    }
+    return [];
+  };
+
 
   if (isLoading) {
     return (
