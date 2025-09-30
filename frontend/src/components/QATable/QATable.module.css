@@ -64,7 +64,11 @@
   font-size: 0.85rem;
 }
 
-
+.nameCell { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+}
 
 .name {
   font-weight: 600;
