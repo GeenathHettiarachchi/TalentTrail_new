@@ -94,3 +94,40 @@ const QAForm = ({
       setErrors({});
     }, [current, isOpen]);
   
+     // ---------- Validation ----------
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.internCode.trim()) {
+      newErrors.internCode = 'Trainee ID is required';
+    } else if (formData.internCode.length < 3) {
+      newErrors.internCode = 'Trainee ID must be at least 3 characters';
+    }
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    } else if (formData.name.length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+
+    if (!formData.mobileNumber.trim()) {
+      newErrors.mobileNumber = 'Mobile number is required';
+    } else if (!/^(\+94|0)?7\d{8}$/.test(formData.mobileNumber.trim())) {
+      newErrors.mobileNumber = 'Enter a valid Sri Lanka mobile e.g. 07XXXXXXXX';
+    }
+
+    // Training End Date: only require a value; allow past dates
+    if (!formData.trainingEndDate) {
+      newErrors.trainingEndDate = 'End date is required';
+    }
+    
+
+    return newErrors;
+  };
+  
