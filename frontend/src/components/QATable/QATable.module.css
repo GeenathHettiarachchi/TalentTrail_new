@@ -79,6 +79,8 @@
   color: #6c757d;
 }
 
+
+
 .endDate {
   color: #dc3545;
   font-weight: 500;
@@ -88,24 +90,16 @@
   color: #495057;
 }
 
+.muted { 
+  color: #6b7280; 
+}
+
 .actionsCell { 
   position: relative; 
   width: 50px; 
   text-align: center; 
 }
 
-.menuButton {
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 6px;
-  font-size: 1.25rem;
-  color: #6c757d;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
 
 .menuButton:hover {
   background-color: #f1f3f5;
@@ -125,17 +119,7 @@
   padding: 6px;
 }
 
-.menuItem {
-  width: 100%;
-  background: none;
-  border: none;
-  text-align: left;
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  color: #374151;
-  cursor: pointer;
-}
+
 
 .menuItem:hover {
   background: #f8fafc;
@@ -197,6 +181,35 @@
   margin: 0;
   text-align: center;
 }
+
+/* Stack vertically (keep from earlier) */
+.list,
+.toolsList,
+.projectsList {
+  display: grid;           /* one per line */
+  grid-auto-flow: row;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Compact pill badges */
+.listItemTool,
+.listItemProject {
+  display: inline-flex;     /* shrink to content */
+  width: fit-content;       /* or: width: auto; */
+  max-width: 100%;
+  padding: 2px 8px;         /* smaller padding */
+  border-radius: 999px;     /* pill */
+  background: #f1f3f5;      /* light grey */
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 12px;          /* smaller text */
+  line-height: 1.2;
+  white-space: nowrap;      /* keeps each badge compact */
+}
+
 
 /* Responsive Design */
 @media (max-width: 1024px) {
