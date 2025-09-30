@@ -42,6 +42,16 @@ const DevOpsTable = React.memo(({
     }
   }, []);
 
+  const toList = useCallback((value) => {
+    if (Array.isArray(value)) {
+      return value.map(v => String(v).trim()).filter(Boolean);
+    }
+    if (typeof value === 'string' && value.trim()) {
+      return value.split(',').map(v => v.trim()).filter(Boolean);
+    }
+    return [];
+  }, []);
+
   const handleRowClick = useCallback((intern, e) => {
     // Don't trigger if edit or delete button was clicked
     if (
