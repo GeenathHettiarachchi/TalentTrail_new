@@ -1,3 +1,4 @@
+// src/pages/QA/QA.jsx
 import React, { useState, useEffect } from 'react';
 import { QAForm, QATable } from '../../components';
 import styles from './QA.module.css';
@@ -13,55 +14,67 @@ const QA = () => {
   const [error, setError] = useState('');
   const [sortOption, setSortOption] = useState('internCode:asc');
 
-  // Mock data for QA interns
+  // ---- Mock data with Mobile + Tools[] + Projects[] ----
   const mockQAData = [
     {
       internId: 1,
       internCode: 'QA001',
       name: 'Amanda Rodriguez',
       email: 'amanda.rodriguez@example.com',
+      mobileNumber: '0771234567',
       trainingEndDate: '2024-12-20',
-      skills: 'Automation Testing, Selenium, API Testing'
+      tools: ['Automation Testing', 'Selenium', 'API Testing'],
+      projects: [{ name: 'Mobile Banking' }, { name: 'Billing Portal' }]
     },
     {
       internId: 2,
       internCode: 'QA002',
       name: 'Robert Kim',
       email: 'robert.kim@example.com',
+      mobileNumber: '0715556677',
       trainingEndDate: '2024-11-25',
-      skills: 'Manual Testing, Test Planning, Bug Tracking'
+      tools: ['Manual Testing', 'Test Planning', 'Bug Tracking'],
+      projects: [{ name: 'Vendor Onboarding' }]
     },
     {
       internId: 3,
       internCode: 'QA003',
       name: 'Jennifer Lee',
       email: 'jennifer.lee@example.com',
+      mobileNumber: '0754443322',
       trainingEndDate: '2025-01-15',
-      skills: 'Performance Testing, Load Testing, JMeter'
+      tools: ['Performance Testing', 'Load Testing', 'JMeter'],
+      projects: [{ name: 'Payments Gateway' }]
     },
     {
       internId: 4,
       internCode: 'QA004',
       name: 'Mark Thompson',
       email: 'mark.thompson@example.com',
+      mobileNumber: '0762228899',
       trainingEndDate: '2024-12-05',
-      skills: 'Mobile Testing, Appium, Cross-platform Testing'
+      tools: ['Mobile Testing', 'Appium', 'Cross-platform Testing'],
+      projects: [{ name: 'Field Sales App' }]
     },
     {
       internId: 5,
       internCode: 'QA005',
       name: 'Rachel Green',
       email: 'rachel.green@example.com',
+      mobileNumber: '0709988776',
       trainingEndDate: '2025-02-10',
-      skills: 'Security Testing, Penetration Testing, OWASP'
+      tools: ['Security Testing', 'Penetration Testing', 'OWASP'],
+      projects: [{ name: 'Identity & Access' }]
     },
     {
       internId: 6,
       internCode: 'QA006',
       name: 'Daniel Martinez',
       email: 'daniel.martinez@example.com',
+      mobileNumber: '0786677554',
       trainingEndDate: '2025-01-03',
-      skills: 'Database Testing, SQL, Test Data Management'
+      tools: ['Database Testing', 'SQL', 'Test Data Management'],
+      projects: [{ name: 'Data Warehouse' }]
     }
   ];
 
