@@ -372,3 +372,33 @@
   z-index: 20;
   animation: dropdownFade 0.12s ease-out;
 }
+
+@keyframes dropdownFade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #374151;
+  cursor: pointer;
+}
+
+.optionRow:hover {
+  background: #f8fafc;
+}
+
+.optionRow input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #6366f1;
+}
+
+@media (max-width: 480px) {
+  .multiMenu { max-height: 50vh; }
+}
