@@ -304,30 +304,89 @@ const DevOpsForm = ({
               )}
             </div>
 
-            <div className={styles.inputGroup}>
-              <label className={styles.label} htmlFor="resourceType">
+             <div className={styles.inputGroup}>
+              <label className={styles.label}>
                 <FiServer className={styles.labelIcon} />
                 Resource Type
               </label>
-              <select
-                id="resourceType"
-                name="resourceType"
-                value={formData.resourceType}
-                onChange={handleInputChange}
-                className={`${styles.input} ${styles.select} ${errors.resourceType ? styles.inputError : ''}`}
-                disabled={isLoading}
-                required
+              <div
+                className={`${styles.multiSelect} ${errors.resourceType ? styles.inputError : ''}`}
+                onClick={() => !isLoading && setIsRTOpen(v => !v)}
+                role="button"
+                aria-expanded={isRTOpen}
               >
-                <option value="">Select resource type</option>
-                {resourceTypes.map(type => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
+                <div className={styles.multiControl}>
+                  <div className={styles.multiValue}>
+                    {formData.resourceType.length
+                      ? formData.resourceType.join(', ')
+                      : 'Select one or more…'}
+                  </div>
+                  <FiChevronDown className={styles.caret} />
+                </div>
+                {isRTOpen && (
+                  <div
+                    className={styles.multiMenu}
+                    onClick={(e) => e.stopPropagation()}
+                    role="listbox"
+                  >
+                    {resourceTypes.map(opt => (
+                      <label key={opt} className={styles.optionRow}>
+                        <input
+                          type="checkbox"
+                          checked={formData.resourceType.includes(opt)}
+                          onChange={() => toggleMulti('resourceType', opt)}
+                          disabled={isLoading}
+                        />
+                        <span>{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
               {errors.resourceType && (
                 <span className={styles.errorText}>{errors.resourceType}</span>
               )}
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>
+                <FiLayers className={styles.labelIcon} />
+                Projects
+              </label>
+              <div
+                className={styles.multiSelect}
+                onClick={() => !isLoading && setIsProjOpen(v => !v)}
+                role="button"
+                aria-expanded={isProjOpen}
+              >
+                <div className={styles.multiControl}>
+                  <div className={styles.multiValue}>
+                    {formData.projects.length
+                      ? formData.projects.join(', ')
+                      : 'Select one or more…'}
+                  </div>
+                  <FiChevronDown className={styles.caret} />
+                </div>
+                {isProjOpen && (
+                  <div
+                    className={styles.multiMenu}
+                    onClick={(e) => e.stopPropagation()}
+                    role="listbox"
+                  >
+                    {projects.map(opt => (
+                      <label key={opt} className={styles.optionRow}>
+                        <input
+                          type="checkbox"
+                          checked={formData.projects.includes(opt)}
+                          onChange={() => toggleMulti('projects', opt)}
+                          disabled={isLoading}
+                        />
+                        <span>{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -357,7 +416,8 @@ const DevOpsForm = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
