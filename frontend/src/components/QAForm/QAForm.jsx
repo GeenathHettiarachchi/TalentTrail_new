@@ -31,3 +31,9 @@ const QAForm = ({
     trainingEndDate: '',
   });
 }
+
+// Tools: array of strings
+  const [tools, setTools] = useState([]);
+  const [toolInput, setToolInput] = useState('');
+
+  
