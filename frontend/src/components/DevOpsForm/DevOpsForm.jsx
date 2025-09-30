@@ -159,6 +159,8 @@ const DevOpsForm = ({
 
   const handleClose = () => {
     if (!isLoading) {
+      setIsRTOpen(false);
+      setIsProjOpen(false);
       onClose();
     }
   };
