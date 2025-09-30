@@ -125,6 +125,11 @@ const DevOpsTable = React.memo(({
                 <td className={styles.td}>
                   <span className={styles.email}>{intern.email}</span>
                 </td>
+                <td className={styles.td}>                   
+                  <span className={styles.mobile}>           
+                    {intern.mobileNumber}             
+                  </span>  
+                </td>
                 <td className={styles.td}>
                   <span className={styles.endDate}>
                     {formatDate(intern.trainingEndDate)}
