@@ -117,206 +117,197 @@ const QA = () => {
           });
 
     // Sorting
-    const [sortField, sortOrder] = (sortOption || 'none').split(':');
-    if (sortField && sortOrder && sortField !== 'none') {
-      list.sort((a, b) => {
-        let aVal, bVal;
-        
-        switch (sortField) {
-          case 'internCode':
-            aVal = a.internCode;
-            bVal = b.internCode;
-            break;
-          case 'endDate':
-            aVal = a.trainingEndDate;
-            bVal = b.trainingEndDate;
-            break;
-          case 'skills':
-            aVal = a.skills;
-            bVal = b.skills;
-            break;
-          default:
-            return 0;
+        const [sortField, sortOrder] = (sortOption || 'none').split(':');
+        if (sortField && sortOrder && sortField !== 'none') {
+          const toText = (v) => (v ?? '').toString();
+          const join = (arr) => (arr && arr.length ? arr.join(', ') : '');
+          const joinNames = (arr) =>
+            arr && arr.length ? arr.map((x) => (x?.name || x || '')).join(', ') : '';
+    
+          list.sort((a, b) => {
+            let aVal, bVal;
+    
+            switch (sortField) {
+              case 'internCode': aVal = a.internCode; bVal = b.internCode; break;
+              case 'name':       aVal = a.name;       bVal = b.name;       break;
+              case 'email':      aVal = a.email;      bVal = b.email;      break;
+              case 'mobile':     aVal = a.mobileNumber; bVal = b.mobileNumber; break;
+              case 'endDate':    aVal = a.trainingEndDate; bVal = b.trainingEndDate; break;
+              case 'tools':      aVal = Array.isArray(a.tools) ? join(a.tools) : toText(a.tools || a.skills); 
+                                bVal = Array.isArray(b.tools) ? join(b.tools) : toText(b.tools || b.skills); 
+                                break;
+              case 'projects':   aVal = joinNames(a.projects); bVal = joinNames(b.projects); break;
+              default: return 0;
+            }
+    
+            let cmp = 0;
+            if (sortField === 'endDate') {
+              const aDate = aVal ? new Date(aVal) : null;
+              const bDate = bVal ? new Date(bVal) : null;
+              if (!aDate && bDate) cmp = -1;
+              else if (aDate && !bDate) cmp = 1;
+              else if (aDate && bDate) cmp = aDate - bDate;
+            } else {
+              cmp = toText(aVal).localeCompare(toText(bVal), undefined, {
+                numeric: true,
+                sensitivity: 'base'
+              });
+            }
+            return sortOrder === 'asc' ? cmp : -cmp;
+          });
         }
-
-        let cmp = 0;
-        if (sortField === 'endDate') {
-          const aDate = aVal ? new Date(aVal) : null;
-          const bDate = bVal ? new Date(bVal) : null;
-          if (!aDate && bDate) cmp = -1;
-          else if (aDate && !bDate) cmp = 1;
-          else if (aDate && bDate) cmp = aDate - bDate;
-        } else {
-          cmp = (aVal || '').localeCompare(bVal || '', undefined, { numeric: true, sensitivity: 'base' });
+    
+        setFilteredInterns(list);
+      }, [qaInterns, searchTerm, sortOption]);
+    
+      const handleAddIntern = () => {
+        setSelectedIntern(null);
+        setIsFormOpen(true);
+      };
+    
+      const handleEditIntern = (intern) => {
+        setSelectedIntern(intern);
+        setIsFormOpen(true);
+      };
+    
+      const handleDeleteIntern = async (internId) => {
+        try {
+          setError('');
+          setQAInterns((prev) => prev.filter((intern) => intern.internId !== internId));
+        } catch (err) {
+          console.error('Error deleting QA intern:', err);
+          setError('Failed to delete QA intern. Please try again.');
         }
-        
-        return sortOrder === 'asc' ? cmp : -cmp;
-      });
-    }
-    setFilteredInterns(list);
-  }, [qaInterns, searchTerm, sortOption]);
-
-  const handleAddIntern = () => {
-    setSelectedIntern(null);
-    setIsFormOpen(true);
-  };
-
-  const handleEditIntern = (intern) => {
-    setSelectedIntern(intern);
-    setIsFormOpen(true);
-  };
-
-  const handleDeleteIntern = async (internId) => {
-    try {
-      setError('');
-      // Mock delete functionality
-      setQAInterns(prev => prev.filter(intern => intern.internId !== internId));
-    } catch (err) {
-      console.error('Error deleting QA intern:', err);
-      setError('Failed to delete QA intern. Please try again.');
-    }
-  };
-
-  const handleFormSubmit = async (formData) => {
-    try {
-      setIsSubmitting(true);
-      setError('');
-      
-      // Mock form submission
-      if (selectedIntern) {
-        // Update existing intern
-        setQAInterns(prev => 
-          prev.map(intern => 
-            intern.internId === selectedIntern.internId ? { ...intern, ...formData } : intern
-          )
-        );
-      } else {
-        // Create new intern
-        const newIntern = {
-          ...formData,
-          internId: Date.now() // Mock ID generation
-        };
-        setQAInterns(prev => [...prev, newIntern]);
-      }
-      
-      setIsFormOpen(false);
-      setSelectedIntern(null);
-    } catch (err) {
-      console.error('Error saving QA intern:', err);
-      setError(`Failed to ${selectedIntern ? 'update' : 'create'} QA intern. Please try again.`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCloseForm = () => {
-    setIsFormOpen(false);
-    setSelectedIntern(null);
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleSearch = (e) => { 
-    e.preventDefault(); 
-  };
-
-  return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>QA Interns Management</h1>
-        <p className={styles.subtitle}>
-          Manage QA interns, testing skills, and quality assurance tracking
-        </p>
-      </div>
-
-      <div className={styles.content}>
-        {error && (
-          <div className={styles.errorAlert}>
-            <span className={styles.errorIcon}>⚠️</span>
-            <span className={styles.errorText}>{error}</span>
-            <button 
-              className={styles.errorClose}
-              onClick={() => setError('')}
-            >
-              ×
-            </button>
+      };
+    
+      const handleFormSubmit = async (formData) => {
+        try {
+          setIsSubmitting(true);
+          setError('');
+          // Expecting: internCode, name, email, mobileNumber, trainingEndDate, tools[], projects[]
+          if (selectedIntern) {
+            setQAInterns((prev) =>
+              prev.map((intern) =>
+                intern.internId === selectedIntern.internId ? { ...intern, ...formData } : intern
+              )
+            );
+          } else {
+            const newIntern = { ...formData, internId: Date.now() };
+            setQAInterns((prev) => [...prev, newIntern]);
+          }
+          setIsFormOpen(false);
+          setSelectedIntern(null);
+        } catch (err) {
+          console.error('Error saving QA intern:', err);
+          setError(`Failed to ${selectedIntern ? 'update' : 'create'} QA intern. Please try again.`);
+        } finally {
+          setIsSubmitting(false);
+        }
+      };
+    
+      const handleCloseForm = () => {
+        setIsFormOpen(false);
+        setSelectedIntern(null);
+      };
+    
+      const handleSearchChange = (e) => setSearchTerm(e.target.value);
+      const handleSearch = (e) => e.preventDefault();
+    
+      return (
+        <div className={styles.container}>
+          <div className={styles.header}>
+            <h1 className={styles.title}>QA Interns Management</h1>
+            <p className={styles.subtitle}>
+              Manage QA interns, tools, and project assignments
+            </p>
           </div>
-        )}
-
-        <div className={styles.actionSection}>
-          <button 
-            className={styles.primaryBtn}
-            onClick={handleAddIntern}
-          >
-            + Add New QA Intern
-          </button>
-          <div className={styles.filterSection}>
-            <form onSubmit={handleSearch} className={styles.searchSection}>
-              <input 
-                type="text" 
-                placeholder="Search by name, intern code, or skills..." 
-                className={styles.searchInput}
-                value={searchTerm}
-                onChange={handleSearchChange}
+    
+          <div className={styles.content}>
+            {error && (
+              <div className={styles.errorAlert}>
+                <span className={styles.errorIcon}>⚠️</span>
+                <span className={styles.errorText}>{error}</span>
+                <button className={styles.errorClose} onClick={() => setError('')}>×</button>
+              </div>
+            )}
+    
+            <div className={styles.actionSection}>
+              <button className={styles.primaryBtn} onClick={handleAddIntern}>
+                + Add New QA Intern
+              </button>
+    
+              <div className={styles.filterSection}>
+                <form onSubmit={handleSearch} className={styles.searchSection}>
+                  <input
+                    type="text"
+                    placeholder="Search by name, trainee ID, email, mobile, tools, or projects..."
+                    className={styles.searchInput}
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                  />
+                </form>
+    
+                <div className={styles.sortSection}>
+                  <select
+                    className={styles.filterSelect}
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value)}
+                    title="Sort by"
+                  >
+                    <option value="none">None</option>
+                    <option value="internCode:asc">Trainee ID (Ascending)</option>
+                    <option value="internCode:desc">Trainee ID (Descending)</option>
+                    <option value="name:asc">Name (Ascending)</option>
+                    <option value="name:desc">Name (Descending)</option>
+                    <option value="email:asc">Email (Ascending)</option>
+                    <option value="email:desc">Email (Descending)</option>
+                    <option value="mobile:asc">Mobile (Ascending)</option>
+                    <option value="mobile:desc">Mobile (Descending)</option>
+                    <option value="endDate:asc">End Date (Ascending)</option>
+                    <option value="endDate:desc">End Date (Descending)</option>
+                    <option value="tools:asc">Tools (A→Z)</option>
+                    <option value="tools:desc">Tools (Z→A)</option>
+                    <option value="projects:asc">Projects (A→Z)</option>
+                    <option value="projects:desc">Projects (Z→A)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+    
+            <div className={styles.tableSection}>
+              <div className={styles.tableHeader}>
+                <h3 className={styles.tableTitle}>
+                  All QA Interns ({filteredInterns.length})
+                </h3>
+                {searchTerm && (
+                  <p className={styles.searchInfo}>
+                    Showing results for "{searchTerm}"
+                    <button className={styles.clearSearch} onClick={() => setSearchTerm('')}>
+                      Clear
+                    </button>
+                  </p>
+                )}
+              </div>
+    
+              <QATable
+                interns={filteredInterns}
+                onEdit={handleEditIntern}
+                onDelete={handleDeleteIntern}
+                isLoading={isLoading}
               />
-            </form>
-            <div className={styles.sortSection}>
-              <select
-                className={styles.filterSelect}
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-                title="Sort by"
-              >
-                <option value="none">None</option>
-                <option value="internCode:asc">Intern Code (Ascending)</option>
-                <option value="internCode:desc">Intern Code (Descending)</option>
-                <option value="endDate:asc">End Date (Ascending)</option>
-                <option value="endDate:desc">End Date (Descending)</option>
-                <option value="skills:asc">Skills (Ascending)</option>
-                <option value="skills:desc">Skills (Descending)</option>
-              </select>
             </div>
           </div>
-        </div>
-
-        <div className={styles.tableSection}>
-          <div className={styles.tableHeader}>
-            <h3 className={styles.tableTitle}>
-              All QA Interns ({filteredInterns.length})
-            </h3>
-            {searchTerm && (
-              <p className={styles.searchInfo}>
-                Showing results for "{searchTerm}"
-                <button 
-                  className={styles.clearSearch}
-                  onClick={() => setSearchTerm('')}
-                >
-                  Clear
-                </button>
-              </p>
-            )}
-          </div>
-          
-          <QATable
-            interns={filteredInterns}
-            onEdit={handleEditIntern}
-            onDelete={handleDeleteIntern}
-            isLoading={isLoading}
+    
+          <QAForm
+            isOpen={isFormOpen}
+            onClose={handleCloseForm}
+            onSubmit={handleFormSubmit}
+            intern={selectedIntern}
+            isLoading={isSubmitting}
           />
         </div>
-      </div>
-
-      <QAForm
-        isOpen={isFormOpen}
-        onClose={handleCloseForm}
-        onSubmit={handleFormSubmit}
-        intern={selectedIntern}
-        isLoading={isSubmitting}
-      />
-    </div>
-  );
-};
-
-export default QA;
+      );
+    };
+    
+    export default QA;
+    
