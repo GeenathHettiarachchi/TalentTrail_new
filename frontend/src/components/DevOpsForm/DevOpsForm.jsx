@@ -135,7 +135,10 @@ const DevOpsForm = ({
       return;
     }
 
-    onSubmit(formData);
+    onSubmit({
+      ...formData,
+      internId: editingIntern?.internId ?? null,
+    });
   };
 
   const handleInputChange = (e) => {
