@@ -97,6 +97,12 @@ const DevOpsForm = ({
       newErrors.email = 'Please enter a valid email address';
     }
 
+    if (!formData.mobileNumber.trim()) {
+      newErrors.mobileNumber = 'Mobile number is required';
+    } else if (!/^(\+?\d{9,15}|0\d{9})$/.test(formData.mobileNumber.trim())) {
+      newErrors.mobileNumber = 'Enter a valid phone number';
+    }
+
     if (!formData.trainingEndDate) {
       newErrors.trainingEndDate = 'Training end date is required';
     } else {
