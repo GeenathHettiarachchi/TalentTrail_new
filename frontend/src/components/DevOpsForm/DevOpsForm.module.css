@@ -314,4 +314,22 @@
   display: block;
 }
 
+.multiControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  min-height: 44px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.multiSelect:focus-within .multiControl {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
 
