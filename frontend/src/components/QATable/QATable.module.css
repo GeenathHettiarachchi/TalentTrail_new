@@ -102,6 +102,18 @@
   text-align: center; 
 }
 
+.menuButton {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 6px;
+  font-size: 1.25rem;
+  color: #6c757d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .menuButton:hover {
   background-color: #f1f3f5;
@@ -121,7 +133,17 @@
   padding: 6px;
 }
 
-
+.menuItem {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #374151;
+  cursor: pointer;
+}
 
 .menuItem:hover {
   background: #f8fafc;
