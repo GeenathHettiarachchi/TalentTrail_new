@@ -74,7 +74,6 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
     return [];
   };
 
-
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
@@ -111,7 +110,118 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
             </tr>
           </thead>
 
-          
+          <tbody className={styles.tbody}>
+            {interns.map((intern) => {
+              const tools = toToolsList(intern);
+              const projects = toProjectsList(intern);
+
+              return (
+                <tr
+                  key={intern.internId}
+                  className={styles.tr}
+                  onClick={(e) => handleRowClick(intern, e)}
+                  title="QA intern details"
+                >
+                  <td className={styles.td}>
+                    <span className={styles.internCode}>{intern.internCode || '—'}</span>
+                  </td>
+
+                  <td className={styles.td}>
+                    <div className={styles.nameCell}>
+                      <span className={styles.name}>{intern.name || '—'}</span>
+                    </div>
+                  </td>
+
+                  <td className={styles.td}>
+                    <span className={styles.email}>{intern.email || '—'}</span>
+                  </td>
+
+                  <td className={styles.td}>
+                    <span className={styles.mobile}>{intern.mobileNumber || '—'}</span>
+                  </td>
+
+                  <td className={styles.td}>
+                    <span className={styles.endDate}>{formatDate(intern.trainingEndDate)}</span>
+                  </td>
+
+                  {/* TOOLS as list (from CSV or array) */}
+                  <td className={styles.td}>
+                    {tools.length ? (
+                      <ul className={`${styles.list} ${styles.toolsList}`}>
+                        {tools.map((t, idx) => (
+                          <li key={`${t}-${idx}`} className={styles.listItemTool}>
+                            {t}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className={styles.muted}>—</span>
+                    )}
+                  </td>
+
+                  {/* PROJECTS as list (from CSV string, array of strings, or array of {id,name}) */}
+                  <td className={styles.td}>
+                    {projects.length ? (
+                      <ul className={`${styles.list} ${styles.projectsList}`}>
+                        {projects.map((p, idx) => (
+                          <li key={`${p.id || p.name}-${idx}`} className={styles.listItemProject}>
+                            {p.name}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className={styles.muted}>—</span>
+                    )}
+                  </td>
+
+                  {isAdmin && (
+                    <td className={styles.actionsCell}>
+                      <button
+                        className={styles.menuButton}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId((prev) => (prev === intern.internId ? null : intern.internId));
+                        }}
+                        aria-haspopup="menu"
+                        aria-expanded={openMenuId === intern.internId}
+                        title="Actions"
+                      >
+                        <FiMoreVertical />
+                      </button>
+
+                      {openMenuId === intern.internId && (
+                        <div className={styles.menu} role="menu">
+                          <button
+                            className={styles.menuItem}
+                            role="menuitem"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              onEdit(intern);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className={styles.menuItem}
+                            role="menuitem"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              if (window.confirm(`Are you sure you want to delete ${intern.name}?`)) {
+                                onDelete(intern.internId);
+                              }
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
