@@ -167,7 +167,18 @@ const DevOpsForm = ({
 
   if (!isOpen) return null;
 
-  return (
+   const toggleMulti = (field, value) => {
+    setFormData(prev => {
+      const set = new Set(prev[field]);
+      set.has(value) ? set.delete(value) : set.add(value);
+      return { ...prev, [field]: Array.from(set) };
+    });
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  return createPortal(
     <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.header}>
