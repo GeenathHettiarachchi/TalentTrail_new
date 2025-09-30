@@ -352,3 +352,7 @@
   opacity: 0.7;
   transition: transform 0.15s ease;
 }
+
+.multiSelect[aria-expanded="true"] .caret {
+  transform: rotate(180deg);
+}
