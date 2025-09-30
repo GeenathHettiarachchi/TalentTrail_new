@@ -85,14 +85,20 @@ const DevOpsTable = React.memo(({
               <th className={styles.th}>Intern Code</th>
               <th className={styles.th}>Name</th>
               <th className={styles.th}>Email</th>
+              <th className={styles.th}>Mobile Number</th>
               <th className={styles.th}>End Date</th>
               <th className={styles.th}>Resource Type</th>
+              <th className={styles.th}>Projects</th>
               {isAdmin && <th className={styles.th} style={{ width: '50px' }}></th>}
             </tr>
           </thead>
           <tbody className={styles.tbody}>
-            {interns.map((intern) => (
-              <tr
+            {interns.map((intern) => {
+              const resourceTypes = toList(intern.resourceType);
+              const projects = toList(intern.projects);
+
+              return (
+                <tr
                 key={intern.internId}
                 className={styles.tr}
                 onClick={(e) => handleRowClick(intern, e)}
@@ -113,9 +119,6 @@ const DevOpsTable = React.memo(({
                   <span className={styles.endDate}>
                     {formatDate(intern.trainingEndDate)}
                   </span>
-                </td>
-                <td className={styles.td}>
-                  <span className={styles.resourceType}>{intern.resourceType}</span>
                 </td>
                 {isAdmin && (
                   <td className={styles.actionsCell}>
@@ -162,7 +165,8 @@ const DevOpsTable = React.memo(({
                   </td>
                 )}
               </tr>
-            ))}
+              );              
+            })}
           </tbody>
         </table>
       </div>
