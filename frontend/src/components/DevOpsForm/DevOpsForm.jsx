@@ -262,6 +262,29 @@ const DevOpsForm = ({
             </div>
 
             <div className={styles.inputGroup}>
+              <label className={styles.label} htmlFor="mobileNumber">
+                <FiPhone className={styles.labelIcon} />
+                Mobile Number
+              </label>
+              <input
+                type="tel"
+                id="mobileNumber"
+                name="mobileNumber"
+                value={formData.mobileNumber}
+                onChange={handleInputChange}
+                className={`${styles.input} ${errors.mobileNumber ? styles.inputError : ''}`}
+                placeholder="e.g., 0771234567"
+                pattern="^(\+?\d{9,15}|0\d{9})$"
+                title="Enter a valid phone number"
+                disabled={isLoading}
+                required
+              />
+              {errors.mobileNumber && (
+                <span className={styles.errorText}>{errors.mobileNumber}</span>
+              )}
+            </div>
+
+            <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="trainingEndDate">
                 <FiCalendar className={styles.labelIcon} />
                 Training End Date
