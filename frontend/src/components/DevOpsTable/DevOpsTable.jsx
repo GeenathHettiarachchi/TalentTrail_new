@@ -135,6 +135,32 @@ const DevOpsTable = React.memo(({
                     {formatDate(intern.trainingEndDate)}
                   </span>
                 </td>
+                <td className={styles.td}>
+                  {resourceTypes.length === 0 ? (
+                    <span className={styles.resourceType}>-</span>
+                  ) : (
+                    <div className={styles.projectsList} aria-label="Resource Types">
+                      {resourceTypes.map((rt, idx) => (
+                        <span key={idx} className={styles.projectBadge}>
+                          {rt}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </td>
+                <td className={styles.td}>
+                  {projects.length === 0 ? (
+                    <span className={styles.projects}>-</span>
+                  ) : (
+                    <div className={styles.projectsList} aria-label="Projects">
+                      {projects.map((p, idx) => (
+                        <span key={idx} className={styles.projectBadge}>
+                          {p}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </td>
                 {isAdmin && (
                   <td className={styles.actionsCell}>
                     <button
