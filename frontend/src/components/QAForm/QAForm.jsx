@@ -184,3 +184,253 @@ const QAForm = ({
   };
 
   const removeTool = (idx) => setTools((prev) => prev.filter((_, i) => i !== idx));
+
+  // Projects add/remove (name only)
+    const addProject = () => {
+      const name = projectNameInput.trim();
+      if (!name) return;
+      setProjects((prev) => {
+        const exists = prev.some((p) => p.name.toLowerCase() === name.toLowerCase());
+        if (exists) return prev;
+        return [...prev, { name }];
+      });
+      setProjectNameInput('');
+    };
+  
+    const removeProject = (idx) => setProjects((prev) => prev.filter((_, i) => i !== idx));
+  
+    if (!isOpen) return null;
+  
+    return (
+      <div className={styles.overlay} onClick={handleClose}>
+        <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.header}>
+            <h2 className={styles.title}>{current ? 'Edit QA Intern' : 'Add QA Intern'}</h2>
+            <button
+              type="button"
+              className={styles.closeButton}
+              onClick={handleClose}
+              disabled={isLoading}
+              aria-label="Close"
+            >
+              <FiX />
+            </button>
+          </div>
+  
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <div className={styles.formGrid}>
+              {/* Trainee ID */}
+              <div className={styles.inputGroup}>
+                <label className={styles.label} htmlFor="internCode">
+                  <FiUser className={styles.labelIcon} />
+                  Trainee ID
+                </label>
+                <input
+                  type="text"
+                  id="internCode"
+                  name="internCode"
+                  value={formData.internCode}
+                  onChange={handleInputChange}
+                  className={`${styles.input} ${errors.internCode ? styles.inputError : ''}`}
+                  placeholder="e.g. QA001"
+                  disabled={isLoading}
+                  required
+                />
+                {errors.internCode && <span className={styles.errorText}>{errors.internCode}</span>}
+              </div>
+  
+              {/* Name */}
+              <div className={styles.inputGroup}>
+                <label className={styles.label} htmlFor="name">
+                  <FiUser className={styles.labelIcon} />
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className={`${styles.input} ${errors.name ? styles.inputError : ''}`}
+                  placeholder="Enter full name"
+                  disabled={isLoading}
+                  required
+                />
+                {errors.name && <span className={styles.errorText}>{errors.name}</span>}
+              </div>
+  
+              {/* Email */}
+              <div className={styles.inputGroup}>
+                <label className={styles.label} htmlFor="email">
+                  <FiMail className={styles.labelIcon} />
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
+                  placeholder="Enter email address"
+                  disabled={isLoading}
+                  required
+                />
+                {errors.email && <span className={styles.errorText}>{errors.email}</span>}
+              </div>
+  
+              {/* Mobile */}
+              <div className={styles.inputGroup}>
+                <label className={styles.label} htmlFor="mobileNumber">
+                  <FiPhone className={styles.labelIcon} />
+                  Mobile Number
+                </label>
+                <input
+                  type="text"
+                  id="mobileNumber"
+                  name="mobileNumber"
+                  value={formData.mobileNumber}
+                  onChange={handleInputChange}
+                  className={`${styles.input} ${errors.mobileNumber ? styles.inputError : ''}`}
+                  placeholder="07XXXXXXXX or +947XXXXXXXX"
+                  disabled={isLoading}
+                  required
+                />
+                {errors.mobileNumber && <span className={styles.errorText}>{errors.mobileNumber}</span>}
+              </div>
+  
+              {/* End Date */}
+              <div className={styles.inputGroup}>
+                <label className={styles.label} htmlFor="trainingEndDate">
+                  <FiCalendar className={styles.labelIcon} />
+                  Training End Date
+                </label>
+                <input
+                   type="date"
+                   id="trainingEndDate"
+                   name="trainingEndDate"
+                   value={formData.trainingEndDate}
+                   onChange={handleInputChange}
+                   className={`${styles.input} ${styles.dateInput} ${errors.trainingEndDate ? styles.inputError : ''}`}
+                   placeholder="YYYY-MM-DD"
+                   disabled={isLoading}
+                   required
+                />
+                {errors.trainingEndDate && (
+                  <span className={styles.errorText}>{errors.trainingEndDate}</span>
+                )}
+              </div>
+  
+              {/* Tools (multi) */}
+              <div className={styles.inputGroupFull}>
+                <label className={styles.label} htmlFor="toolsInput">
+                  <FiTool className={styles.labelIcon} />
+                  Tools
+                </label>
+                <div className={styles.tagsInputRow}>
+                  <input
+                    type="text"
+                    id="toolsInput"
+                    value={toolInput}
+                    onChange={(e) => setToolInput(e.target.value)}
+                    onKeyDown={handleToolKeyDown}
+                    onBlur={handleToolBlur}
+                    className={styles.input}
+                    placeholder="Selenium, JMeter, Postman"
+                    disabled={isLoading}
+                  />
+                </div>
+                {tools.length > 0 && (
+                  <div className={styles.tagsWrap}>
+                    {tools.map((t, idx) => (
+                      <span key={`${t}-${idx}`} className={styles.tag}>
+                        {t}
+                        <button
+                          type="button"
+                          className={styles.tagRemove}
+                          onClick={() => removeTool(idx)}
+                          aria-label={`Remove ${t}`}
+                          disabled={isLoading}
+                        >
+                          <FiTrash2 />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+  
+              {/* Projects (multi objects, name only) */}
+              <div className={styles.inputGroupFull}>
+                <label className={styles.label}>
+                  <FiFolderPlus className={styles.labelIcon} />
+                  Projects
+                </label>
+                <div className={styles.projectsRow}>
+                  <input
+                    type="text"
+                    value={projectNameInput}
+                    onChange={(e) => setProjectNameInput(e.target.value)}
+                    className={styles.input}
+                    placeholder="Project name e.g. Billing Portal"
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    className={styles.addBtn}
+                    onClick={addProject}
+                    disabled={isLoading}
+                    title="Add project"
+                  >
+                    <FiPlus />
+                  </button>
+                </div>
+  
+                {projects.length > 0 && (
+                  <div className={styles.tagsWrap}>
+                    {projects.map((p, idx) => (
+                      <span key={`${p.name}-${idx}`} className={styles.projectTag}>
+                        {p.name}
+                        <button
+                          type="button"
+                          className={styles.tagRemove}
+                          onClick={() => removeProject(idx)}
+                          aria-label={`Remove ${p.name}`}
+                          disabled={isLoading}
+                        >
+                          <FiTrash2 />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+  
+            <div className={styles.formActions}>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={handleClose}
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+              <button type="submit" className={styles.submitButton} disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <div className={styles.spinner}></div>
+                    {current ? 'Updating...' : 'Adding...'}
+                  </>
+                ) : (
+                  current ? 'Update Intern' : 'Add Intern'
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  
+  export default QAForm;
+  
