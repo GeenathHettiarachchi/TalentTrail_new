@@ -79,7 +79,9 @@
   color: #6c757d;
 }
 
-
+.mobile {
+  white-space: nowrap;
+}
 
 .endDate {
   color: #dc3545;
