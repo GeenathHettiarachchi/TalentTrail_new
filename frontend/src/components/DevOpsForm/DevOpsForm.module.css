@@ -356,3 +356,19 @@
 .multiSelect[aria-expanded="true"] .caret {
   transform: rotate(180deg);
 }
+
+.multiMenu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+  padding: 6px 8px;
+  max-height: 240px;
+  overflow: auto;
+  z-index: 20;
+  animation: dropdownFade 0.12s ease-out;
+}
