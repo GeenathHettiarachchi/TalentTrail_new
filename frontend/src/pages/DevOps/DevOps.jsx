@@ -77,14 +77,18 @@ const DevOps = () => {
     loadData();
   }, []);
   const asText = (v) => Array.isArray(v) ? v.join(', ') : (v ?? '');
-  
+
   // Filter interns based on search term
   useEffect(() => {
-    let list = !searchTerm.trim() ? [...devOpsInterns] : devOpsInterns.filter(intern =>
-      intern.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      intern.internCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      intern.resourceType.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const term = searchTerm.toLowerCase().trim();
+    let list = !term ? [...devOpsInterns] : devOpsInterns.filter(intern => {
+      const name = (intern.name || '').toLowerCase();
+      const code = (intern.internCode || '').toLowerCase();
+      const resType = asText(intern.resourceType).toLowerCase();
+      const proj = asText(intern.projects).toLowerCase();
+      const mobile = (intern.mobileNumber || '').toLowerCase();
+      return name.includes(term) || code.includes(term) || resType.includes(term) || proj.includes(term) || mobile.includes(term);
+    });
 
     // Sorting
     const [sortField, sortOrder] = (sortOption || 'none').split(':');
