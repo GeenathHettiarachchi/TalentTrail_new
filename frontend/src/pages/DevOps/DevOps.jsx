@@ -76,6 +76,7 @@ const DevOps = () => {
     };
     loadData();
   }, []);
+
   const asText = (v) => Array.isArray(v) ? v.join(', ') : (v ?? '');
 
   // Filter interns based on search term
@@ -106,8 +107,12 @@ const DevOps = () => {
             bVal = b.trainingEndDate;
             break;
           case 'resourceType':
-            aVal = a.resourceType;
-            bVal = b.resourceType;
+            aVal = asText(a.resourceType);
+            bVal = asText(b.resourceType);
+            break;
+          case 'projects':
+            aVal = asText(a.projects);
+            bVal = asText(b.projects);
             break;
           default:
             return 0;
@@ -151,24 +156,22 @@ const DevOps = () => {
     }
   };
 
-  const handleFormSubmit = async (formData) => {
+  const handleFormSubmit = async (payload) => {
     try {
       setIsSubmitting(true);
       setError('');
       
       // Mock form submission
-      if (selectedIntern) {
-        // Update existing intern
-        setDevOpsInterns(prev => 
-          prev.map(intern => 
-            intern.internId === selectedIntern.internId ? { ...intern, ...formData } : intern
+      if (payload?.internId != null) {
+        setDevOpsInterns(prev =>
+          prev.map(intern =>
+            intern.internId === payload.internId ? { ...intern, ...payload } : intern
           )
         );
       } else {
-        // Create new intern
         const newIntern = {
-          ...formData,
-          internId: Date.now() // Mock ID generation
+        ...payload,
+          internId: Date.now()
         };
         setDevOpsInterns(prev => [...prev, newIntern]);
       }
@@ -177,7 +180,7 @@ const DevOps = () => {
       setSelectedIntern(null);
     } catch (err) {
       console.error('Error saving DevOps intern:', err);
-      setError(`Failed to ${selectedIntern ? 'update' : 'create'} DevOps intern. Please try again.`);
+      setError(`Failed to ${payload?.internId ? 'update' : 'create'} DevOps intern. Please try again.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -230,7 +233,7 @@ const DevOps = () => {
             <form onSubmit={handleSearch} className={styles.searchSection}>
               <input 
                 type="text" 
-                placeholder="Search by name, intern code, or resource type..." 
+                placeholder="Search by name, code, resource type, projects, or mobile..." 
                 className={styles.searchInput}
                 value={searchTerm}
                 onChange={handleSearchChange}
@@ -286,7 +289,7 @@ const DevOps = () => {
         isOpen={isFormOpen}
         onClose={handleCloseForm}
         onSubmit={handleFormSubmit}
-        intern={selectedIntern}
+        editingIntern={selectedIntern}
         isLoading={isSubmitting}
       />
     </div>
