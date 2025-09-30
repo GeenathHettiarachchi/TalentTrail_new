@@ -26,21 +26,28 @@ const DevOpsForm = ({
 
   useEffect(() => {
     if (editingIntern) {
+      const toList = (v) =>
+        Array.isArray(v) ? v
+        : (typeof v === 'string' && v.trim() ? v.split(',').map(s => s.trim()).filter(Boolean) : []);
       setFormData({
         internCode: editingIntern.internCode || '',
         name: editingIntern.name || '',
         email: editingIntern.email || '',
+        mobileNumber: editingIntern.mobileNumber || '',
         trainingEndDate: editingIntern.trainingEndDate ? 
           editingIntern.trainingEndDate.split('T')[0] : '',
-        resourceType: editingIntern.resourceType || 'Docker'
+        resourceType: toList(editingIntern.resourceType),
+        projects: toList(editingIntern.projects)
       });
     } else {
       setFormData({
         internCode: '',
         name: '',
         email: '',
+        mobileNumber: '',
         trainingEndDate: '',
-        resourceType: 'Docker'
+        resourceType: [],
+        projects: []
       });
     }
     setErrors({});
