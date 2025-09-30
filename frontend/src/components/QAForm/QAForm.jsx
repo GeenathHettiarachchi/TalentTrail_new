@@ -158,3 +158,29 @@ const QAForm = ({
   };
 
   const handleClose = () => { if (!isLoading) onClose(); };
+
+  // Tools add/remove
+  const addToolsFromText = (text) => {
+    const parts = splitCSV(text);
+    if (!parts.length) return;
+    setTools((prev) => Array.from(new Set([...prev, ...parts])));
+  };
+
+  const handleToolKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      if (toolInput.trim()) {
+        addToolsFromText(toolInput);
+        setToolInput('');
+      }
+    }
+  };
+
+  const handleToolBlur = () => {
+    if (toolInput.trim()) {
+      addToolsFromText(toolInput);
+      setToolInput('');
+    }
+  };
+
+  const removeTool = (idx) => setTools((prev) => prev.filter((_, i) => i !== idx));
