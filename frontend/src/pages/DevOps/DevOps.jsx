@@ -76,7 +76,8 @@ const DevOps = () => {
     };
     loadData();
   }, []);
-
+  const asText = (v) => Array.isArray(v) ? v.join(', ') : (v ?? '');
+  
   // Filter interns based on search term
   useEffect(() => {
     let list = !searchTerm.trim() ? [...devOpsInterns] : devOpsInterns.filter(intern =>
