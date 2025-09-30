@@ -282,4 +282,14 @@ export const projectDocService = {
   }),
 };
 
+export const internUpdateRequestService = {
+  createForIntern: (internId, payload) => api.post(`/intern-update-requests/interns/${internId}`, payload),
+  listPending: () => api.get('/intern-update-requests/pending'),
+  listForIntern: (internId) => api.get(`/intern-update-requests/interns/${internId}`),
+  listMine: () => api.get('/intern-update-requests/my'),
+  approve: (requestId) => api.put(`/intern-update-requests/${requestId}/approve`),
+  reject: (requestId, reason) => api.put(`/intern-update-requests/${requestId}/reject`, reason || ''),
+};
+
+
 export default api;

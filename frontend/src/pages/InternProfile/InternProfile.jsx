@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { internService, teamMemberService, projectService, teamService } from '../../services/api';
+import { internService, teamMemberService, projectService, teamService, internUpdateRequestService } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { InternForm, TeamForm, ProjectForm } from '../../components';
 import { FiUsers, FiFolder } from 'react-icons/fi';
@@ -11,103 +11,111 @@ const InternProfile = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAdmin, isIntern, isProjectManager, isTeamLeader, loading: authLoading } = useAuth();
+
   const [intern, setIntern] = useState(null);
   const [teams, setTeams] = useState([]);
   const [projects, setProjects] = useState([]);
   const [allTeamMembers, setAllTeamMembers] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Forms & edit flags
   const [showEditForm, setShowEditForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
   const [showTeamForm, setShowTeamForm] = useState(false);
-  const [showProjectForm, setShowProjectForm] = useState(false);
-  // member management handled within TeamForm when editing a team
   const [selectedTeam, setSelectedTeam] = useState(null);
-  const [selectedProject, setSelectedProject] = useState(null);
   const [isEditingTeam, setIsEditingTeam] = useState(false);
+
+  const [showProjectForm, setShowProjectForm] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [isEditingProject, setIsEditingProject] = useState(false);
 
-  // Check if this is the profile route (no ID) and user is an intern
+  // Update request workflow
+  const [myRequests, setMyRequests] = useState([]);
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+
+  // Is this the intern’s own profile page (no :id, user is Intern, not Admin)
   const isProfileRoute = location.pathname === '/profile' && isIntern && !isAdmin;
 
   useEffect(() => {
-    // Only fetch when user data is available and not loading
     if (user && !authLoading) {
       fetchIntern();
     }
-  }, [id, user, authLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, user, authLoading, location.pathname]);
 
   const fetchIntern = async () => {
     try {
       setLoading(true);
       setError(null);
-      
-      // Debug logging
-      console.log('fetchIntern called');
-      console.log('isProfileRoute:', isProfileRoute);
-      console.log('user:', user);
-      console.log('user.traineeId:', user?.traineeId);
-      
+
       let internResponse;
-      
-      // If this is the profile route for an intern, fetch by trainee_id (intern_code)
+
       if (isProfileRoute && user?.traineeId) {
-        console.log('Fetching intern by code:', user.traineeId);
+        // Load intern by code for intern’s own profile
         internResponse = await internService.getInternByCode(user.traineeId);
       } else if (isProfileRoute && !user?.traineeId) {
-        console.error('Trainee ID not found for profile route. User object:', user);
         throw new Error('Trainee ID not found in user profile. Please contact administrator.');
       } else if (id) {
-        console.log('Fetching intern by ID:', id);
-        // Fetch intern details by ID
+        // Admin or others viewing by ID
         internResponse = await internService.getInternById(id);
       } else {
         throw new Error('No intern identifier provided');
       }
-      
-      setIntern(internResponse.data);
-      const internId = internResponse.data.internId;
-      
-      // Fetch all team members to find teams this intern belongs to
+
+      const internData = internResponse.data;
+      setIntern(internData);
+
+      const internId = internData.internId;
+
+      // Teams (load all team members, filter by this intern)
       const teamMembersResponse = await teamMemberService.getAllTeamMembers();
       setAllTeamMembers(teamMembersResponse.data);
-      const internTeams = teamMembersResponse.data.filter(
-        member => member.internId === internId
-      );
+      const internTeams = teamMembersResponse.data.filter(m => m.internId === internId);
       setTeams(internTeams);
-      
-      // Fetch all projects to find projects this intern is assigned to
+
+      // Projects (any project whose assignedTeamIds contains one of intern's teamIds)
       const projectsResponse = await projectService.getAllProjects();
-      const internProjects = projectsResponse.data.filter(project => {
-        // Check if any of the intern's teams are assigned to this project
-        return internTeams.some(team => 
-          project.assignedTeamIds && project.assignedTeamIds.includes(team.teamId)
-        );
-      });
+      const internProjects = projectsResponse.data.filter(project =>
+        internTeams.some(team => project.assignedTeamIds && project.assignedTeamIds.includes(team.teamId))
+      );
       setProjects(internProjects);
-      
-    } catch (error) {
-      console.error('Error fetching intern:', error);
-      setError('Failed to load intern details. Please try again.');
+
+      // Load update requests for intern’s own profile
+      if (isProfileRoute && internId) {
+        try {
+          const reqRes = await internUpdateRequestService.listForIntern(internId);
+          setMyRequests(reqRes.data || []);
+        } catch (e) {
+          console.warn('Could not load update requests', e);
+          setMyRequests([]);
+        }
+      } else {
+        setMyRequests([]);
+      }
+
+    } catch (err) {
+      console.error('Error fetching intern:', err);
+      setError(err?.message || 'Failed to load intern details. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEdit = () => {
-    setShowEditForm(true);
-  };
+  // ====== Admin direct edit (immediate update) ======
+  const handleEdit = () => setShowEditForm(true);
 
   const handleEditSubmit = async (internData) => {
     try {
       setIsEditing(true);
-      const internId = intern.internId;
-      const response = await internService.updateIntern(internId, internData);
-      setIntern(response.data);
+      const updated = await internService.updateIntern(intern.internId, internData);
+      setIntern(updated.data);
       setShowEditForm(false);
-    } catch (error) {
-      console.error('Error updating intern:', error);
-      throw error; // Let InternForm handle the error
+    } catch (err) {
+      console.error('Error updating intern:', err);
+      throw err; // let InternForm show the error
     } finally {
       setIsEditing(false);
     }
@@ -116,33 +124,26 @@ const InternProfile = () => {
   const handleDelete = async () => {
     if (window.confirm(`Are you sure you want to delete the intern "${intern.name}"? This action cannot be undone.`)) {
       try {
-        const internId = intern.internId;
-        await internService.deleteIntern(internId);
+        await internService.deleteIntern(intern.internId);
         navigate('/interns');
-      } catch (error) {
-        console.error('Error deleting intern:', error);
+      } catch (err) {
+        console.error('Error deleting intern:', err);
         alert('Failed to delete intern. Please try again.');
       }
     }
   };
 
+  // ====== Team & Project edit helpers ======
   const handleEditTeam = async (team) => {
     try {
       const teamResponse = await teamService.getTeamById(team.teamId);
       setSelectedTeam(teamResponse.data);
       setShowTeamForm(true);
-    } catch (error) {
-      console.error('Error fetching team details:', error);
+    } catch (err) {
+      console.error('Error fetching team details:', err);
       alert('Failed to load team details. Please try again.');
     }
   };
-
-  const handleEditProject = async (project) => {
-    setSelectedProject(project);
-    setShowProjectForm(true);
-  };
-
-  // Team members are managed inside TeamForm during edit
 
   const handleTeamFormSubmit = async (teamData) => {
     try {
@@ -150,14 +151,18 @@ const InternProfile = () => {
       await teamService.updateTeam(selectedTeam.teamId, teamData);
       setShowTeamForm(false);
       setSelectedTeam(null);
-      // Refresh data
       fetchIntern();
-    } catch (error) {
-      console.error('Error updating team:', error);
-      throw error; // Let TeamForm handle the error
+    } catch (err) {
+      console.error('Error updating team:', err);
+      throw err;
     } finally {
       setIsEditingTeam(false);
     }
+  };
+
+  const handleEditProject = (project) => {
+    setSelectedProject(project);
+    setShowProjectForm(true);
   };
 
   const handleProjectFormSubmit = async (projectData) => {
@@ -166,64 +171,78 @@ const InternProfile = () => {
       await projectService.updateProject(selectedProject.projectId, projectData);
       setShowProjectForm(false);
       setSelectedProject(null);
-      // Refresh data
       fetchIntern();
-    } catch (error) {
-      console.error('Error updating project:', error);
-      throw error; // Let ProjectForm handle the error
+    } catch (err) {
+      console.error('Error updating project:', err);
+      throw err;
     } finally {
       setIsEditingProject(false);
     }
   };
 
-  // Members updated by TeamForm flows will trigger refresh via handleTeamFormSubmit
+  // ====== Intern self-update (create approval request) ======
+  const handleInternSelfEditSubmit = async (formData) => {
+    try {
+      setSubmittingRequest(true);
+      await internUpdateRequestService.createForIntern(intern.internId, {
+        name: formData.name,
+        email: formData.email,
+        institute: formData.institute,
+        trainingStartDate: formData.trainingStartDate,
+        trainingEndDate: formData.trainingEndDate,
+      });
+      setShowEditForm(false);
+      // refresh request list
+      const reqRes = await internUpdateRequestService.listForIntern(intern.internId);
+      setMyRequests(reqRes.data || []);
+      alert('Update request submitted and is pending admin approval.');
+    } catch (err) {
+      console.error('Failed to submit update request:', err);
+      alert('Failed to submit update request.');
+    } finally {
+      setSubmittingRequest(false);
+    }
+  };
 
+  // ====== helpers ======
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   const getTrainingDuration = () => {
-    if (!intern.trainingStartDate || !intern.trainingEndDate) return '-';
+    if (!intern?.trainingStartDate || !intern?.trainingEndDate) return '-';
     const start = new Date(intern.trainingStartDate);
     const end = new Date(intern.trainingEndDate);
     const diffTime = Math.abs(end - start);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const weeks = Math.floor(diffDays / 7);
     const days = diffDays % 7;
-    
-    if (weeks > 0 && days > 0) {
-      return `${weeks} weeks, ${days} days`;
-    } else if (weeks > 0) {
-      return `${weeks} weeks`;
-    } else {
-      return `${days} days`;
-    }
+    if (weeks > 0 && days > 0) return `${weeks} weeks, ${days} days`;
+    if (weeks > 0) return `${weeks} weeks`;
+    return `${days} days`;
   };
 
   const getTrainingStatus = () => {
-    if (!intern.trainingStartDate || !intern.trainingEndDate) return null;
+    if (!intern?.trainingStartDate || !intern?.trainingEndDate) return null;
     const today = new Date();
     const start = new Date(intern.trainingStartDate);
     const end = new Date(intern.trainingEndDate);
-    
+
     if (today < start) {
       const daysUntilStart = Math.ceil((start - today) / (1000 * 60 * 60 * 24));
       return { status: 'upcoming', message: `Starts in ${daysUntilStart} days`, class: styles.statusUpcoming };
-    } else if (today > end) {
+    }
+    if (today > end) {
       const daysSinceEnd = Math.ceil((today - end) / (1000 * 60 * 60 * 24));
       return { status: 'completed', message: `Completed ${daysSinceEnd} days ago`, class: styles.statusCompleted };
-    } else {
-      const daysRemaining = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-      return { status: 'active', message: `${daysRemaining} days remaining`, class: styles.statusActive };
     }
+    const daysRemaining = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+    return { status: 'active', message: `${daysRemaining} days remaining`, class: styles.statusActive };
   };
 
+  // ====== loading / error states ======
   if (loading || authLoading) {
     return (
       <div className={styles.container}>
@@ -242,12 +261,7 @@ const InternProfile = () => {
           <div className={styles.errorIcon}>⚠️</div>
           <h2>Error Loading Intern</h2>
           <p>{error}</p>
-          <button 
-            className={styles.retryBtn}
-            onClick={fetchIntern}
-          >
-            Try Again
-          </button>
+          <button className={styles.retryBtn} onClick={fetchIntern}>Try Again</button>
         </div>
       </div>
     );
@@ -260,12 +274,7 @@ const InternProfile = () => {
           <div className={styles.errorIcon}>👤</div>
           <h2>Intern Not Found</h2>
           <p>The intern you're looking for could not be found.</p>
-          <button 
-            className={styles.retryBtn}
-            onClick={() => navigate('/interns')}
-          >
-            Back to Interns
-          </button>
+          <button className={styles.retryBtn} onClick={() => navigate('/interns')}>Back to Interns</button>
         </div>
       </div>
     );
@@ -277,27 +286,30 @@ const InternProfile = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         {!isProfileRoute && (
-          <button 
+          <button
             className={styles.backButton}
             onClick={() => navigate(isAdmin ? '/interns' : '/profile')}
           >
             ← Back to {isAdmin ? 'Interns' : 'Profile'}
           </button>
         )}
-        
+
+        {/* Admin controls */}
         {isAdmin && (
           <div className={styles.actions}>
-            <button 
-              className={styles.editBtn}
-              onClick={handleEdit}
+            <button className={styles.editBtn} onClick={handleEdit}>✏️ Edit Intern</button>
+            <button className={styles.deleteBtn} onClick={handleDelete}>🗑️ Delete Intern</button>
+          </div>
+        )}
+
+        {/* Intern self-update button */}
+        {isProfileRoute && (
+          <div className={styles.actions}>
+            <button
+              className={styles.primaryBtn}
+              onClick={() => { setShowEditForm(true); setIsEditing(false); }}
             >
-              ✏️ Edit Intern
-            </button>
-            <button 
-              className={styles.deleteBtn}
-              onClick={handleDelete}
-            >
-              🗑️ Delete Intern
+              Request Profile Update
             </button>
           </div>
         )}
@@ -368,19 +380,14 @@ const InternProfile = () => {
                 {teams.length > 0 ? (
                   <div className={styles.assignmentsList}>
                     {teams.map((team, index) => (
-                      <div 
-                        key={team.teamMemberId || index} 
-                        className={styles.assignmentCard}
-                      >
-                        <div 
+                      <div key={team.teamMemberId || index} className={styles.assignmentCard}>
+                        <div
                           className={styles.assignmentMainContent}
                           onClick={() => navigate(`/teams/${team.teamId}`)}
                           style={{ cursor: 'pointer' }}
                           title="Click to view team profile"
                         >
-                          <div className={styles.teamIcon}>
-                            <FiUsers />
-                          </div>
+                          <div className={styles.teamIcon}><FiUsers /></div>
                           <div className={styles.assignmentInfo}>
                             <div className={styles.assignmentName}>{team.teamName}</div>
                             <div className={styles.assignmentRole}>Team Member</div>
@@ -415,19 +422,14 @@ const InternProfile = () => {
                 {projects.length > 0 ? (
                   <div className={styles.assignmentsList}>
                     {projects.map((project, index) => (
-                      <div 
-                        key={project.projectId || index} 
-                        className={styles.assignmentCard}
-                      >
-                        <div 
+                      <div key={project.projectId || index} className={styles.assignmentCard}>
+                        <div
                           className={styles.assignmentMainContent}
                           onClick={() => navigate(`/projects/${project.projectId}`)}
                           style={{ cursor: 'pointer' }}
                           title="Click to view project profile"
                         >
-                          <div className={styles.projectIcon}>
-                            <FiFolder />
-                          </div>
+                          <div className={styles.projectIcon}><FiFolder /></div>
                           <div className={styles.assignmentInfo}>
                             <div className={styles.assignmentName}>{project.projectName}</div>
                             <div className={styles.assignmentRole}>
@@ -459,16 +461,56 @@ const InternProfile = () => {
             </div>
           </div>
         </div>
+
+        {/* Intern’s update request history (only on their own profile) */}
+        {isProfileRoute && (
+          <div className={styles.card}>
+            <h3>My Profile Update Requests</h3>
+            {myRequests.length === 0 ? (
+              <p>No requests yet.</p>
+            ) : (
+              <ul className={styles.requestsList}>
+                {myRequests.map((r) => (
+                  <li key={r.id} className={styles.requestItem}>
+                    <div>
+                      <strong>Status:</strong> {r.status}
+                      {r.status === 'REJECTED' && r.rejectionReason && (
+                        <> — <em>{r.rejectionReason}</em></>
+                      )}
+                    </div>
+                    <div><strong>Submitted:</strong> {new Date(r.submittedAt).toLocaleString()}</div>
+                    <details>
+                      <summary>Proposed changes</summary>
+                      <pre className={styles.diffBlock}>
+{JSON.stringify({
+  name: r.name,
+  email: r.email,
+  institute: r.institute,
+  trainingStartDate: r.trainingStartDate,
+  trainingEndDate: r.trainingEndDate
+}, null, 2)}
+                      </pre>
+                    </details>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
+      {/* Intern/Admin edit form modal:
+          - On intern's own profile → submit creates an approval request
+          - On admin view by ID → submit updates directly */}
       <InternForm
         isOpen={showEditForm}
         onClose={() => setShowEditForm(false)}
-        onSubmit={handleEditSubmit}
+        onSubmit={isProfileRoute ? handleInternSelfEditSubmit : handleEditSubmit}
         intern={intern}
-        isLoading={isEditing}
+        isLoading={isProfileRoute ? submittingRequest : isEditing}
       />
 
+      {/* Team edit modal */}
       <TeamForm
         isOpen={showTeamForm}
         onClose={() => {
@@ -480,6 +522,7 @@ const InternProfile = () => {
         isLoading={isEditingTeam}
       />
 
+      {/* Project edit modal */}
       <ProjectForm
         isOpen={showProjectForm}
         onClose={() => {
@@ -490,8 +533,6 @@ const InternProfile = () => {
         project={selectedProject}
         isLoading={isEditingProject}
       />
-
-  {/** TeamMemberManager removed: use TeamForm (Edit Team) to manage members */}
     </div>
   );
 };

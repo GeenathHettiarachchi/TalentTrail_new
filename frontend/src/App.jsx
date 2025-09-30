@@ -1,35 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Navigation, Sidebar, Footer, Login, ProtectedRoute } from './components';
-import { Home, Interns, InternProfile, Teams, TeamProfile, Projects, ProjectProfile, DevOps, QA, AddBulkData } from './pages';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+
+// Components (from your components barrel)
+import { Navigation, Sidebar, Footer, Login, ProtectedRoute } from "./components";
+
+// Pages (from your pages barrel)
+import { Home, Interns, InternProfile, Teams, TeamProfile, Projects, ProjectProfile, QA, AddBulkData } from "./pages";
+
+// Standalone pages (not in the barrel)
+import DevOps from "./pages/DevOps/DevOps";
+import InternUpdateRequests from "./pages/InternUpdateRequests/InternUpdateRequests";
+
+import "./App.css";
 
 const AppContent = () => {
-  const { isAuthenticated, isAdmin, isIntern, loading } = useAuth();
+  const { isAuthenticated, isAdmin, loading } = useAuth();
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const location = useLocation();
 
-  const toggleSidebar = () => {
-    setIsSidebarVisible(!isSidebarVisible);
-  };
+  const toggleSidebar = () => setIsSidebarVisible(v => !v);
+  const closeSidebar = () => setIsSidebarVisible(false);
 
-  const closeSidebar = () => {
-    setIsSidebarVisible(false);
-  };
-
-  // Close sidebar on route change for mobile
+  // Close sidebar on route change (mobile)
   useEffect(() => {
     setIsSidebarVisible(false);
-  }, [window.location.pathname]);
+  }, [location.pathname]);
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh' 
-      }}>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         <div>Loading...</div>
       </div>
     );
@@ -43,84 +43,141 @@ const AppContent = () => {
     <div className="app">
       <Navigation onMenuClick={toggleSidebar} />
       <Sidebar isVisible={isSidebarVisible} onClose={closeSidebar} />
+
       <main className="main-content">
         <Routes>
-          {/* Redirect root path based on user role */}
-          <Route path="/" element={
-            isAdmin ? (
+          {/* Root redirect based on role */}
+          <Route
+            path="/"
+            element={
+              isAdmin ? (
+                <ProtectedRoute adminOnly={true}>
+                  <Home />
+                </ProtectedRoute>
+              ) : (
+                <Navigate to="/profile" replace />
+              )
+            }
+          />
+
+          {/* Admin — Interns list */}
+          <Route
+            path="/interns"
+            element={
               <ProtectedRoute adminOnly={true}>
-                <Home />
+                <Interns />
               </ProtectedRoute>
-            ) : (
-              <Navigate to="/profile" replace />
-            )
-          } />
-          
-          {/* Admin routes */}
-          <Route path="/interns" element={
-            <ProtectedRoute adminOnly={true}>
-              <Interns />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/devops" element={
-            <ProtectedRoute adminOnly={true}>
-              <DevOps />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/qa" element={
-            <ProtectedRoute adminOnly={true}>
-              <QA />
-            </ProtectedRoute>
-          } />
-          
-          {/* Intern profile route - redirect to their own profile */}
-          <Route path="/profile" element={
-            <ProtectedRoute internOnly={true}>
-              <InternProfile />
-            </ProtectedRoute>
-          } />
-          
-          {/* Specific intern/team/project profile routes */}
-          <Route path="/interns/:id" element={
-            <ProtectedRoute>
-              <InternProfile />
-            </ProtectedRoute>
-          } />
-          <Route path="/teams" element={
-            <ProtectedRoute>
-              <Teams />
-            </ProtectedRoute>
-          } />
-          <Route path="/teams/:id" element={
-            <ProtectedRoute>
-              <TeamProfile />
-            </ProtectedRoute>
-          } />
-          <Route path="/projects" element={
-            <ProtectedRoute>
-              <Projects />
-            </ProtectedRoute>
-          } />
-          <Route path="/projects/:id" element={
-            <ProtectedRoute>
-              <ProjectProfile />
-            </ProtectedRoute>
-          } />
-          <Route path="/add-bulk-data" element={
-            <ProtectedRoute adminOnly={true}>
-              <AddBulkData />
-            </ProtectedRoute>
-          } />
+            }
+          />
+
+          {/* Admin — Pending update approvals */}
+          <Route
+            path="/intern-update-requests"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <InternUpdateRequests />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin — DevOps track */}
+          <Route
+            path="/devops"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <DevOps />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin — QA track */}
+          <Route
+            path="/qa"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <QA />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Intern — My profile */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute internOnly={true}>
+                <InternProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Shared — View specific intern profile */}
+          <Route
+            path="/interns/:id"
+            element={
+              <ProtectedRoute>
+                <InternProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Teams */}
+          <Route
+            path="/teams"
+            element={
+              <ProtectedRoute>
+                <Teams />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teams/:id"
+            element={
+              <ProtectedRoute>
+                <TeamProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Projects */}
+          <Route
+            path="/projects"
+            element={
+              <ProtectedRoute>
+                <Projects />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:id"
+            element={
+              <ProtectedRoute>
+                <ProjectProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin — Bulk import */}
+          <Route
+            path="/add-bulk-data"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <AddBulkData />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+
+      {/* If you want a footer, uncomment this: */}
       {/* <Footer /> */}
     </div>
   );
 };
 
-function App() {
+export default function App() {
   return (
     <AuthProvider>
       <Router>
@@ -129,5 +186,3 @@ function App() {
     </AuthProvider>
   );
 }
-
-export default App;

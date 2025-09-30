@@ -8,7 +8,9 @@ import {
   FiFolder,
   FiLogOut,
   FiCheckCircle,
-  FiServer
+  FiServer,
+  FiCode,
+  FiEdit3
 } from 'react-icons/fi';
 import styles from './Sidebar.module.css';
 
@@ -21,9 +23,11 @@ const Sidebar = ({ isVisible = true, onClose }) => {
     { path: '/', label: 'Home', icon: FiHome },
     { path: '/interns', label: 'Interns', icon: FiUser },
     { path: '/devops', label: 'DevOps Interns', icon: FiServer },
+    { path: '/developers', label: 'Developer Interns', icon: FiCode },
     { path: '/qa', label: 'QA Interns', icon: FiCheckCircle },
     { path: '/teams', label: 'Teams', icon: FiUsers },
-    { path: '/projects', label: 'Projects', icon: FiFolder }
+    { path: '/projects', label: 'Projects', icon: FiFolder },
+    { path: '/intern-update-requests', label: 'Update Requests', icon: FiEdit3 }
   ];
 
   const internNavItems = [

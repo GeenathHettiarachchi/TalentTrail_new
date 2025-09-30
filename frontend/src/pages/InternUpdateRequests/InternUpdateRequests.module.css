@@ -1,0 +1,65 @@
+.wrap {
+  display: grid;
+  gap: 16px;
+  padding: 8px;
+}
+
+.card {
+  background: var(--card-bg, #fff);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actions button {
+  border: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.approve {
+  background: #16a34a;
+  color: #fff;
+}
+
+.reject {
+  background: #dc2626;
+  color: #fff;
+}
+
+.diffTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.diffTable th, .diffTable td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+.changed td {
+  background: #fff7ed; /* light amber to highlight changed rows */
+}
+
+@media (max-width: 720px) {
+  .header { flex-direction: column; align-items: flex-start; }
+  .actions { width: 100%; }
+  .actions button { flex: 1; }
+}
