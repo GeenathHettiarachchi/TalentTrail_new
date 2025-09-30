@@ -13,8 +13,10 @@ const DevOpsForm = ({
     internCode: '',
     name: '',
     email: '',
+    mobileNumber: '',
     trainingEndDate: '',
-    resourceType: 'Docker'
+    resourceType: [],
+    projects: []
   });
 
   const [errors, setErrors] = useState({});
