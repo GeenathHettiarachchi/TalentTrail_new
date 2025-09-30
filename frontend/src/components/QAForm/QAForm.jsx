@@ -130,4 +130,31 @@ const QAForm = ({
 
     return newErrors;
   };
-  
+
+  // ---------- Handlers ----------
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    onSubmit({
+      internCode: formData.internCode.trim(),
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      mobileNumber: formData.mobileNumber.trim(),
+      trainingEndDate: formData.trainingEndDate,
+      tools,                 // array of strings
+      projects,              // array of { name }
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
+  };
+
+  const handleClose = () => { if (!isLoading) onClose(); };
