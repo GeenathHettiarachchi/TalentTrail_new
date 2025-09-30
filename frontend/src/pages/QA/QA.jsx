@@ -88,15 +88,33 @@ const QA = () => {
       }, 1000);
     };
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Filter interns based on search term
-  useEffect(() => {
-    let list = !searchTerm.trim() ? [...qaInterns] : qaInterns.filter(intern =>
-      intern.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      intern.internCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      intern.skills.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  // Filter + Sort
+    useEffect(() => {
+      const term = searchTerm.trim().toLowerCase();
+  
+      let list = !term
+        ? [...qaInterns]
+        : qaInterns.filter((intern) => {
+            const toolsText = Array.isArray(intern.tools)
+              ? intern.tools.join(' ').toLowerCase()
+              : String(intern.tools || intern.skills || '').toLowerCase();
+  
+            const projectsText = Array.isArray(intern.projects)
+              ? intern.projects.map((p) => (p?.name || p || '')).join(' ').toLowerCase()
+              : String(intern.projects || '').toLowerCase();
+  
+            return (
+              (intern.name || '').toLowerCase().includes(term) ||
+              (intern.internCode || '').toLowerCase().includes(term) ||
+              (intern.email || '').toLowerCase().includes(term) ||
+              (intern.mobileNumber || '').toLowerCase().includes(term) ||
+              toolsText.includes(term) ||
+              projectsText.includes(term)
+            );
+          });
 
     // Sorting
     const [sortField, sortOrder] = (sortOption || 'none').split(':');
