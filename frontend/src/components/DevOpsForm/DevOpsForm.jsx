@@ -115,6 +115,10 @@ const DevOpsForm = ({
       }
     }
 
+    if (!Array.isArray(formData.resourceType) || formData.resourceType.length === 0) {
+      newErrors.resourceType = 'Select at least one resource type';
+    }
+
     if (!formData.resourceType.trim()) {
       newErrors.resourceType = 'Resource type is required';
     }
