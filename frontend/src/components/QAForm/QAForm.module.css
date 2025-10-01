@@ -308,3 +308,47 @@
     font-size: 1.125rem;
   }
 }
+
+/* ==== Date input hint color fix (Chrome/Edge/Safari + Firefox) ==== */
+
+/* Normal text color when filled */
+.dateInput {
+  color: #374151;
+}
+
+/* WebKit browsers: color the 'empty' date fields (the hint) */
+.dateInput:required:invalid::-webkit-datetime-edit {
+  color: #9ca3af;
+}
+.dateInput:required:invalid::-webkit-datetime-edit-text,
+.dateInput:required:invalid::-webkit-datetime-edit-year-field,
+.dateInput:required:invalid::-webkit-datetime-edit-month-field,
+.dateInput:required:invalid::-webkit-datetime-edit-day-field {
+  color: #9ca3af;
+}
+
+/* When user has entered/selected a date or is focusing the field, use normal text */
+.dateInput:valid::-webkit-datetime-edit,
+.dateInput:focus::-webkit-datetime-edit,
+.dateInput:valid::-webkit-datetime-edit-text,
+.dateInput:focus::-webkit-datetime-edit-text,
+.dateInput:valid::-webkit-datetime-edit-year-field,
+.dateInput:focus::-webkit-datetime-edit-year-field,
+.dateInput:valid::-webkit-datetime-edit-month-field,
+.dateInput:focus::-webkit-datetime-edit-month-field,
+.dateInput:valid::-webkit-datetime-edit-day-field,
+.dateInput:focus::-webkit-datetime-edit-day-field {
+  color: #374151;
+}
+
+/* Firefox */
+@-moz-document url-prefix() {
+  .dateInput:required:invalid { color: #9ca3af; }
+  .dateInput:valid,
+  .dateInput:focus { color: #374151; }
+}
+
+/* Optional: soften the picker icon */
+.dateInput::-webkit-calendar-picker-indicator {
+  filter: opacity(0.7);
+}
