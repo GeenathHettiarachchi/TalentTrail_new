@@ -211,7 +211,15 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
                   </td>
 
                   {/* PROJECTS (1 item by default; chevron expands) */}
-                  
+                  <td className={styles.td}>
+                    <ArrowExpandableList
+                      items={projects}
+                      expanded={projectsExpanded}
+                      onToggle={() => toggleInSet(setExpandedProjects, intern.internId)}
+                      itemClass={styles.listItemProject}
+                      ariaLabelBase="Projects"
+                    />
+                  </td>
 
                   {isAdmin && (
                     <td className={styles.actionsCell}>
