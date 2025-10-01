@@ -14,6 +14,7 @@ const DevOpsTable = React.memo(({
   const { isAdmin } = useAuth();
   const [openMenuId, setOpenMenuId] = useState(null);
   const tableRef = useRef(null);
+  const [expanded, setExpanded] = useState(() => new Set());
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -52,12 +53,21 @@ const DevOpsTable = React.memo(({
     return [];
   }, []);
 
+  const toggleExpand = useCallback((id) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }, []);
+
   const handleRowClick = useCallback((intern, e) => {
     // Don't trigger if edit or delete button was clicked
     if (
       e.target.closest(`.${styles.menuButton}`) ||
       e.target.closest(`.${styles.menu}`) ||
-      e.target.closest(`.${styles.menuItem}`)
+      e.target.closest(`.${styles.menuItem}`) ||
+      e.target.closest(`.${styles.moreBtn}`)
     ) {
       return;
     }
@@ -106,10 +116,13 @@ const DevOpsTable = React.memo(({
             {interns.map((intern) => {
               const resourceTypes = toList(intern.resourceType);
               const projects = toList(intern.projects);
+              const isExpanded = expanded.has(intern.internId);
+              const rtHidden = Math.max(0, resourceTypes.length - 2);
+              const pjHidden = Math.max(0, projects.length - 2);
 
               return (
+                <React.Fragment key={intern.internId}>
                 <tr
-                key={intern.internId}
                 className={styles.tr}
                 onClick={(e) => handleRowClick(intern, e)}
                 title="DevOps intern details"
@@ -139,12 +152,21 @@ const DevOpsTable = React.memo(({
                   {resourceTypes.length === 0 ? (
                     <span className={styles.resourceType}>-</span>
                   ) : (
-                    <div className={styles.projectsList} aria-label="Resource Types">
-                      {resourceTypes.map((rt, idx) => (
-                        <span key={idx} className={styles.projectBadge}>
-                          {rt}
-                        </span>
+                    <div className={styles.cellPills} aria-label="Resource Types"> {/* NEW */}
+                      {resourceTypes.slice(0, 2).map((rt, idx) => (
+                        <span key={idx} className={styles.projectBadge}>{rt}</span>
                       ))}
+                      {rtHidden > 0 && (
+                        <button
+                          type="button"
+                          className={styles.moreBtn}
+                          onClick={(e) => { e.stopPropagation(); toggleExpand(intern.internId); }}
+                          aria-expanded={isExpanded}
+                          title={isExpanded ? 'Show less' : `Show ${rtHidden} more`}
+                        >
+                          {isExpanded ? 'Show less' : `+${rtHidden} more`}
+                        </button>
+                      )}
                     </div>
                   )}
                 </td>
@@ -152,12 +174,21 @@ const DevOpsTable = React.memo(({
                   {projects.length === 0 ? (
                     <span className={styles.projects}>-</span>
                   ) : (
-                    <div className={styles.projectsList} aria-label="Projects">
-                      {projects.map((p, idx) => (
-                        <span key={idx} className={styles.projectBadge}>
-                          {p}
-                        </span>
+                    <div className={styles.cellPills} aria-label="Projects"> {/* NEW */}
+                      {projects.slice(0, 2).map((p, idx) => (
+                        <span key={idx} className={styles.projectBadge}>{p}</span>
                       ))}
+                      {pjHidden > 0 && (
+                        <button
+                          type="button"
+                          className={styles.moreBtn}
+                          onClick={(e) => { e.stopPropagation(); toggleExpand(intern.internId); }}
+                          aria-expanded={isExpanded}
+                          title={isExpanded ? 'Show less' : `Show ${pjHidden} more`}
+                        >
+                          {isExpanded ? 'Show less' : `+${pjHidden} more`}
+                        </button>
+                      )}
                     </div>
                   )}
                 </td>
@@ -206,6 +237,35 @@ const DevOpsTable = React.memo(({
                   </td>
                 )}
               </tr>
+              {isExpanded && (
+                <tr className={styles.expandedRow}>
+                  <td className={styles.expandedCell} colSpan={isAdmin ? 8 : 7}>
+                    <div className={styles.expandedContent}>
+                      {resourceTypes.length > 2 && (
+                        <div className={styles.expandedSection}>
+                          <div className={styles.sectionTitle}>All Resource Types</div>
+                          <div className={styles.projectsList}>
+                            {resourceTypes.map((rt, i) => (
+                              <span key={i} className={styles.projectBadge}>{rt}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {projects.length > 2 && (
+                        <div className={styles.expandedSection}>
+                          <div className={styles.sectionTitle}>All Projects</div>
+                          <div className={styles.projectsList}>
+                            {projects.map((p, i) => (
+                              <span key={i} className={styles.projectBadge}>{p}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+              </React.Fragment>
               );              
             })}
           </tbody>
