@@ -1,15 +1,17 @@
 // src/components/QATable.jsx
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { FiMoreVertical } from 'react-icons/fi';
+import { FiMoreVertical, FiChevronDown } from 'react-icons/fi';
 import styles from './QATable.module.css';
 
 const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) => {
-  const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [openMenuId, setOpenMenuId] = useState(null);
   const tableRef = useRef(null);
+
+  // Track expansion per row per column
+  const [expandedTools, setExpandedTools] = useState(() => new Set());
+  const [expandedProjects, setExpandedProjects] = useState(() => new Set());
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -25,7 +27,7 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
     if (!dateString) return '—';
     try {
       return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
+        year: 'numeric', month: 'short', day: 'numeric',
       });
     } catch {
       return dateString;
@@ -36,20 +38,16 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
     if (
       e.target.closest(`.${styles.menuButton}`) ||
       e.target.closest(`.${styles.menu}`) ||
-      e.target.closest(`.${styles.menuItem}`)
+      e.target.closest(`.${styles.menuItem}`) ||
+      e.target.closest(`.${styles.chevronBtn}`)
     ) return;
-    // navigate(`/qa/${intern.internId}`); // enable when detail page exists
+    // If you add a detail page later, navigate here.
   }, []);
 
   // --- Helpers to normalize values into arrays and split CSV strings ---
-  const splitCSV = (val) =>
-    val
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
+  const splitCSV = (val) => val.split(',').map((s) => s.trim()).filter(Boolean);
 
   const toToolsList = (intern) => {
-    // Prefer 'tools'; fallback to 'skills'
     const v = intern?.tools ?? intern?.skills;
     if (!v) return [];
     if (Array.isArray(v)) return v.map(String).map((s) => s.trim()).filter(Boolean);
@@ -60,18 +58,73 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
   const toProjectsList = (intern) => {
     const v = intern?.projects;
     if (!v) return [];
-    // Accept: ['A','B'] or [{id,name}, ...]
     if (Array.isArray(v)) {
       return v
         .map((x) => (typeof x === 'string' ? { name: x.trim() } : x))
         .filter((p) => (p?.name || '').trim())
         .map((p) => ({ id: p.id, name: p.name.trim() }));
     }
-    // Accept: "A, B, C"
-    if (typeof v === 'string') {
-      return splitCSV(v).map((name) => ({ name }));
-    }
+    if (typeof v === 'string') return splitCSV(v).map((name) => ({ name }));
     return [];
+  };
+
+  // Expand helpers
+  const isExpanded = (set, id) => set.has(id);
+  const toggleInSet = (setUpdater, id) => {
+    setUpdater((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // Reusable list with chevron (chevron stays on same line; chevrons align across rows)
+  const ArrowExpandableList = ({ items, expanded, onToggle, itemClass, ariaLabelBase }) => {
+    if (!items?.length) return <span className={styles.muted}>—</span>;
+
+    const showAll = expanded;
+    const visible = showAll ? items : items.slice(0, 1);
+
+    return (
+      <div className={styles.inlineListWrap} style={{ width: '100%' /* fallback if CSS not loaded */ }}>
+        <ul
+          className={`${showAll ? styles.listWrap : styles.listOneLine} ${styles.listBase} ${styles.listGrow}`}
+          style={{ flex: '1 1 auto', minWidth: 0 }} // fallback to ensure chevron aligns right
+        >
+          {visible.map((x, idx) => {
+            const key = typeof x === 'string' ? x : (x.id || x.name || idx);
+            const label = typeof x === 'string' ? x : x.name;
+            return (
+              <li key={`${key}-${idx}`} className={`${styles.listItem} ${itemClass}`}>
+                {label}
+              </li>
+            );
+          })}
+        </ul>
+
+        {items.length > 1 && (
+          <button
+            type="button"
+            className={`${styles.chevronBtn} ${showAll ? styles.chevronRotated : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle();
+            }}
+            aria-expanded={showAll}
+            aria-label={
+              showAll
+                ? `Collapse ${ariaLabelBase}`
+                : `Expand ${ariaLabelBase} to show all (${items.length})`
+            }
+            title={showAll ? 'Collapse' : 'Expand'}
+            style={{ flex: '0 0 22px' }} // fallback fixed slot so all rows line up
+          >
+            <FiChevronDown />
+          </button>
+        )}
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -114,6 +167,8 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
             {interns.map((intern) => {
               const tools = toToolsList(intern);
               const projects = toProjectsList(intern);
+              const toolsExpanded = isExpanded(expandedTools, intern.internId);
+              const projectsExpanded = isExpanded(expandedProjects, intern.internId);
 
               return (
                 <tr
@@ -144,35 +199,19 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
                     <span className={styles.endDate}>{formatDate(intern.trainingEndDate)}</span>
                   </td>
 
-                  {/* TOOLS as list (from CSV or array) */}
+                  {/* TOOLS (1 item by default; chevron expands) */}
                   <td className={styles.td}>
-                    {tools.length ? (
-                      <ul className={`${styles.list} ${styles.toolsList}`}>
-                        {tools.map((t, idx) => (
-                          <li key={`${t}-${idx}`} className={styles.listItemTool}>
-                            {t}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <span className={styles.muted}>—</span>
-                    )}
+                    <ArrowExpandableList
+                      items={tools}
+                      expanded={toolsExpanded}
+                      onToggle={() => toggleInSet(setExpandedTools, intern.internId)}
+                      itemClass={styles.listItemTool}
+                      ariaLabelBase="Tools"
+                    />
                   </td>
 
-                  {/* PROJECTS as list (from CSV string, array of strings, or array of {id,name}) */}
-                  <td className={styles.td}>
-                    {projects.length ? (
-                      <ul className={`${styles.list} ${styles.projectsList}`}>
-                        {projects.map((p, idx) => (
-                          <li key={`${p.id || p.name}-${idx}`} className={styles.listItemProject}>
-                            {p.name}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <span className={styles.muted}>—</span>
-                    )}
-                  </td>
+                  {/* PROJECTS (1 item by default; chevron expands) */}
+                  
 
                   {isAdmin && (
                     <td className={styles.actionsCell}>
