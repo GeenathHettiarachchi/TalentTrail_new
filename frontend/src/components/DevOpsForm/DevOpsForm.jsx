@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiUser, FiMail, FiCalendar, FiServer } from 'react-icons/fi';
+import { createPortal } from 'react-dom';
+import { FiX, FiUser, FiMail, FiCalendar, FiServer, FiPhone, FiLayers, FiChevronDown } from 'react-icons/fi';
 import styles from './DevOpsForm.module.css';
 
 const DevOpsForm = ({
@@ -18,7 +19,6 @@ const DevOpsForm = ({
     resourceType: [],
     projects: []
   });
-
 
   const [isRTOpen, setIsRTOpen] = useState(false);
   const [isProjOpen, setIsProjOpen] = useState(false);
@@ -75,7 +75,6 @@ const DevOpsForm = ({
     'Release Automation'
   ];
 
-
   const validateForm = () => {
     const newErrors = {};
 
@@ -117,10 +116,6 @@ const DevOpsForm = ({
 
     if (!Array.isArray(formData.resourceType) || formData.resourceType.length === 0) {
       newErrors.resourceType = 'Select at least one resource type';
-    }
-
-    if (!formData.resourceType.trim()) {
-      newErrors.resourceType = 'Resource type is required';
     }
 
     return newErrors;
