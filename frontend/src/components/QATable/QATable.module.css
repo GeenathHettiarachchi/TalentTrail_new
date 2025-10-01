@@ -351,7 +351,20 @@
 }
 
 /* Chevron should not wrap or grow either */
-
+.chevronBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;       /* keep button beside the UL */
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px;
+  line-height: 1;
+  transition: transform 0.18s ease;
+  font-size: 18px;
+  color: inherit;
+}
 
 /* (unchanged) rotate when expanded */
 .chevronRotated { transform: rotate(180deg); }
