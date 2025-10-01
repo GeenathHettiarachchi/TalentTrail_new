@@ -119,6 +119,13 @@
   text-align: center; 
 }
 
+.cellPills {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .menuButton {
   border: none;
   background: none;
@@ -223,6 +230,43 @@
   text-align: center;
 }
 
+.moreBtn {
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
+}
+
+.moreBtn:hover {
+  background: #eef2f7;
+}
+
+.expandedRow {
+  background: #fafcff;
+}
+
+.expandedCell {
+  padding: 0.85rem 1rem 1rem 1rem;
+  border-top: 1px solid #eef2f7;
+}
+
+.expandedContent {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+}
+
+.sectionTitle {
+  font-size: 0.8rem;
+  color: #475569;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .th,
@@ -264,6 +308,10 @@
   
   .menuButton {
     font-size: 1.1rem;
+  }
+
+  .expandedContent {
+    grid-template-columns: 1fr;
   }
 }
 
