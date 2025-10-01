@@ -344,7 +344,11 @@
 }
 
 /* Pills shouldn't force wrapping */
-
+.listItem,
+.listItemTool,
+.listItemProject {
+  white-space: nowrap;
+}
 
 /* Chevron should not wrap or grow either */
 
