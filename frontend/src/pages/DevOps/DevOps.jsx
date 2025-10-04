@@ -20,48 +20,60 @@ const DevOps = () => {
       internCode: 'DEV001',
       name: 'John Smith',
       email: 'john.smith@example.com',
+      mobileNumber: '0712356172',
       trainingEndDate: '2024-12-15',
-      resourceType: 'Cloud Engineer'
+      resourceType: 'Cloud Engineer',
+      projects: ['CI/CD', 'MERN']
     },
     {
       internId: 2,
       internCode: 'DEV002',
       name: 'Sarah Johnson',
       email: 'sarah.johnson@example.com',
+      mobileNumber: '0776502837',
       trainingEndDate: '2024-11-30',
-      resourceType: 'DevOps Engineer'
+      resourceType: 'DevOps Engineer',
+      projects: ['CI/CD', 'MERN', 'AWS']
     },
     {
       internId: 3,
       internCode: 'DEV003',
       name: 'Michael Brown',
       email: 'michael.brown@example.com',
+      mobileNumber: '0776502837',
       trainingEndDate: '2025-01-20',
-      resourceType: 'Site Reliability Engineer'
+      resourceType: 'Site Reliability Engineer',
+      projects: ['CI/CD', 'MERN', 'AWS']
     },
     {
       internId: 4,
       internCode: 'DEV004',
       name: 'Emily Davis',
       email: 'emily.davis@example.com',
+      mobileNumber: '0776502837',
       trainingEndDate: '2024-12-10',
-      resourceType: 'Infrastructure Engineer'
+      resourceType: 'Infrastructure Engineer',
+      projects: ['CI/CD', 'MERN', 'AWS']
     },
     {
       internId: 5,
       internCode: 'DEV005',
       name: 'David Wilson',
       email: 'david.wilson@example.com',
+      mobileNumber: '0776502837',
       trainingEndDate: '2025-02-05',
-      resourceType: 'Platform Engineer'
+      resourceType: 'Platform Engineer',
+      projects: ['CI/CD', 'MERN', 'AWS']
     },
     {
       internId: 6,
       internCode: 'DEV006',
       name: 'Lisa Anderson',
       email: 'lisa.anderson@example.com',
+      mobileNumber: '0776502837',
       trainingEndDate: '2024-12-28',
-      resourceType: 'Cloud Architect'
+      resourceType: 'Cloud Architect',
+      projects: ['CI/CD', 'MERN', 'AWS']
     }
   ];
 
