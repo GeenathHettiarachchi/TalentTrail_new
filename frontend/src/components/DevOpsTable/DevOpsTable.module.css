@@ -80,8 +80,17 @@
 }
 
 .endDate {
-  color: #dc3545;
   font-weight: 500;
+}
+
+/* <30 days remains for end date */
+.endDateSoon {
+  color: #dc3545;
+}
+
+/* >30 days remains for end date */
+.endDateSafe {
+  color: #00c821;
 }
 
 .mobile {

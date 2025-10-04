@@ -43,6 +43,18 @@ const DevOpsTable = React.memo(({
     }
   }, []);
 
+  // Check if date is within 30 days from today
+  const isDueSoon = useCallback((dateString) => {
+    if (!dateString) return false;
+    const end = new Date(dateString);
+    if (isNaN(end)) return false;
+    const today = new Date();
+    end.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    const diffDays = (end - today) / (1000 * 60 * 60 * 24);
+    return diffDays < 30;
+  }, []);
+
   const toList = useCallback((value) => {
     if (Array.isArray(value)) {
       return value.map(v => String(v).trim()).filter(Boolean);
@@ -144,7 +156,13 @@ const DevOpsTable = React.memo(({
                   </span>  
                 </td>
                 <td className={styles.td}>
-                  <span className={styles.endDate}>
+                  <span
+                    className={`${styles.endDate} ${
+                      isDueSoon(intern.trainingEndDate)
+                        ? styles.endDateSoon
+                        : styles.endDateSafe
+                    }`}
+                  >
                     {formatDate(intern.trainingEndDate)}
                   </span>
                 </td>
