@@ -24,6 +24,9 @@ const DevOpsForm = ({
   const [isProjOpen, setIsProjOpen] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Check if we're in edit mode
+  const isEditMode = !!editingIntern;
+
   useEffect(() => {
     if (editingIntern) {
       const toList = (v) =>
@@ -193,6 +196,7 @@ const DevOpsForm = ({
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.formGrid}>
+            {/* Intern Code - Read-only in edit mode */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="internCode">
                 <FiUser className={styles.labelIcon} />
@@ -204,9 +208,10 @@ const DevOpsForm = ({
                 name="internCode"
                 value={formData.internCode}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.internCode ? styles.inputError : ''}`}
+                className={`${styles.input} ${errors.internCode ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
                 placeholder="e.g., DEV001"
-                disabled={isLoading}
+                disabled={isLoading || isEditMode}
+                readOnly={isEditMode}
                 required
               />
               {errors.internCode && (
@@ -214,6 +219,7 @@ const DevOpsForm = ({
               )}
             </div>
 
+            {/* Name - Read-only in edit mode */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="name">
                 <FiUser className={styles.labelIcon} />
@@ -225,9 +231,10 @@ const DevOpsForm = ({
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.name ? styles.inputError : ''}`}
+                className={`${styles.input} ${errors.name ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
                 placeholder="Enter full name"
-                disabled={isLoading}
+                disabled={isLoading || isEditMode}
+                readOnly={isEditMode}
                 required
               />
               {errors.name && (
@@ -235,6 +242,7 @@ const DevOpsForm = ({
               )}
             </div>
 
+            {/* Email - Read-only in edit mode */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="email">
                 <FiMail className={styles.labelIcon} />
@@ -246,9 +254,10 @@ const DevOpsForm = ({
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
+                className={`${styles.input} ${errors.email ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
                 placeholder="Enter email address"
-                disabled={isLoading}
+                disabled={isLoading || isEditMode}
+                readOnly={isEditMode}
                 required
               />
               {errors.email && (
@@ -256,6 +265,7 @@ const DevOpsForm = ({
               )}
             </div>
 
+            {/* Mobile Number - Read-only in edit mode */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="mobileNumber">
                 <FiPhone className={styles.labelIcon} />
@@ -267,11 +277,12 @@ const DevOpsForm = ({
                 name="mobileNumber"
                 value={formData.mobileNumber}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.mobileNumber ? styles.inputError : ''}`}
+                className={`${styles.input} ${errors.mobileNumber ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
                 placeholder="e.g., 0771234567"
                 pattern="^(\+?\d{9,15}|0\d{9})$"
                 title="Enter a valid phone number"
-                disabled={isLoading}
+                disabled={isLoading || isEditMode}
+                readOnly={isEditMode}
                 required
               />
               {errors.mobileNumber && (
@@ -279,6 +290,7 @@ const DevOpsForm = ({
               )}
             </div>
 
+            {/* Training End Date - Always editable */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="trainingEndDate">
                 <FiCalendar className={styles.labelIcon} />
@@ -299,7 +311,8 @@ const DevOpsForm = ({
               )}
             </div>
 
-             <div className={styles.inputGroup}>
+             {/* Resource Type - Always editable */}
+            <div className={styles.inputGroup}>
               <label className={styles.label}>
                 <FiServer className={styles.labelIcon} />
                 Resource Type
@@ -343,6 +356,7 @@ const DevOpsForm = ({
               )}
             </div>
 
+            {/* Projects - Always editable */}
             <div className={styles.inputGroup}>
               <label className={styles.label}>
                 <FiLayers className={styles.labelIcon} />
