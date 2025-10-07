@@ -402,3 +402,15 @@
 @media (max-width: 480px) {
   .multiMenu { max-height: 50vh; }
 }
+
+.readOnlyInput {
+  background: #f3f4f6 !important;
+  color: #6b7280 !important;
+  cursor: not-allowed !important;
+  opacity: 0.8;
+}
+
+.readOnlyInput:focus {
+  border-color: #e5e7eb !important;
+  box-shadow: none !important;
+}
