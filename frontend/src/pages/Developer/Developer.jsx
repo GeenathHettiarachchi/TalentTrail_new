@@ -42,7 +42,7 @@ const Developer = () => {
       name: 'Michael Brown',
       email: 'michael.brown@example.com',
       mobileNumber: '0776502837',
-      trainingEndDate: '2025-01-20',
+      trainingEndDate: '2026-01-20',
       languagesAndFrameworks: ['Python', 'Django'],
       projects: ['Analytics Dashboard', 'ML Model API']
     },
@@ -249,12 +249,12 @@ const Developer = () => {
 
         <div className={styles.actionSection}>
           <CategoryDropdown current="developers" />
-          <button
+          {/* <button
             className={styles.primaryBtn}
             onClick={handleAddIntern}
           >
             + Add New Developer Intern
-          </button>
+          </button> */}
           <div className={styles.filterSection}>
             <form onSubmit={handleSearch} className={styles.searchSection}>
               <input
