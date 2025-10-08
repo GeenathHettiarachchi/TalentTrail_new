@@ -62,4 +62,27 @@ const DeveloperForm = ({
     'CRM Application',
     'HR Portal',
   ];
+
+ const toggleMulti = (field, value) => {
+    setFormData((prev) => {
+      const set = new Set(prev[field]);
+      set.has(value) ? set.delete(value) : set.add(value);
+      return { ...prev, [field]: Array.from(set) };
+    });
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.languagesAndFrameworks.length) {
+      newErrors.languagesAndFrameworks = 'Select at least one language/framework.';
+    }
+    if (!formData.projects.length) {
+      newErrors.projects = 'Select at least one project.';
+    }
+    return newErrors;
+  };
+
   
