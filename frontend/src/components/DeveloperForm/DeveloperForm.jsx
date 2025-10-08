@@ -38,4 +38,28 @@ const DeveloperForm = ({
     }
     setErrors({});
   }, [editingIntern, isOpen]);
+
+  const languagesList = [
+    'Java',
+    'Python',
+    'C#',
+    'MERN',
+    'Laravel',
+    'Spring Boot',
+    '.NET',
+    'PHP',
+    'React',
+    'Angular',
+    'Vue.js',
+  ];
+
+  const projectsList = [
+    'Portfolio Website',
+    'Task Tracker',
+    'E-Commerce Platform',
+    'Admin Dashboard',
+    'Inventory Manager',
+    'CRM Application',
+    'HR Portal',
+  ];
   
