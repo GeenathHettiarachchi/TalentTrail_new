@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { QAForm, QATable } from '../../components';
 import styles from './QA.module.css';
+import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
 
 const QA = () => {
   const [qaInterns, setQAInterns] = useState([]);
@@ -233,6 +234,11 @@ const QA = () => {
 
         <div className={styles.actionSection}>
           <button className={styles.primaryBtn} onClick={handleAddIntern}>
+          <CategoryDropdown current="qa" />
+          <button 
+            className={styles.primaryBtn}
+            onClick={handleAddIntern}
+          >
             + Add New QA Intern
           </button>
 
