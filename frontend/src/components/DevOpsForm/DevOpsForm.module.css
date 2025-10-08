@@ -308,3 +308,109 @@
     font-size: 1.125rem;
   }
 }
+
+.multiSelect {
+  position: relative;
+  display: block;
+}
+
+.multiControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  min-height: 44px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.multiSelect:focus-within .multiControl {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.multiSelect.inputError .multiControl {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.multiValue {
+  color: #374151;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.caret {
+  font-size: 1rem;
+  opacity: 0.7;
+  transition: transform 0.15s ease;
+}
+
+.multiSelect[aria-expanded="true"] .caret {
+  transform: rotate(180deg);
+}
+
+.multiMenu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+  padding: 6px 8px;
+  max-height: 240px;
+  overflow: auto;
+  z-index: 20;
+  animation: dropdownFade 0.12s ease-out;
+}
+
+@keyframes dropdownFade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #374151;
+  cursor: pointer;
+}
+
+.optionRow:hover {
+  background: #f8fafc;
+}
+
+.optionRow input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #6366f1;
+}
+
+@media (max-width: 480px) {
+  .multiMenu { max-height: 50vh; }
+}
+
+.readOnlyInput {
+  background: #f3f4f6 !important;
+  color: #6b7280 !important;
+  cursor: not-allowed !important;
+  opacity: 0.8;
+}
+
+.readOnlyInput:focus {
+  border-color: #e5e7eb !important;
+  box-shadow: none !important;
+}

@@ -14,6 +14,7 @@ const DevOpsTable = React.memo(({
   const { isAdmin } = useAuth();
   const [openMenuId, setOpenMenuId] = useState(null);
   const tableRef = useRef(null);
+  const [expanded, setExpanded] = useState(() => new Set());
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -42,12 +43,43 @@ const DevOpsTable = React.memo(({
     }
   }, []);
 
+  // Check if date is within 30 days from today
+  const isDueSoon = useCallback((dateString) => {
+    if (!dateString) return false;
+    const end = new Date(dateString);
+    if (isNaN(end)) return false;
+    const today = new Date();
+    end.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    const diffDays = (end - today) / (1000 * 60 * 60 * 24);
+    return diffDays < 30;
+  }, []);
+
+  const toList = useCallback((value) => {
+    if (Array.isArray(value)) {
+      return value.map(v => String(v).trim()).filter(Boolean);
+    }
+    if (typeof value === 'string' && value.trim()) {
+      return value.split(',').map(v => v.trim()).filter(Boolean);
+    }
+    return [];
+  }, []);
+
+  const toggleExpand = useCallback((id) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }, []);
+
   const handleRowClick = useCallback((intern, e) => {
     // Don't trigger if edit or delete button was clicked
     if (
       e.target.closest(`.${styles.menuButton}`) ||
       e.target.closest(`.${styles.menu}`) ||
-      e.target.closest(`.${styles.menuItem}`)
+      e.target.closest(`.${styles.menuItem}`) ||
+      e.target.closest(`.${styles.moreBtn}`)
     ) {
       return;
     }
@@ -85,15 +117,24 @@ const DevOpsTable = React.memo(({
               <th className={styles.th}>Intern Code</th>
               <th className={styles.th}>Name</th>
               <th className={styles.th}>Email</th>
+              <th className={styles.th}>Mobile Number</th>
               <th className={styles.th}>End Date</th>
               <th className={styles.th}>Resource Type</th>
+              <th className={styles.th}>Projects</th>
               {isAdmin && <th className={styles.th} style={{ width: '50px' }}></th>}
             </tr>
           </thead>
           <tbody className={styles.tbody}>
-            {interns.map((intern) => (
-              <tr
-                key={intern.internId}
+            {interns.map((intern) => {
+              const resourceTypes = toList(intern.resourceType);
+              const projects = toList(intern.projects);
+              const isExpanded = expanded.has(intern.internId);
+              const rtHidden = Math.max(0, resourceTypes.length - 2);
+              const pjHidden = Math.max(0, projects.length - 2);
+
+              return (
+                <React.Fragment key={intern.internId}>
+                <tr
                 className={styles.tr}
                 onClick={(e) => handleRowClick(intern, e)}
                 title="DevOps intern details"
@@ -109,13 +150,65 @@ const DevOpsTable = React.memo(({
                 <td className={styles.td}>
                   <span className={styles.email}>{intern.email}</span>
                 </td>
+                <td className={styles.td}>                   
+                  <span className={styles.mobile}>           
+                    {intern.mobileNumber}             
+                  </span>  
+                </td>
                 <td className={styles.td}>
-                  <span className={styles.endDate}>
+                  <span
+                    className={`${styles.endDate} ${
+                      isDueSoon(intern.trainingEndDate)
+                        ? styles.endDateSoon
+                        : styles.endDateSafe
+                    }`}
+                  >
                     {formatDate(intern.trainingEndDate)}
                   </span>
                 </td>
                 <td className={styles.td}>
-                  <span className={styles.resourceType}>{intern.resourceType}</span>
+                  {resourceTypes.length === 0 ? (
+                    <span className={styles.resourceType}>-</span>
+                  ) : (
+                    <div className={styles.cellPills} aria-label="Resource Types"> {/* NEW */}
+                      {resourceTypes.slice(0, 2).map((rt, idx) => (
+                        <span key={idx} className={styles.projectBadge}>{rt}</span>
+                      ))}
+                      {rtHidden > 0 && (
+                        <button
+                          type="button"
+                          className={styles.moreBtn}
+                          onClick={(e) => { e.stopPropagation(); toggleExpand(intern.internId); }}
+                          aria-expanded={isExpanded}
+                          title={isExpanded ? 'Show less' : `Show ${rtHidden} more`}
+                        >
+                          {isExpanded ? 'Show less' : `+${rtHidden} more`}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </td>
+                <td className={styles.td}>
+                  {projects.length === 0 ? (
+                    <span className={styles.projects}>-</span>
+                  ) : (
+                    <div className={styles.cellPills} aria-label="Projects"> {/* NEW */}
+                      {projects.slice(0, 2).map((p, idx) => (
+                        <span key={idx} className={styles.projectBadge}>{p}</span>
+                      ))}
+                      {pjHidden > 0 && (
+                        <button
+                          type="button"
+                          className={styles.moreBtn}
+                          onClick={(e) => { e.stopPropagation(); toggleExpand(intern.internId); }}
+                          aria-expanded={isExpanded}
+                          title={isExpanded ? 'Show less' : `Show ${pjHidden} more`}
+                        >
+                          {isExpanded ? 'Show less' : `+${pjHidden} more`}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </td>
                 {isAdmin && (
                   <td className={styles.actionsCell}>
@@ -162,7 +255,37 @@ const DevOpsTable = React.memo(({
                   </td>
                 )}
               </tr>
-            ))}
+              {isExpanded && (
+                <tr className={styles.expandedRow}>
+                  <td className={styles.expandedCell} colSpan={isAdmin ? 8 : 7}>
+                    <div className={styles.expandedContent}>
+                      {resourceTypes.length > 2 && (
+                        <div className={styles.expandedSection}>
+                          <div className={styles.sectionTitle}>All Resource Types</div>
+                          <div className={styles.projectsList}>
+                            {resourceTypes.map((rt, i) => (
+                              <span key={i} className={styles.projectBadge}>{rt}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {projects.length > 2 && (
+                        <div className={styles.expandedSection}>
+                          <div className={styles.sectionTitle}>All Projects</div>
+                          <div className={styles.projectsList}>
+                            {projects.map((p, i) => (
+                              <span key={i} className={styles.projectBadge}>{p}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+              </React.Fragment>
+              );              
+            })}
           </tbody>
         </table>
       </div>
