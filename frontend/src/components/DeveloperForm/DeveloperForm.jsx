@@ -112,3 +112,112 @@ const DeveloperForm = ({
     <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
+        <div className={styles.header}>
+          <h2 className={styles.title}>Edit Developer Intern</h2>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={handleClose}
+            disabled={isLoading}
+          >
+            <FiX />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <div className={styles.formGrid}>
+            {/* Languages & Frameworks */}
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>
+                <FiServer className={styles.labelIcon} />
+                Languages & Frameworks
+              </label>
+              <div
+                className={`${styles.multiSelect} ${
+                  errors.languagesAndFrameworks ? styles.inputError : ''
+                }`}
+                onClick={() => !isLoading && setIsLangOpen((v) => !v)}
+                role="button"
+                aria-expanded={isLangOpen}
+              >
+                <div className={styles.multiControl}>
+                  <div className={styles.multiValue}>
+                    {formData.languagesAndFrameworks.length
+                      ? formData.languagesAndFrameworks.join(', ')
+                      : 'Select one or more…'}
+                  </div>
+                  <FiChevronDown className={styles.caret} />
+                </div>
+                {isLangOpen && (
+                  <div
+                    className={styles.multiMenu}
+                    onClick={(e) => e.stopPropagation()}
+                    role="listbox"
+                  >
+                    {languagesList.map((opt) => (
+                      <label key={opt} className={styles.optionRow}>
+                        <input
+                          type="checkbox"
+                          checked={formData.languagesAndFrameworks.includes(opt)}
+                          onChange={() => toggleMulti('languagesAndFrameworks', opt)}
+                          disabled={isLoading}
+                        />
+                        <span>{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {errors.languagesAndFrameworks && (
+                <span className={styles.errorText}>{errors.languagesAndFrameworks}</span>
+              )}
+            </div>
+
+            {/* Projects */}
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>
+                <FiLayers className={styles.labelIcon} />
+                Projects
+              </label>
+              <div
+                className={`${styles.multiSelect} ${
+                  errors.projects ? styles.inputError : ''
+                }`}
+                onClick={() => !isLoading && setIsProjOpen((v) => !v)}
+                role="button"
+                aria-expanded={isProjOpen}
+              >
+                <div className={styles.multiControl}>
+                  <div className={styles.multiValue}>
+                    {formData.projects.length
+                      ? formData.projects.join(', ')
+                      : 'Select one or more…'}
+                  </div>
+                  <FiChevronDown className={styles.caret} />
+                </div>
+                {isProjOpen && (
+                  <div
+                    className={styles.multiMenu}
+                    onClick={(e) => e.stopPropagation()}
+                    role="listbox"
+                  >
+                    {projectsList.map((opt) => (
+                      <label key={opt} className={styles.optionRow}>
+                        <input
+                          type="checkbox"
+                          checked={formData.projects.includes(opt)}
+                          onChange={() => toggleMulti('projects', opt)}
+                          disabled={isLoading}
+                        />
+                        <span>{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {errors.projects && (
+                <span className={styles.errorText}>{errors.projects}</span>
+              )}
+            </div>
+          </div>
