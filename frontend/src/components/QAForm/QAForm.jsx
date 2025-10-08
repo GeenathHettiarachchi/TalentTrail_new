@@ -6,7 +6,8 @@
  * EDIT MODE: Only Training End Date, QA Tools, and Projects are editable/submitted.
  * ADD MODE: All fields are editable/submitted.
  *
- * Projects are fetched dynamically from the backend (/api/projects).
+ * Tools UI: custom multi-select dropdown with checkboxes (no Ctrl/Cmd)
+ * Projects UI: custom multi-select dropdown with checkboxes (fetched from /api/projects)
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -22,7 +23,7 @@ import {
   FiChevronDown,
 } from 'react-icons/fi';
 import styles from './QAForm.module.css';
-import { projectService } from '../../services/api'; // ✅ uses your existing api.jsx
+import { projectService } from '../../services/api';
 
 // Fixed QA tool options
 const QA_TOOL_OPTIONS = [
@@ -57,13 +58,18 @@ const QAForm = ({
     trainingEndDate: '',
   });
 
+  // Tools multi-select
   const [selectedTools, setSelectedTools] = useState(() => new Set());
   const [toolsOpen, setToolsOpen] = useState(false);
   const toolsRef = useRef(null);
 
+  // Projects multi-select (fetched)
   const [projectCatalog, setProjectCatalog] = useState([]); // [{ id, projectName }]
   const [selectedProjectIds, setSelectedProjectIds] = useState(() => new Set());
+  const [projectsOpen, setProjectsOpen] = useState(false);
+  const projectsRef = useRef(null);
 
+  // Errors
   const [errors, setErrors] = useState({});
 
   // ---------------- Helpers ----------------
@@ -71,10 +77,8 @@ const QAForm = ({
 
   const normalizeTools = (v) => {
     let list = [];
-    if (!v) list = [];
-    else if (Array.isArray(v)) list = v.map(String).map((s) => s.trim());
+    if (Array.isArray(v)) list = v.map(String).map((s) => s.trim());
     else if (typeof v === 'string') list = splitCSV(v);
-
     const allowed = new Set(QA_TOOL_OPTIONS.map((t) => t.toLowerCase()));
     return list.filter((t) => allowed.has(t.toLowerCase()));
   };
@@ -92,20 +96,17 @@ const QAForm = ({
   };
 
   // ---------------- Effects ----------------
-  // ✅ Fetch projects from backend when modal opens
+  // Fetch projects when modal opens
   useEffect(() => {
     if (!isOpen) return;
     (async () => {
       try {
-        const response = await projectService.getAllProjects();
-        const data = Array.isArray(response.data) ? response.data : [];
-
-        // ✅ Normalize: some APIs may return `projectId` or `name` instead of `id/projectName`
+        const res = await projectService.getAllProjects();
+        const data = Array.isArray(res.data) ? res.data : [];
         const normalized = data.map((p) => ({
           id: p.id ?? p.projectId,
           projectName: p.projectName ?? p.name ?? 'Unnamed Project',
         }));
-
         setProjectCatalog(normalized);
       } catch (e) {
         console.error('Failed to fetch projects', e);
@@ -114,7 +115,7 @@ const QAForm = ({
     })();
   }, [isOpen]);
 
-  // ✅ Populate form fields when editing
+  // Hydrate form
   useEffect(() => {
     if (current) {
       setFormData({
@@ -125,7 +126,7 @@ const QAForm = ({
         trainingEndDate: current.trainingEndDate ? current.trainingEndDate.split('T')[0] : '',
       });
       setSelectedTools(new Set(normalizeTools(current.tools ?? current.skills)));
-      setSelectedProjectIds(new Set());
+      setSelectedProjectIds(new Set()); // matched below once catalog is ready
     } else {
       setFormData({
         internCode: '',
@@ -140,7 +141,7 @@ const QAForm = ({
     setErrors({});
   }, [current, isOpen]);
 
-  // ✅ Match existing intern projects with backend project list
+  // Match existing intern projects to catalog IDs
   useEffect(() => {
     if (!isOpen || !current || !projectCatalog.length) return;
     const incoming = normalizeProjects(current.projects);
@@ -153,7 +154,7 @@ const QAForm = ({
     setSelectedProjectIds(matched);
   }, [projectCatalog, current, isOpen]);
 
-  // Close tool dropdown on outside click
+  // Close Tools dropdown on outside click / Esc
   useEffect(() => {
     if (!toolsOpen) return;
     const onDocClick = (e) => {
@@ -167,6 +168,21 @@ const QAForm = ({
       document.removeEventListener('keydown', onEsc);
     };
   }, [toolsOpen]);
+
+  // Close Projects dropdown on outside click / Esc
+  useEffect(() => {
+    if (!projectsOpen) return;
+    const onDocClick = (e) => {
+      if (projectsRef.current && !projectsRef.current.contains(e.target)) setProjectsOpen(false);
+    };
+    const onEsc = (e) => { if (e.key === 'Escape') setProjectsOpen(false); };
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, [projectsOpen]);
 
   // ---------------- Validation ----------------
   const validateForm = () => {
@@ -194,10 +210,9 @@ const QAForm = ({
       .filter(Boolean)
       .map((p) => ({ name: p.projectName }));
 
-    // ✅ Only allow some fields to be updated in Edit mode
     if (isEdit) {
       onSubmit({
-        internCode: formData.internCode,
+        internCode: formData.internCode, // identifier (locked)
         trainingEndDate: formData.trainingEndDate,
         tools,
         projects,
@@ -205,7 +220,6 @@ const QAForm = ({
       return;
     }
 
-    // ✅ Add mode: all fields included
     onSubmit({
       internCode: formData.internCode.trim(),
       name: formData.name.trim(),
@@ -241,6 +255,7 @@ const QAForm = ({
     });
   };
 
+  // Lock helper: disable an input when editing
   const lockIfEdit = (extra = {}) => (isEdit ? { disabled: true, ...extra } : extra);
 
   // ---------------- Render ----------------
@@ -248,6 +263,14 @@ const QAForm = ({
 
   const selectedToolsText =
     selectedTools.size === 0 ? 'Select tools…' : Array.from(selectedTools).join(', ');
+
+  const selectedProjectsText =
+    selectedProjectIds.size === 0
+      ? 'Select projects…'
+      : Array.from(selectedProjectIds)
+          .map((id) => projectCatalog.find((p) => p.id === id)?.projectName)
+          .filter(Boolean)
+          .join(', ');
 
   return (
     <div className={styles.overlay} onClick={handleClose}>
@@ -344,53 +367,123 @@ const QAForm = ({
                 aria-expanded={toolsOpen}
                 disabled={isLoading}
               >
-                <span>{selectedToolsText}</span>
-                <FiChevronDown />
+                <span className={selectedTools.size ? styles.multiSelectValue : styles.multiSelectPlaceholder}>
+                  {selectedToolsText}
+                </span>
+                <FiChevronDown className={`${styles.multiSelectChevron} ${toolsOpen ? styles.chevronOpen : ''}`} />
               </button>
 
               {toolsOpen && (
-                <div className={styles.multiSelectMenu}>
-                  {QA_TOOL_OPTIONS.map((tool) => (
-                    <label key={tool} className={styles.multiSelectOption}>
-                      <input
-                        type="checkbox"
-                        checked={selectedTools.has(tool)}
-                        onChange={() => toggleTool(tool)}
+                <div className={styles.multiSelectMenu} role="listbox" aria-multiselectable="true">
+                  {QA_TOOL_OPTIONS.map((tool) => {
+                    const checked = selectedTools.has(tool);
+                    return (
+                      <label key={tool} className={`${styles.multiSelectOption} ${checked ? styles.optionChecked : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleTool(tool)}
+                          disabled={isLoading}
+                        />
+                        <span>{tool}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+
+              {selectedTools.size > 0 && (
+                <div className={styles.tagsWrap}>
+                  {Array.from(selectedTools).map((t) => (
+                    <span key={t} className={styles.tag}>
+                      {t}
+                      <button
+                        type="button"
+                        className={styles.tagRemove}
+                        onClick={() => toggleTool(t)}
+                        aria-label={`Remove ${t}`}
                         disabled={isLoading}
-                      />
-                      <span>{tool}</span>
-                    </label>
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </span>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Projects (EDITABLE) */}
-            <div className={styles.inputGroupFull}>
+            {/* Projects (EDITABLE, same dropdown UX as Tools) */}
+            <div className={styles.inputGroupFull} ref={projectsRef}>
               <label className={styles.label}><FiFolderPlus className={styles.labelIcon} />Projects</label>
-              <div className={styles.checkboxGrid}>
-                {projectCatalog.length === 0 ? (
-                  <span className={styles.muted}>No projects available</span>
-                ) : (
-                  projectCatalog.map((p) => (
-                    <label key={p.id} className={styles.checkboxItem}>
-                      <input
-                        type="checkbox"
-                        checked={selectedProjectIds.has(p.id)}
-                        onChange={() => toggleProjectId(p.id)}
-                        disabled={isLoading}
-                      />
-                      <span>{p.projectName}</span>
-                    </label>
-                  ))
-                )}
-              </div>
+              <button
+                type="button"
+                className={`${styles.input} ${styles.multiSelectControl}`}
+                onClick={() => setProjectsOpen((o) => !o)}
+                aria-haspopup="listbox"
+                aria-expanded={projectsOpen}
+                disabled={isLoading}
+              >
+                <span className={selectedProjectIds.size ? styles.multiSelectValue : styles.multiSelectPlaceholder}>
+                  {selectedProjectsText}
+                </span>
+                <FiChevronDown className={`${styles.multiSelectChevron} ${projectsOpen ? styles.chevronOpen : ''}`} />
+              </button>
+
+              {projectsOpen && (
+                <div className={styles.multiSelectMenu} role="listbox" aria-multiselectable="true">
+                  {projectCatalog.length === 0 ? (
+                    <div className={styles.multiSelectEmpty}>No projects available</div>
+                  ) : (
+                    projectCatalog.map((p) => {
+                      const checked = selectedProjectIds.has(p.id);
+                      return (
+                        <label
+                          key={p.id}
+                          className={`${styles.multiSelectOption} ${checked ? styles.optionChecked : ''}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleProjectId(p.id)}
+                            disabled={isLoading}
+                          />
+                          <span>{p.projectName}</span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+
+              {selectedProjectIds.size > 0 && (
+                <div className={styles.tagsWrap}>
+                  {Array.from(selectedProjectIds).map((id) => {
+                    const name = projectCatalog.find((p) => p.id === id)?.projectName || 'Project';
+                    return (
+                      <span key={id} className={styles.tag}>
+                        {name}
+                        <button
+                          type="button"
+                          className={styles.tagRemove}
+                          onClick={() => toggleProjectId(id)}
+                          aria-label={`Remove ${name}`}
+                          disabled={isLoading}
+                        >
+                          <FiTrash2 />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Actions */}
           <div className={styles.formActions}>
-            <button type="button" className={styles.cancelButton} onClick={handleClose}>Cancel</button>
+            <button type="button" className={styles.cancelButton} onClick={handleClose} disabled={isLoading}>
+              Cancel
+            </button>
             <button type="submit" className={styles.submitButton} disabled={isLoading}>
               {isEdit ? 'Update Intern' : 'Add Intern'}
             </button>
