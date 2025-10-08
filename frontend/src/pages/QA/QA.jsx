@@ -233,7 +233,6 @@ const QA = () => {
         )}
 
         <div className={styles.actionSection}>
-          <button className={styles.primaryBtn} onClick={handleAddIntern}>
           <CategoryDropdown current="qa" />
           <button 
             className={styles.primaryBtn}

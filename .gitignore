@@ -6,7 +6,7 @@
 *.swo
 *.bak
 *.orig
-.env
+*.env
 
 *.local
 
