@@ -341,3 +341,36 @@
     font-size: 1.1rem;
   }
 }
+.cellPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  transition: all 0.3s ease-in-out;
+}
+
+.projectBadge {
+  background-color: #e9eefc;
+  color: #2c3e50;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  transition: transform 0.2s ease;
+}
+
+.projectBadge:hover {
+  transform: scale(1.05);
+}
+
+.moreBtn {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 13px;
+  margin-left: 6px;
+  transition: color 0.2s ease;
+}
+
+.moreBtn:hover {
+  color: #0056b3;
+}
