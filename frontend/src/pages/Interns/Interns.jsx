@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { InternForm, InternTable } from '../../components';
 import { internService } from '../../services/api';
 import styles from './Interns.module.css';
+import { useNavigate } from 'react-router-dom';
 
 const Interns = () => {
   const [interns, setInterns] = useState([]);
@@ -126,6 +127,29 @@ const Interns = () => {
 
   const handleSearch = (e) => { e.preventDefault(); };
 
+  const navigate = useNavigate();
+
+  const handleCategoryChange = (e) => {
+  const value = e.target.value;
+
+  switch (value) {
+    case 'qa':
+      navigate('/qa'); 
+      break;
+    case 'devops':
+      navigate('/devops');
+      break;
+    case 'developers':
+      navigate('/developers');
+      break;
+    case 'all':
+    default:
+      navigate('/interns');
+      break;
+  }
+};
+
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -150,6 +174,19 @@ const Interns = () => {
         )}
 
         <div className={styles.actionSection}>
+            <div className={styles.categoryDropdown}>
+            <select
+              className={styles.filterSelect}
+              onChange={handleCategoryChange}
+              defaultValue="all"
+              title="Select intern category"
+            >
+              <option value="all">All Interns</option>
+              <option value="qa">QA</option>
+              <option value="devops">DevOps</option>
+              <option value="developers">Developers</option>
+            </select>
+          </div>
           <button 
             className={styles.primaryBtn}
             onClick={handleAddIntern}
