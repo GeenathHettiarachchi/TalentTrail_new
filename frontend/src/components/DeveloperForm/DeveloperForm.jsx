@@ -105,3 +105,10 @@ const DeveloperForm = ({
       onClose();
     }
   };
+
+   if (!isOpen) return null;
+
+  return createPortal(
+    <div className={styles.overlay} onClick={handleClose}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
