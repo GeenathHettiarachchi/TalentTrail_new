@@ -48,6 +48,10 @@
   border-bottom: none;
 }
 
+.trInteractive { 
+  cursor: pointer;
+}
+
 .td { 
   padding: 0.85rem 1rem; 
   color: #495057; 
@@ -252,6 +256,56 @@
 
 .moreBtn:hover {
   background: #eef2f7;
+}
+
+.expanderTh {
+  width: 32px;
+  min-width: 32px;
+  padding-left: 0.5rem;
+  padding-right: 0.25rem;
+}
+
+.expanderCell {
+  width: 32px;
+  min-width: 32px;
+  text-align: left;
+  padding-left: 0.5rem;
+  padding-right: 0.25rem;
+}
+
+.expanderBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+
+.expanderBtn:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.expanderBtn svg {
+  transition: transform .2s ease;
+  transform: rotate(0deg);
+}
+
+.expanderBtnOpen svg {
+  transform: rotate(90deg);
+}
+
+.expanderSpacer {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  visibility: hidden;
 }
 
 .expandedRow {
