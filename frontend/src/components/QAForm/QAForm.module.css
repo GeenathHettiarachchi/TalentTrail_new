@@ -1,3 +1,4 @@
+/* === EXISTING STYLES (unchanged) ========================================= */
 .overlay {
   position: fixed;
   top: 0;
@@ -90,6 +91,7 @@
 
 .inputGroup { display: flex; flex-direction: column; }
 
+/* New: full-width group variant used in Tools/Projects */
 .inputGroupFull {
   display: flex;
   flex-direction: column;
@@ -208,6 +210,7 @@
 
 @keyframes spin { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
 
+/* Responsive */
 @media (max-width: 768px) {
   .modal { margin: 1rem; max-width: none; width: calc(100% - 2rem); }
   .header { padding: 1.5rem 1.5rem 1rem; }
@@ -227,6 +230,7 @@
   .closeButton { width: 36px; height: 36px; font-size: 1.125rem; }
 }
 
+/* ==== Date input hint color fix ==== */
 .dateInput { color: #374151; }
 .dateInput:required:invalid::-webkit-datetime-edit { color: #9ca3af; }
 .dateInput:required:invalid::-webkit-datetime-edit-text,
@@ -248,6 +252,8 @@
   .dateInput:valid, .dateInput:focus { color: #374151; }
 }
 .dateInput::-webkit-calendar-picker-indicator { filter: opacity(0.7); }
+
+/* === NEW UTILITIES used in JSX ========================================= */
 
 .checkboxGrid {
   display: grid;
@@ -296,6 +302,8 @@
 
 .tagRemove:hover { color: #111827; }
 
+/* === CUSTOM MULTI-SELECT DROPDOWN ===================================== */
+
 .multiSelectControl {
   position: relative;
   display: flex;
@@ -303,7 +311,7 @@
   justify-content: space-between;
   text-align: left;
   cursor: pointer;
-  padding-right: 40px;
+  padding-right: 40px; /* space for chevron */
 }
 
 .multiSelectPlaceholder { color: #9ca3af; }
@@ -352,3 +360,5 @@
   background: #ecfdf5;
   border: 1px solid #a7f3d0;
 }
+
+/* ====================================================================== */
