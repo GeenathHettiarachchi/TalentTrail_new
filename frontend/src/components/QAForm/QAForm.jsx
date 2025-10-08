@@ -2,10 +2,11 @@
 /**
  * QAForm.jsx
  *
- * Modal form to Add/Edit a QA Intern profile.
- * - Tools: custom dropdown with multi-select checkboxes (no Ctrl/Cmd)
- * - Projects: checkbox group fetched from backend (/api/projects)
- * - Submits: tools as string[] and projects as { name }[]
+ * Add/Edit QA Intern.
+ * EDIT MODE: Only Training End Date, QA Tools, and Projects are editable/submitted.
+ * ADD MODE: All fields are editable/submitted.
+ *
+ * Projects are fetched dynamically from the backend (/api/projects).
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -21,9 +22,9 @@ import {
   FiChevronDown,
 } from 'react-icons/fi';
 import styles from './QAForm.module.css';
-import { projectService } from '../../services/api'; // adjust if your path differs
+import { projectService } from '../../services/api'; // ✅ uses your existing api.jsx
 
-// QA tool options
+// Fixed QA tool options
 const QA_TOOL_OPTIONS = [
   'Selenium',
   'JMeter',
@@ -36,29 +37,18 @@ const QA_TOOL_OPTIONS = [
   'Ranorex',
 ];
 
-/**
- * @typedef {Object} QAIntern
- * @property {string} internCode
- * @property {string} name
- * @property {string} email
- * @property {string} mobileNumber
- * @property {string} trainingEndDate
- * @property {string[]|undefined} tools
- * @property {string[]|undefined} skills
- * @property {{name: string}[]|string[]|undefined} projects
- */
-
 const QAForm = ({
   isOpen,
   onClose,
   onSubmit,
-  intern,               // from QA.jsx
-  editingIntern = null, // backward-compat
+  intern,
+  editingIntern = null,
   isLoading = false,
 }) => {
   const current = useMemo(() => editingIntern ?? intern ?? null, [editingIntern, intern]);
+  const isEdit = !!current;
 
-  // ---------------- State: form fields ----------------
+  // ---------------- State ----------------
   const [formData, setFormData] = useState({
     internCode: '',
     name: '',
@@ -67,40 +57,28 @@ const QAForm = ({
     trainingEndDate: '',
   });
 
-  // Tools as a Set of strings
   const [selectedTools, setSelectedTools] = useState(() => new Set());
-  // Tools dropdown open/close
   const [toolsOpen, setToolsOpen] = useState(false);
   const toolsRef = useRef(null);
 
-  // Projects catalog from backend, and selected project IDs as a Set
-  const [projectCatalog, setProjectCatalog] = useState([]); // [{ id, projectName, ... }]
+  const [projectCatalog, setProjectCatalog] = useState([]); // [{ id, projectName }]
   const [selectedProjectIds, setSelectedProjectIds] = useState(() => new Set());
 
-  // Field errors
   const [errors, setErrors] = useState({});
 
   // ---------------- Helpers ----------------
-  const splitCSV = (val) =>
-    val
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
+  const splitCSV = (val) => val.split(',').map((s) => s.trim()).filter(Boolean);
 
-  // Map legacy/CSV tools into the allowed set of tool options
   const normalizeTools = (v) => {
     let list = [];
     if (!v) list = [];
     else if (Array.isArray(v)) list = v.map(String).map((s) => s.trim());
     else if (typeof v === 'string') list = splitCSV(v);
-    else list = [];
 
     const allowed = new Set(QA_TOOL_OPTIONS.map((t) => t.toLowerCase()));
-    // keep only allowed tools (case-insensitive)
     return list.filter((t) => allowed.has(t.toLowerCase()));
   };
 
-  // Accept string[], CSV, or {name}[] and return {name}[]
   const normalizeProjects = (v) => {
     if (!v) return [];
     if (typeof v === 'string') return splitCSV(v).map((name) => ({ name }));
@@ -114,14 +92,21 @@ const QAForm = ({
   };
 
   // ---------------- Effects ----------------
-
-  // Load project catalog on open
+  // ✅ Fetch projects from backend when modal opens
   useEffect(() => {
     if (!isOpen) return;
     (async () => {
       try {
-        const { data } = await projectService.getAllProjects();
-        setProjectCatalog(Array.isArray(data) ? data : []);
+        const response = await projectService.getAllProjects();
+        const data = Array.isArray(response.data) ? response.data : [];
+
+        // ✅ Normalize: some APIs may return `projectId` or `name` instead of `id/projectName`
+        const normalized = data.map((p) => ({
+          id: p.id ?? p.projectId,
+          projectName: p.projectName ?? p.name ?? 'Unnamed Project',
+        }));
+
+        setProjectCatalog(normalized);
       } catch (e) {
         console.error('Failed to fetch projects', e);
         setProjectCatalog([]);
@@ -129,7 +114,7 @@ const QAForm = ({
     })();
   }, [isOpen]);
 
-  // Hydrate form for edit/new when modal opens
+  // ✅ Populate form fields when editing
   useEffect(() => {
     if (current) {
       setFormData({
@@ -139,13 +124,8 @@ const QAForm = ({
         mobileNumber: current.mobileNumber || '',
         trainingEndDate: current.trainingEndDate ? current.trainingEndDate.split('T')[0] : '',
       });
-
-      // Tools: map to Set from allowed list
-      const incomingTools = normalizeTools(current.tools ?? current.skills);
-      setSelectedTools(new Set(incomingTools));
-
-      // Projects: we only store names; we’ll match to IDs after catalog loads
-      setSelectedProjectIds(new Set()); // recomputed below
+      setSelectedTools(new Set(normalizeTools(current.tools ?? current.skills)));
+      setSelectedProjectIds(new Set());
     } else {
       setFormData({
         internCode: '',
@@ -160,30 +140,26 @@ const QAForm = ({
     setErrors({});
   }, [current, isOpen]);
 
-  // When catalog or current changes, match current project names to IDs
+  // ✅ Match existing intern projects with backend project list
   useEffect(() => {
     if (!isOpen || !current || !projectCatalog.length) return;
-    const incomingProjects = normalizeProjects(current.projects); // { name }[]
-    const namesWanted = new Set(incomingProjects.map((p) => p.name.toLowerCase()));
-    const matchedIds = new Set(
+    const incoming = normalizeProjects(current.projects);
+    const namesWanted = new Set(incoming.map((p) => p.name.toLowerCase()));
+    const matched = new Set(
       projectCatalog
         .filter((p) => namesWanted.has((p.projectName || '').toLowerCase()))
         .map((p) => p.id)
     );
-    setSelectedProjectIds(matchedIds);
+    setSelectedProjectIds(matched);
   }, [projectCatalog, current, isOpen]);
 
-  // Close tools dropdown on outside click or Escape
+  // Close tool dropdown on outside click
   useEffect(() => {
     if (!toolsOpen) return;
     const onDocClick = (e) => {
-      if (toolsRef.current && !toolsRef.current.contains(e.target)) {
-        setToolsOpen(false);
-      }
+      if (toolsRef.current && !toolsRef.current.contains(e.target)) setToolsOpen(false);
     };
-    const onEsc = (e) => {
-      if (e.key === 'Escape') setToolsOpen(false);
-    };
+    const onEsc = (e) => { if (e.key === 'Escape') setToolsOpen(false); };
     document.addEventListener('mousedown', onDocClick);
     document.addEventListener('keydown', onEsc);
     return () => {
@@ -195,40 +171,15 @@ const QAForm = ({
   // ---------------- Validation ----------------
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.internCode.trim()) {
-      newErrors.internCode = 'Trainee ID is required';
-    } else if (formData.internCode.length < 3) {
-      newErrors.internCode = 'Trainee ID must be at least 3 characters';
-    }
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    } else if (formData.name.length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-
-    if (!formData.mobileNumber.trim()) {
-      newErrors.mobileNumber = 'Mobile number is required';
-    } else if (!/^(\+94|0)?7\d{8}$/.test(formData.mobileNumber.trim())) {
-      newErrors.mobileNumber = 'Enter a valid Sri Lanka mobile e.g. 07XXXXXXXX';
-    }
-
-    if (!formData.trainingEndDate) {
-      newErrors.trainingEndDate = 'End date is required';
-    }
-
+    if (!formData.internCode.trim()) newErrors.internCode = 'Trainee ID is required';
+    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!formData.mobileNumber.trim()) newErrors.mobileNumber = 'Mobile number is required';
+    if (!formData.trainingEndDate) newErrors.trainingEndDate = 'End date is required';
     return newErrors;
   };
 
   // ---------------- Handlers ----------------
-
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = validateForm();
@@ -237,15 +188,24 @@ const QAForm = ({
       return;
     }
 
-    // Convert selectedTools Set -> string[]
     const tools = Array.from(selectedTools);
-
-    // Convert selectedProjectIds -> { name }[] (matches your current payload)
     const projects = Array.from(selectedProjectIds)
       .map((id) => projectCatalog.find((p) => p.id === id))
       .filter(Boolean)
       .map((p) => ({ name: p.projectName }));
 
+    // ✅ Only allow some fields to be updated in Edit mode
+    if (isEdit) {
+      onSubmit({
+        internCode: formData.internCode,
+        trainingEndDate: formData.trainingEndDate,
+        tools,
+        projects,
+      });
+      return;
+    }
+
+    // ✅ Add mode: all fields included
     onSubmit({
       internCode: formData.internCode.trim(),
       name: formData.name.trim(),
@@ -265,47 +225,37 @@ const QAForm = ({
 
   const handleClose = () => { if (!isLoading) onClose(); };
 
-  // Projects checkbox toggles
   const toggleProjectId = (id) => {
     setSelectedProjectIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   };
 
-  // Tools dropdown toggles
   const toggleTool = (tool) => {
     setSelectedTools((prev) => {
       const next = new Set(prev);
-      if (next.has(tool)) next.delete(tool);
-      else next.add(tool);
+      if (next.has(tool)) next.delete(tool); else next.add(tool);
       return next;
     });
   };
+
+  const lockIfEdit = (extra = {}) => (isEdit ? { disabled: true, ...extra } : extra);
 
   // ---------------- Render ----------------
   if (!isOpen) return null;
 
   const selectedToolsText =
-    selectedTools.size === 0
-      ? 'Select tools…'
-      : Array.from(selectedTools).join(', ');
+    selectedTools.size === 0 ? 'Select tools…' : Array.from(selectedTools).join(', ');
 
   return (
     <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className={styles.header}>
-          <h2 className={styles.title}>{current ? 'Edit QA Intern' : 'Add QA Intern'}</h2>
-          <button
-            type="button"
-            className={styles.closeButton}
-            onClick={handleClose}
-            disabled={isLoading}
-            aria-label="Close"
-          >
+          <h2 className={styles.title}>{isEdit ? 'Edit QA Intern' : 'Add QA Intern'}</h2>
+          <button type="button" className={styles.closeButton} onClick={handleClose} disabled={isLoading}>
             <FiX />
           </button>
         </div>
@@ -313,186 +263,111 @@ const QAForm = ({
         {/* Form */}
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.formGrid}>
-            {/* Trainee ID */}
+            {/* Trainee ID (LOCKED in edit) */}
             <div className={styles.inputGroup}>
-              <label className={styles.label} htmlFor="internCode">
-                <FiUser className={styles.labelIcon} />
-                Trainee ID
-              </label>
+              <label className={styles.label}><FiUser className={styles.labelIcon} />Trainee ID</label>
               <input
                 type="text"
-                id="internCode"
                 name="internCode"
                 value={formData.internCode}
                 onChange={handleInputChange}
                 className={`${styles.input} ${errors.internCode ? styles.inputError : ''}`}
                 placeholder="e.g. QA001"
-                disabled={isLoading}
-                required
+                {...lockIfEdit()}
               />
-              {errors.internCode && <span className={styles.errorText}>{errors.internCode}</span>}
             </div>
 
-            {/* Full Name */}
+            {/* Full Name (LOCKED in edit) */}
             <div className={styles.inputGroup}>
-              <label className={styles.label} htmlFor="name">
-                <FiUser className={styles.labelIcon} />
-                Full Name
-              </label>
+              <label className={styles.label}><FiUser className={styles.labelIcon} />Full Name</label>
               <input
                 type="text"
-                id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
                 className={`${styles.input} ${errors.name ? styles.inputError : ''}`}
                 placeholder="Enter full name"
-                disabled={isLoading}
-                required
+                {...lockIfEdit()}
               />
-              {errors.name && <span className={styles.errorText}>{errors.name}</span>}
             </div>
 
-            {/* Email */}
+            {/* Email (LOCKED in edit) */}
             <div className={styles.inputGroup}>
-              <label className={styles.label} htmlFor="email">
-                <FiMail className={styles.labelIcon} />
-                Email Address
-              </label>
+              <label className={styles.label}><FiMail className={styles.labelIcon} />Email</label>
               <input
                 type="email"
-                id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
                 className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
-                placeholder="Enter email address"
-                disabled={isLoading}
-                required
+                placeholder="Enter email"
+                {...lockIfEdit()}
               />
-              {errors.email && <span className={styles.errorText}>{errors.email}</span>}
             </div>
 
-            {/* Mobile */}
+            {/* Mobile (LOCKED in edit) */}
             <div className={styles.inputGroup}>
-              <label className={styles.label} htmlFor="mobileNumber">
-                <FiPhone className={styles.labelIcon} />
-                Mobile Number
-              </label>
+              <label className={styles.label}><FiPhone className={styles.labelIcon} />Mobile</label>
               <input
                 type="text"
-                id="mobileNumber"
                 name="mobileNumber"
                 value={formData.mobileNumber}
                 onChange={handleInputChange}
                 className={`${styles.input} ${errors.mobileNumber ? styles.inputError : ''}`}
-                placeholder="07XXXXXXXX or +947XXXXXXXX"
+                placeholder="07XXXXXXXX"
+                {...lockIfEdit()}
+              />
+            </div>
+
+            {/* Training End Date (EDITABLE) */}
+            <div className={styles.inputGroup}>
+              <label className={styles.label}><FiCalendar className={styles.labelIcon} />Training End Date</label>
+              <input
+                type="date"
+                name="trainingEndDate"
+                value={formData.trainingEndDate}
+                onChange={handleInputChange}
+                className={`${styles.input} ${styles.dateInput}`}
                 disabled={isLoading}
                 required
               />
-              {errors.mobileNumber && <span className={styles.errorText}>{errors.mobileNumber}</span>}
             </div>
 
-            {/* Training End Date */}
-            <div className={styles.inputGroup}>
-              <label className={styles.label} htmlFor="trainingEndDate">
-                <FiCalendar className={styles.labelIcon} />
-                Training End Date
-              </label>
-              <input
-                 type="date"
-                 id="trainingEndDate"
-                 name="trainingEndDate"
-                 value={formData.trainingEndDate}
-                 onChange={handleInputChange}
-                 className={`${styles.input} ${styles.dateInput} ${errors.trainingEndDate ? styles.inputError : ''}`}
-                 placeholder="YYYY-MM-DD"
-                 disabled={isLoading}
-                 required
-              />
-              {errors.trainingEndDate && (
-                <span className={styles.errorText}>{errors.trainingEndDate}</span>
-              )}
-            </div>
-
-            {/* Tools (custom multi-select dropdown) */}
+            {/* QA Tools (EDITABLE) */}
             <div className={styles.inputGroupFull} ref={toolsRef}>
-              <label className={styles.label}>
-                <FiTool className={styles.labelIcon} />
-                QA Tools
-              </label>
-
+              <label className={styles.label}><FiTool className={styles.labelIcon} />QA Tools</label>
               <button
                 type="button"
                 className={`${styles.input} ${styles.multiSelectControl}`}
                 onClick={() => setToolsOpen((o) => !o)}
                 aria-haspopup="listbox"
                 aria-expanded={toolsOpen}
+                disabled={isLoading}
               >
-                <span
-                  className={
-                    selectedTools.size === 0
-                      ? styles.multiSelectPlaceholder
-                      : styles.multiSelectValue
-                  }
-                >
-                  {selectedToolsText}
-                </span>
-                <FiChevronDown
-                  className={`${styles.multiSelectChevron} ${toolsOpen ? styles.chevronOpen : ''}`}
-                />
+                <span>{selectedToolsText}</span>
+                <FiChevronDown />
               </button>
 
               {toolsOpen && (
-                <div className={styles.multiSelectMenu} role="listbox" aria-multiselectable="true">
-                  {QA_TOOL_OPTIONS.map((tool) => {
-                    const checked = selectedTools.has(tool);
-                    return (
-                      <label
-                        key={tool}
-                        className={`${styles.multiSelectOption} ${checked ? styles.optionChecked : ''}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleTool(tool)}
-                          disabled={isLoading}
-                        />
-                        <span>{tool}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Optional chips below the control */}
-              {selectedTools.size > 0 && (
-                <div className={styles.tagsWrap}>
-                  {Array.from(selectedTools).map((t) => (
-                    <span key={t} className={styles.tag}>
-                      {t}
-                      <button
-                        type="button"
-                        className={styles.tagRemove}
-                        onClick={() => toggleTool(t)}
-                        aria-label={`Remove ${t}`}
+                <div className={styles.multiSelectMenu}>
+                  {QA_TOOL_OPTIONS.map((tool) => (
+                    <label key={tool} className={styles.multiSelectOption}>
+                      <input
+                        type="checkbox"
+                        checked={selectedTools.has(tool)}
+                        onChange={() => toggleTool(tool)}
                         disabled={isLoading}
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </span>
+                      />
+                      <span>{tool}</span>
+                    </label>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Projects (checkbox group fetched from backend) */}
+            {/* Projects (EDITABLE) */}
             <div className={styles.inputGroupFull}>
-              <label className={styles.label}>
-                <FiFolderPlus className={styles.labelIcon} />
-                Projects
-              </label>
-
+              <label className={styles.label}><FiFolderPlus className={styles.labelIcon} />Projects</label>
               <div className={styles.checkboxGrid}>
                 {projectCatalog.length === 0 ? (
                   <span className={styles.muted}>No projects available</span>
@@ -515,23 +390,9 @@ const QAForm = ({
 
           {/* Actions */}
           <div className={styles.formActions}>
-            <button
-              type="button"
-              className={styles.cancelButton}
-              onClick={handleClose}
-              disabled={isLoading}
-            >
-              Cancel
-            </button>
+            <button type="button" className={styles.cancelButton} onClick={handleClose}>Cancel</button>
             <button type="submit" className={styles.submitButton} disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <div className={styles.spinner}></div>
-                  {current ? 'Updating...' : 'Adding...'}
-                </>
-              ) : (
-                current ? 'Update Intern' : 'Add Intern'
-              )}
+              {isEdit ? 'Update Intern' : 'Add Intern'}
             </button>
           </div>
         </form>
