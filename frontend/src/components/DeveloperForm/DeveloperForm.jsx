@@ -85,4 +85,23 @@ const DeveloperForm = ({
     return newErrors;
   };
 
-  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    onSubmit({
+      ...formData,
+      internId: editingIntern?.internId ?? null,
+    });
+  };
+
+  const handleClose = () => {
+    if (!isLoading) {
+      setIsLangOpen(false);
+      setIsProjOpen(false);
+      onClose();
+    }
+  };
