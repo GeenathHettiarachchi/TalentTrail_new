@@ -21,8 +21,9 @@ import {
   FiChevronDown,
 } from 'react-icons/fi';
 import styles from './QAForm.module.css';
-import { projectService } from '../../services/api';
+import { projectService } from '../../services/api'; // adjust if your path differs
 
+// QA tool options
 const QA_TOOL_OPTIONS = [
   'Selenium',
   'JMeter',
@@ -35,16 +36,29 @@ const QA_TOOL_OPTIONS = [
   'Ranorex',
 ];
 
+/**
+ * @typedef {Object} QAIntern
+ * @property {string} internCode
+ * @property {string} name
+ * @property {string} email
+ * @property {string} mobileNumber
+ * @property {string} trainingEndDate
+ * @property {string[]|undefined} tools
+ * @property {string[]|undefined} skills
+ * @property {{name: string}[]|string[]|undefined} projects
+ */
+
 const QAForm = ({
   isOpen,
   onClose,
   onSubmit,
-  intern,
-  editingIntern = null,
+  intern,               // from QA.jsx
+  editingIntern = null, // backward-compat
   isLoading = false,
 }) => {
   const current = useMemo(() => editingIntern ?? intern ?? null, [editingIntern, intern]);
 
+  // ---------------- State: form fields ----------------
   const [formData, setFormData] = useState({
     internCode: '',
     name: '',
@@ -53,29 +67,40 @@ const QAForm = ({
     trainingEndDate: '',
   });
 
+  // Tools as a Set of strings
   const [selectedTools, setSelectedTools] = useState(() => new Set());
+  // Tools dropdown open/close
   const [toolsOpen, setToolsOpen] = useState(false);
   const toolsRef = useRef(null);
-  const [projectCatalog, setProjectCatalog] = useState([]);
+
+  // Projects catalog from backend, and selected project IDs as a Set
+  const [projectCatalog, setProjectCatalog] = useState([]); // [{ id, projectName, ... }]
   const [selectedProjectIds, setSelectedProjectIds] = useState(() => new Set());
+
+  // Field errors
   const [errors, setErrors] = useState({});
 
+  // ---------------- Helpers ----------------
   const splitCSV = (val) =>
     val
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
 
+  // Map legacy/CSV tools into the allowed set of tool options
   const normalizeTools = (v) => {
     let list = [];
     if (!v) list = [];
     else if (Array.isArray(v)) list = v.map(String).map((s) => s.trim());
     else if (typeof v === 'string') list = splitCSV(v);
     else list = [];
+
     const allowed = new Set(QA_TOOL_OPTIONS.map((t) => t.toLowerCase()));
+    // keep only allowed tools (case-insensitive)
     return list.filter((t) => allowed.has(t.toLowerCase()));
   };
 
+  // Accept string[], CSV, or {name}[] and return {name}[]
   const normalizeProjects = (v) => {
     if (!v) return [];
     if (typeof v === 'string') return splitCSV(v).map((name) => ({ name }));
@@ -88,6 +113,9 @@ const QAForm = ({
     return [];
   };
 
+  // ---------------- Effects ----------------
+
+  // Load project catalog on open
   useEffect(() => {
     if (!isOpen) return;
     (async () => {
@@ -101,6 +129,7 @@ const QAForm = ({
     })();
   }, [isOpen]);
 
+  // Hydrate form for edit/new when modal opens
   useEffect(() => {
     if (current) {
       setFormData({
@@ -110,9 +139,13 @@ const QAForm = ({
         mobileNumber: current.mobileNumber || '',
         trainingEndDate: current.trainingEndDate ? current.trainingEndDate.split('T')[0] : '',
       });
+
+      // Tools: map to Set from allowed list
       const incomingTools = normalizeTools(current.tools ?? current.skills);
       setSelectedTools(new Set(incomingTools));
-      setSelectedProjectIds(new Set());
+
+      // Projects: we only store names; we’ll match to IDs after catalog loads
+      setSelectedProjectIds(new Set()); // recomputed below
     } else {
       setFormData({
         internCode: '',
@@ -127,9 +160,10 @@ const QAForm = ({
     setErrors({});
   }, [current, isOpen]);
 
+  // When catalog or current changes, match current project names to IDs
   useEffect(() => {
     if (!isOpen || !current || !projectCatalog.length) return;
-    const incomingProjects = normalizeProjects(current.projects);
+    const incomingProjects = normalizeProjects(current.projects); // { name }[]
     const namesWanted = new Set(incomingProjects.map((p) => p.name.toLowerCase()));
     const matchedIds = new Set(
       projectCatalog
@@ -139,6 +173,7 @@ const QAForm = ({
     setSelectedProjectIds(matchedIds);
   }, [projectCatalog, current, isOpen]);
 
+  // Close tools dropdown on outside click or Escape
   useEffect(() => {
     if (!toolsOpen) return;
     const onDocClick = (e) => {
@@ -157,33 +192,42 @@ const QAForm = ({
     };
   }, [toolsOpen]);
 
+  // ---------------- Validation ----------------
   const validateForm = () => {
     const newErrors = {};
+
     if (!formData.internCode.trim()) {
       newErrors.internCode = 'Trainee ID is required';
     } else if (formData.internCode.length < 3) {
       newErrors.internCode = 'Trainee ID must be at least 3 characters';
     }
+
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
     } else if (formData.name.length < 2) {
       newErrors.name = 'Name must be at least 2 characters';
     }
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email';
     }
+
     if (!formData.mobileNumber.trim()) {
       newErrors.mobileNumber = 'Mobile number is required';
     } else if (!/^(\+94|0)?7\d{8}$/.test(formData.mobileNumber.trim())) {
       newErrors.mobileNumber = 'Enter a valid Sri Lanka mobile e.g. 07XXXXXXXX';
     }
+
     if (!formData.trainingEndDate) {
       newErrors.trainingEndDate = 'End date is required';
     }
+
     return newErrors;
   };
+
+  // ---------------- Handlers ----------------
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -192,11 +236,16 @@ const QAForm = ({
       setErrors(newErrors);
       return;
     }
+
+    // Convert selectedTools Set -> string[]
     const tools = Array.from(selectedTools);
+
+    // Convert selectedProjectIds -> { name }[] (matches your current payload)
     const projects = Array.from(selectedProjectIds)
       .map((id) => projectCatalog.find((p) => p.id === id))
       .filter(Boolean)
       .map((p) => ({ name: p.projectName }));
+
     onSubmit({
       internCode: formData.internCode.trim(),
       name: formData.name.trim(),
@@ -214,10 +263,9 @@ const QAForm = ({
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
-  const handleClose = () => {
-    if (!isLoading) onClose();
-  };
+  const handleClose = () => { if (!isLoading) onClose(); };
 
+  // Projects checkbox toggles
   const toggleProjectId = (id) => {
     setSelectedProjectIds((prev) => {
       const next = new Set(prev);
@@ -227,6 +275,7 @@ const QAForm = ({
     });
   };
 
+  // Tools dropdown toggles
   const toggleTool = (tool) => {
     setSelectedTools((prev) => {
       const next = new Set(prev);
@@ -236,14 +285,18 @@ const QAForm = ({
     });
   };
 
+  // ---------------- Render ----------------
   if (!isOpen) return null;
 
   const selectedToolsText =
-    selectedTools.size === 0 ? 'Select tools…' : Array.from(selectedTools).join(', ');
+    selectedTools.size === 0
+      ? 'Select tools…'
+      : Array.from(selectedTools).join(', ');
 
   return (
     <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
         <div className={styles.header}>
           <h2 className={styles.title}>{current ? 'Edit QA Intern' : 'Add QA Intern'}</h2>
           <button
@@ -257,8 +310,10 @@ const QAForm = ({
           </button>
         </div>
 
+        {/* Form */}
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.formGrid}>
+            {/* Trainee ID */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="internCode">
                 <FiUser className={styles.labelIcon} />
@@ -278,6 +333,7 @@ const QAForm = ({
               {errors.internCode && <span className={styles.errorText}>{errors.internCode}</span>}
             </div>
 
+            {/* Full Name */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="name">
                 <FiUser className={styles.labelIcon} />
@@ -297,6 +353,7 @@ const QAForm = ({
               {errors.name && <span className={styles.errorText}>{errors.name}</span>}
             </div>
 
+            {/* Email */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="email">
                 <FiMail className={styles.labelIcon} />
@@ -316,6 +373,7 @@ const QAForm = ({
               {errors.email && <span className={styles.errorText}>{errors.email}</span>}
             </div>
 
+            {/* Mobile */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="mobileNumber">
                 <FiPhone className={styles.labelIcon} />
@@ -335,32 +393,35 @@ const QAForm = ({
               {errors.mobileNumber && <span className={styles.errorText}>{errors.mobileNumber}</span>}
             </div>
 
+            {/* Training End Date */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="trainingEndDate">
                 <FiCalendar className={styles.labelIcon} />
                 Training End Date
               </label>
               <input
-                type="date"
-                id="trainingEndDate"
-                name="trainingEndDate"
-                value={formData.trainingEndDate}
-                onChange={handleInputChange}
-                className={`${styles.input} ${styles.dateInput} ${errors.trainingEndDate ? styles.inputError : ''}`}
-                placeholder="YYYY-MM-DD"
-                disabled={isLoading}
-                required
+                 type="date"
+                 id="trainingEndDate"
+                 name="trainingEndDate"
+                 value={formData.trainingEndDate}
+                 onChange={handleInputChange}
+                 className={`${styles.input} ${styles.dateInput} ${errors.trainingEndDate ? styles.inputError : ''}`}
+                 placeholder="YYYY-MM-DD"
+                 disabled={isLoading}
+                 required
               />
               {errors.trainingEndDate && (
                 <span className={styles.errorText}>{errors.trainingEndDate}</span>
               )}
             </div>
 
+            {/* Tools (custom multi-select dropdown) */}
             <div className={styles.inputGroupFull} ref={toolsRef}>
               <label className={styles.label}>
                 <FiTool className={styles.labelIcon} />
                 QA Tools
               </label>
+
               <button
                 type="button"
                 className={`${styles.input} ${styles.multiSelectControl}`}
@@ -381,6 +442,7 @@ const QAForm = ({
                   className={`${styles.multiSelectChevron} ${toolsOpen ? styles.chevronOpen : ''}`}
                 />
               </button>
+
               {toolsOpen && (
                 <div className={styles.multiSelectMenu} role="listbox" aria-multiselectable="true">
                   {QA_TOOL_OPTIONS.map((tool) => {
@@ -402,6 +464,8 @@ const QAForm = ({
                   })}
                 </div>
               )}
+
+              {/* Optional chips below the control */}
               {selectedTools.size > 0 && (
                 <div className={styles.tagsWrap}>
                   {Array.from(selectedTools).map((t) => (
@@ -422,11 +486,13 @@ const QAForm = ({
               )}
             </div>
 
+            {/* Projects (checkbox group fetched from backend) */}
             <div className={styles.inputGroupFull}>
               <label className={styles.label}>
                 <FiFolderPlus className={styles.labelIcon} />
                 Projects
               </label>
+
               <div className={styles.checkboxGrid}>
                 {projectCatalog.length === 0 ? (
                   <span className={styles.muted}>No projects available</span>
@@ -447,6 +513,7 @@ const QAForm = ({
             </div>
           </div>
 
+          {/* Actions */}
           <div className={styles.formActions}>
             <button
               type="button"
