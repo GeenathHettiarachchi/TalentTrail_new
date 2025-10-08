@@ -21,60 +21,48 @@ const DevOps = () => {
       internCode: 'DEV001',
       name: 'John Smith',
       email: 'john.smith@example.com',
-      mobileNumber: '0712356172',
       trainingEndDate: '2024-12-15',
-      resourceType: 'Cloud Engineer',
-      projects: ['CI/CD', 'MERN']
+      resourceType: 'Cloud Engineer'
     },
     {
       internId: 2,
       internCode: 'DEV002',
       name: 'Sarah Johnson',
       email: 'sarah.johnson@example.com',
-      mobileNumber: '0776502837',
       trainingEndDate: '2024-11-30',
-      resourceType: 'DevOps Engineer',
-      projects: ['CI/CD', 'MERN', 'AWS']
+      resourceType: 'DevOps Engineer'
     },
     {
       internId: 3,
       internCode: 'DEV003',
       name: 'Michael Brown',
       email: 'michael.brown@example.com',
-      mobileNumber: '0776502837',
       trainingEndDate: '2025-01-20',
-      resourceType: 'Site Reliability Engineer',
-      projects: ['CI/CD', 'MERN', 'AWS']
+      resourceType: 'Site Reliability Engineer'
     },
     {
       internId: 4,
       internCode: 'DEV004',
       name: 'Emily Davis',
       email: 'emily.davis@example.com',
-      mobileNumber: '0776502837',
       trainingEndDate: '2024-12-10',
-      resourceType: 'Infrastructure Engineer',
-      projects: ['CI/CD', 'MERN', 'AWS']
+      resourceType: 'Infrastructure Engineer'
     },
     {
       internId: 5,
       internCode: 'DEV005',
       name: 'David Wilson',
       email: 'david.wilson@example.com',
-      mobileNumber: '0776502837',
       trainingEndDate: '2025-02-05',
-      resourceType: 'Platform Engineer',
-      projects: ['CI/CD', 'MERN', 'AWS']
+      resourceType: 'Platform Engineer'
     },
     {
       internId: 6,
       internCode: 'DEV006',
       name: 'Lisa Anderson',
       email: 'lisa.anderson@example.com',
-      mobileNumber: '0776502837',
       trainingEndDate: '2024-12-28',
-      resourceType: 'Cloud Architect',
-      projects: ['CI/CD', 'MERN', 'AWS']
+      resourceType: 'Cloud Architect'
     }
   ];
 
@@ -90,19 +78,13 @@ const DevOps = () => {
     loadData();
   }, []);
 
-  const asText = (v) => Array.isArray(v) ? v.join(', ') : (v ?? '');
-
   // Filter interns based on search term
   useEffect(() => {
-    const term = searchTerm.toLowerCase().trim();
-    let list = !term ? [...devOpsInterns] : devOpsInterns.filter(intern => {
-      const name = (intern.name || '').toLowerCase();
-      const code = (intern.internCode || '').toLowerCase();
-      const resType = asText(intern.resourceType).toLowerCase();
-      const proj = asText(intern.projects).toLowerCase();
-      const mobile = (intern.mobileNumber || '').toLowerCase();
-      return name.includes(term) || code.includes(term) || resType.includes(term) || proj.includes(term) || mobile.includes(term);
-    });
+    let list = !searchTerm.trim() ? [...devOpsInterns] : devOpsInterns.filter(intern =>
+      intern.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      intern.internCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      intern.resourceType.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     // Sorting
     const [sortField, sortOrder] = (sortOption || 'none').split(':');
@@ -120,12 +102,8 @@ const DevOps = () => {
             bVal = b.trainingEndDate;
             break;
           case 'resourceType':
-            aVal = asText(a.resourceType);
-            bVal = asText(b.resourceType);
-            break;
-          case 'projects':
-            aVal = asText(a.projects);
-            bVal = asText(b.projects);
+            aVal = a.resourceType;
+            bVal = b.resourceType;
             break;
           default:
             return 0;
@@ -169,22 +147,24 @@ const DevOps = () => {
     }
   };
 
-  const handleFormSubmit = async (payload) => {
+  const handleFormSubmit = async (formData) => {
     try {
       setIsSubmitting(true);
       setError('');
       
       // Mock form submission
-      if (payload?.internId != null) {
-        setDevOpsInterns(prev =>
-          prev.map(intern =>
-            intern.internId === payload.internId ? { ...intern, ...payload } : intern
+      if (selectedIntern) {
+        // Update existing intern
+        setDevOpsInterns(prev => 
+          prev.map(intern => 
+            intern.internId === selectedIntern.internId ? { ...intern, ...formData } : intern
           )
         );
       } else {
+        // Create new intern
         const newIntern = {
-        ...payload,
-          internId: Date.now()
+          ...formData,
+          internId: Date.now() // Mock ID generation
         };
         setDevOpsInterns(prev => [...prev, newIntern]);
       }
@@ -193,7 +173,7 @@ const DevOps = () => {
       setSelectedIntern(null);
     } catch (err) {
       console.error('Error saving DevOps intern:', err);
-      setError(`Failed to ${payload?.internId ? 'update' : 'create'} DevOps intern. Please try again.`);
+      setError(`Failed to ${selectedIntern ? 'update' : 'create'} DevOps intern. Please try again.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -247,7 +227,7 @@ const DevOps = () => {
             <form onSubmit={handleSearch} className={styles.searchSection}>
               <input 
                 type="text" 
-                placeholder="Search by name, code, resource type, projects, or mobile..." 
+                placeholder="Search by name, intern code, or resource type..." 
                 className={styles.searchInput}
                 value={searchTerm}
                 onChange={handleSearchChange}
@@ -303,7 +283,7 @@ const DevOps = () => {
         isOpen={isFormOpen}
         onClose={handleCloseForm}
         onSubmit={handleFormSubmit}
-        editingIntern={selectedIntern}
+        intern={selectedIntern}
         isLoading={isSubmitting}
       />
     </div>
