@@ -14,6 +14,9 @@ const Developer = () => {
   const [error, setError] = useState('');
   const [sortOption, setSortOption] = useState('internCode:asc');
 
+  // 🔹 New state for language filter dropdown
+  const [languageFilter, setLanguageFilter] = useState('All');
+
   // Mock data for Developer interns
   const mockDeveloperData = [
     {
@@ -24,7 +27,7 @@ const Developer = () => {
       mobileNumber: '0712356172',
       trainingEndDate: '2025-12-15',
       languagesAndFrameworks: ['JavaScript', 'React', 'Node.js', 'Springboot'],
-      projects: ['Portfolio Website', 'Inventory System','Task Manager']
+      projects: ['Portfolio Website', 'Inventory System', 'Task Manager']
     },
     {
       internId: 2,
@@ -33,7 +36,7 @@ const Developer = () => {
       email: 'sarah.johnson@example.com',
       mobileNumber: '0776502837',
       trainingEndDate: '2025-11-30',
-      languagesAndFrameworks: ['Java', 'Spring Boot','React'],
+      languagesAndFrameworks: ['Java', 'Spring Boot', 'React'],
       projects: ['E-Commerce Platform']
     },
     {
@@ -93,7 +96,7 @@ const Developer = () => {
   // Helper: normalize values for search/sort
   const asText = (v) => Array.isArray(v) ? v.join(', ') : (v ?? '');
 
-  // Filter interns based on search term
+  // Filter interns based on search term & language dropdown
   useEffect(() => {
     const term = searchTerm.toLowerCase().trim();
     let list = !term
@@ -112,6 +115,15 @@ const Developer = () => {
             mobile.includes(term)
           );
         });
+
+    // 🔹 Apply language filter if not "All"
+    if (languageFilter !== 'All' ) {
+      list = list.filter(intern =>
+        intern.languagesAndFrameworks.some(lang =>
+          lang.toLowerCase() === languageFilter.toLowerCase()
+        )
+      );
+    }
 
     // Sorting
     const [sortField, sortOrder] = (sortOption || 'none').split(':');
@@ -159,7 +171,7 @@ const Developer = () => {
     }
 
     setFilteredInterns(list);
-  }, [developerInterns, searchTerm, sortOption]);
+  }, [developerInterns, searchTerm, sortOption, languageFilter]);
 
   const handleAddIntern = () => {
     setSelectedIntern(null);
@@ -224,6 +236,16 @@ const Developer = () => {
     e.preventDefault();
   };
 
+  // 🔹 Unique list of all languages for dropdown filter
+  const allLanguages = [
+    'All',
+    ...Array.from(
+      new Set(
+        developerInterns.flatMap((i) => i.languagesAndFrameworks || [])
+      )
+    )
+  ];
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -249,12 +271,7 @@ const Developer = () => {
 
         <div className={styles.actionSection}>
           <CategoryDropdown current="developers" />
-          {/* <button
-            className={styles.primaryBtn}
-            onClick={handleAddIntern}
-          >
-            + Add New Developer Intern
-          </button> */}
+
           <div className={styles.filterSection}>
             <form onSubmit={handleSearch} className={styles.searchSection}>
               <input
@@ -265,6 +282,21 @@ const Developer = () => {
                 onChange={handleSearchChange}
               />
             </form>
+
+            {/* 🔹 Added Language Dropdown Filter */}
+            <select
+              className={styles.filterSelect}
+              value={languageFilter}
+              onChange={(e) => setLanguageFilter(e.target.value)}
+              title="Filter by Language"
+            >
+              {allLanguages.map((lang) => (
+                <option key={lang} value={lang}>
+                  {lang}
+                </option>
+              ))}
+            </select>
+
             <div className={styles.sortSection}>
               <select
                 className={styles.filterSelect}
