@@ -13,7 +13,7 @@ const DeveloperForm = ({
   const [formData, setFormData] = useState({
     languagesAndFrameworks: [],
     projects: [],
-  });}
+  });
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isProjOpen, setIsProjOpen] = useState(false);
   const [errors, setErrors] = useState({});
@@ -221,3 +221,36 @@ const DeveloperForm = ({
               )}
             </div>
           </div>
+          {/* Actions */}
+          <div className={styles.formActions}>
+            <button
+              type="button"
+              className={styles.cancelButton}
+              onClick={handleClose}
+              disabled={isLoading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className={styles.submitButton}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <div className={styles.spinner}></div>
+                  Updating...
+                </>
+              ) : (
+                'Update Intern'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+export default DeveloperForm;
