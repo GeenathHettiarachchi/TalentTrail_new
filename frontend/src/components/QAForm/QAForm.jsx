@@ -1,4 +1,13 @@
 // src/components/QAForm.jsx
+/**
+ * QAForm.jsx
+ *
+ * Modal form to Add/Edit a QA Intern profile.
+ * - Tools: custom dropdown with multi-select checkboxes (no Ctrl/Cmd)
+ * - Projects: checkbox group fetched from backend (/api/projects)
+ * - Submits: tools as string[] and projects as { name }[]
+ */
+
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   FiX,
