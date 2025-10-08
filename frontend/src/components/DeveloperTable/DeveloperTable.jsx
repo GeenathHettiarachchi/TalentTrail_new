@@ -10,7 +10,7 @@ const DeveloperTable = React.memo(({ interns, onEdit, onDelete, isLoading = fals
   const [openMenuId, setOpenMenuId] = useState(null);
   const tableRef = useRef(null);
 
-  // ✅ Separate expansion states for each column type
+  //  Separate expansion states for each column type
   const [expandedLangs, setExpandedLangs] = useState(() => new Set());
   const [expandedProjects, setExpandedProjects] = useState(() => new Set());
 
@@ -61,7 +61,7 @@ const DeveloperTable = React.memo(({ interns, onEdit, onDelete, isLoading = fals
     return [];
   }, []);
 
-  // ✅ Independent toggles
+  //  Independent toggles
   const toggleLangExpand = (id) => {
     setExpandedLangs((prev) => {
       const next = new Set(prev);

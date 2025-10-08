@@ -21,7 +21,7 @@ const Developer = () => {
       name: 'John Smith',
       email: 'john.smith@example.com',
       mobileNumber: '0712356172',
-      trainingEndDate: '2024-12-15',
+      trainingEndDate: '2025-12-15',
       languagesAndFrameworks: ['JavaScript', 'React', 'Node.js', 'Springboot'],
       projects: ['Portfolio Website', 'Inventory System','Task Manager']
     },
@@ -31,7 +31,7 @@ const Developer = () => {
       name: 'Sarah Johnson',
       email: 'sarah.johnson@example.com',
       mobileNumber: '0776502837',
-      trainingEndDate: '2024-11-30',
+      trainingEndDate: '2025-11-30',
       languagesAndFrameworks: ['Java', 'Spring Boot','React'],
       projects: ['E-Commerce Platform']
     },
@@ -51,7 +51,7 @@ const Developer = () => {
       name: 'Emily Davis',
       email: 'emily.davis@example.com',
       mobileNumber: '0776502837',
-      trainingEndDate: '2024-12-10',
+      trainingEndDate: '2025-12-10',
       languagesAndFrameworks: ['C#', '.NET'],
       projects: ['Student Management System']
     },
@@ -61,7 +61,7 @@ const Developer = () => {
       name: 'David Wilson',
       email: 'david.wilson@example.com',
       mobileNumber: '0776502837',
-      trainingEndDate: '2025-02-05',
+      trainingEndDate: '2025-10-22',
       languagesAndFrameworks: ['PHP', 'Laravel'],
       projects: ['Task Tracker', 'CRM System']
     },
@@ -71,7 +71,7 @@ const Developer = () => {
       name: 'Lisa Anderson',
       email: 'lisa.anderson@example.com',
       mobileNumber: '0776502837',
-      trainingEndDate: '2024-12-28',
+      trainingEndDate: '2025-12-28',
       languagesAndFrameworks: ['Flutter', 'Firebase'],
       projects: ['Mobile E-Learning App']
     }
