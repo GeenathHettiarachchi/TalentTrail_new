@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DeveloperForm, DeveloperTable } from '../../components';
 import styles from './Developer.module.css';
+import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
 
 const Developer = () => {
   const [developerInterns, setDeveloperInterns] = useState([]);
@@ -247,6 +248,7 @@ const Developer = () => {
         )}
 
         <div className={styles.actionSection}>
+          <CategoryDropdown current="developers" />
           <button
             className={styles.primaryBtn}
             onClick={handleAddIntern}
