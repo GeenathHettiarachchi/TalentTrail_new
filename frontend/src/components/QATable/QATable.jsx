@@ -1,18 +1,45 @@
 // src/components/QATable.jsx
+
+/**
+ * QATable.jsx
+ *
+ * Read-only table for QA interns with:
+ * - Expand/collapse per-row chips for Tools and Projects (shows 1 item, expand to all)
+ * - Row actions menu (Edit/Delete) visible to admins only
+ * - Loading and empty states
+ *
+ * Props:
+ *  - interns: Array of intern objects (see helpers for normalization)
+ *  - onEdit(intern): callback when Edit is chosen
+ *  - onDelete(internId): callback when Delete is confirmed
+ *  - isLoading: whether table data is loading
+ */
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { FiMoreVertical, FiChevronDown } from 'react-icons/fi';
 import styles from './QATable.module.css';
 
 const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) => {
+  // Role-gated actions (only admins see the kebab menu)
   const { isAdmin } = useAuth();
+
+  // Which row's menu is currently open (stores internId or null)
   const [openMenuId, setOpenMenuId] = useState(null);
+
+  // Root ref to detect outside clicks to close menus
   const tableRef = useRef(null);
 
-  // Track expansion per row per column
+  // Per-row expanded state (as Sets for O(1) lookup)
+  // expandedTools: which internIds have their Tools list expanded
+  // expandedProjects: which internIds have their Projects list expanded
   const [expandedTools, setExpandedTools] = useState(() => new Set());
   const [expandedProjects, setExpandedProjects] = useState(() => new Set());
 
+  /**
+   * Close action menu when clicking outside the table area.
+   * Only attaches the listener when a menu is open for perf.
+   */
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (tableRef.current && !tableRef.current.contains(e.target)) {
@@ -23,6 +50,10 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openMenuId]);
 
+  /**
+   * Format ISO date strings to "MMM DD, YYYY".
+   * Falls back to the original string on parsing errors.
+   */
   const formatDate = useCallback((dateString) => {
     if (!dateString) return '—';
     try {
@@ -34,6 +65,10 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
     }
   }, []);
 
+  /**
+   * Row click handler—currently a placeholder for a future details page.
+   * Ignores clicks originating on buttons/menus/chevrons to avoid conflicts.
+   */
   const handleRowClick = useCallback((intern, e) => {
     if (
       e.target.closest(`.${styles.menuButton}`) ||
@@ -41,12 +76,23 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
       e.target.closest(`.${styles.menuItem}`) ||
       e.target.closest(`.${styles.chevronBtn}`)
     ) return;
-    // If you add a detail page later, navigate here.
+
+    // Navigate to a details page in the future, e.g.:
+    // navigate(`/qa/${intern.internId}`)
   }, []);
 
-  // --- Helpers to normalize values into arrays and split CSV strings ---
+  // ---------- Normalization helpers for Tools/Projects ----------
+
+  // Split a CSV string -> trimmed, non-empty array
   const splitCSV = (val) => val.split(',').map((s) => s.trim()).filter(Boolean);
 
+  /**
+   * Tools field can arrive as:
+   *  - array of strings (preferred)
+   *  - CSV string
+   *  - optional legacy alias "skills"
+   * Returns a clean string[].
+   */
   const toToolsList = (intern) => {
     const v = intern?.tools ?? intern?.skills;
     if (!v) return [];
@@ -55,6 +101,13 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
     return [];
   };
 
+  /**
+   * Projects field can arrive as:
+   *  - array of strings (project names)
+   *  - array of objects { id?, name }
+   *  - CSV string
+   * Returns a normalized array of { id?, name }.
+   */
   const toProjectsList = (intern) => {
     const v = intern?.projects;
     if (!v) return [];
@@ -68,8 +121,14 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
     return [];
   };
 
-  // Expand helpers
+  // ---------- Expand/collapse helpers using Sets ----------
+
   const isExpanded = (set, id) => set.has(id);
+
+  /**
+   * Generic toggle helper for a Set-based state.
+   * Example: toggleInSet(setExpandedTools, internId)
+   */
   const toggleInSet = (setUpdater, id) => {
     setUpdater((prev) => {
       const next = new Set(prev);
@@ -79,7 +138,11 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
     });
   };
 
-  // Reusable list with chevron (chevron stays on same line; chevrons align across rows)
+  /**
+   * Small reusable “show 1 item, expand to all” list with a chevron button.
+   * - Keeps chevron right-aligned across rows using a fixed slot
+   * - Accessible labels for expand/collapse
+   */
   const ArrowExpandableList = ({ items, expanded, onToggle, itemClass, ariaLabelBase }) => {
     if (!items?.length) return <span className={styles.muted}>—</span>;
 
@@ -118,7 +181,7 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
                 : `Expand ${ariaLabelBase} to show all (${items.length})`
             }
             title={showAll ? 'Collapse' : 'Expand'}
-            style={{ flex: '0 0 22px' }} // fallback fixed slot so all rows line up
+            style={{ flex: '0 0 22px' }} // fixed slot so chevrons align in a column
           >
             <FiChevronDown />
           </button>
@@ -126,6 +189,8 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
       </div>
     );
   };
+
+  // ---------- Loading / Empty states ----------
 
   if (isLoading) {
     return (
@@ -146,6 +211,8 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
     );
   }
 
+  // ---------- Main table ----------
+
   return (
     <div className={styles.tableContainer} ref={tableRef}>
       <div className={styles.tableWrapper}>
@@ -165,8 +232,11 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
 
           <tbody className={styles.tbody}>
             {interns.map((intern) => {
+              // Normalize per-row data
               const tools = toToolsList(intern);
               const projects = toProjectsList(intern);
+
+              // Read whether each column is expanded for this row
               const toolsExpanded = isExpanded(expandedTools, intern.internId);
               const projectsExpanded = isExpanded(expandedProjects, intern.internId);
 
@@ -199,7 +269,7 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
                     <span className={styles.endDate}>{formatDate(intern.trainingEndDate)}</span>
                   </td>
 
-                  {/* TOOLS (1 item by default; chevron expands) */}
+                  {/* TOOLS (1 item by default; expand to show all) */}
                   <td className={styles.td}>
                     <ArrowExpandableList
                       items={tools}
@@ -210,7 +280,7 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
                     />
                   </td>
 
-                  {/* PROJECTS (1 item by default; chevron expands) */}
+                  {/* PROJECTS (1 item by default; expand to show all) */}
                   <td className={styles.td}>
                     <ArrowExpandableList
                       items={projects}
@@ -221,6 +291,7 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
                     />
                   </td>
 
+                  {/* Row actions (visible to admins only) */}
                   {isAdmin && (
                     <td className={styles.actionsCell}>
                       <button
