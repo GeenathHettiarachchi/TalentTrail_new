@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { FiMoreVertical } from 'react-icons/fi';
+import { FiMoreVertical, FiChevronRight } from 'react-icons/fi';
 import styles from './DevOpsTable.module.css';
 
 const DevOpsTable = React.memo(({ 
@@ -47,13 +47,18 @@ const DevOpsTable = React.memo(({
     if (
       e.target.closest(`.${styles.menuButton}`) ||
       e.target.closest(`.${styles.menu}`) ||
+      e.target.closest(`.${styles.menuItem}`) ||
+      e.target.closest(`.${styles.expanderBtn}`)
       e.target.closest(`.${styles.menuItem}`)
     ) {
       return;
     }
-    // For now, we don't have individual DevOps intern profile pages
-    // navigate(`/devops/${intern.internId}`);
-  }, []);
+    const rts = toList(intern.resourceType);
+    const pjs = toList(intern.projects);
+    if (rts.length > 2 || pjs.length > 2) {
+      toggleExpand(intern.internId);
+    }
+  }, [toList, toggleExpand]);
 
   if (isLoading) {
     return (
@@ -82,6 +87,7 @@ const DevOpsTable = React.memo(({
         <table className={styles.table}>
           <thead className={styles.thead}>
             <tr>
+              <th className={`${styles.th} ${styles.expanderTh}`}></th>
               <th className={styles.th}>Intern Code</th>
               <th className={styles.th}>Name</th>
               <th className={styles.th}>Email</th>
@@ -129,34 +135,17 @@ const DevOpsTable = React.memo(({
                       aria-expanded={openMenuId === intern.internId}
                       title="Actions"
                     >
-                      <FiMoreVertical />
-                    </button>
-                    {openMenuId === intern.internId && (
-                      <div className={styles.menu} role="menu">
-                        <button
-                          className={styles.menuItem}
-                          role="menuitem"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenMenuId(null);
-                            onEdit(intern);
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className={styles.menuItem}
-                          role="menuitem"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenMenuId(null);
-                            if (window.confirm(`Are you sure you want to delete ${intern.name}?`)) {
-                              onDelete(intern.internId);
-                            }
-                          }}
-                        >
-                          Delete
-                        </button>
+                      {formatDate(intern.trainingEndDate)}
+                    </span>
+                  </td>
+                  <td className={styles.td}>
+                    {resourceTypes.length === 0 ? (
+                      <span className={styles.resourceType}>-</span>
+                    ) : (
+                      <div className={styles.cellPills} aria-label="Resource Types">
+                        {resourceTypes.slice(0, 2).map((rt, idx) => (
+                          <span key={idx} className={styles.projectBadge}>{rt}</span>
+                        ))}
                       </div>
                     )}
                   </td>

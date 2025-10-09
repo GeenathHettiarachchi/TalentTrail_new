@@ -48,6 +48,10 @@
   border-bottom: none;
 }
 
+.trInteractive { 
+  cursor: pointer;
+}
+
 .td { 
   padding: 0.85rem 1rem; 
   color: #495057; 
