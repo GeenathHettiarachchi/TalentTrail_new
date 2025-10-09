@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { FiX, FiUser, FiMail, FiCalendar, FiServer, FiPhone, FiLayers, FiChevronDown } from 'react-icons/fi';
+import { FiX, FiUser, FiMail, FiCalendar, FiServer } from 'react-icons/fi';
 import styles from './DevOpsForm.module.css';
 
 const DevOpsForm = ({
@@ -14,43 +13,29 @@ const DevOpsForm = ({
     internCode: '',
     name: '',
     email: '',
-    mobileNumber: '',
     trainingEndDate: '',
-    resourceType: [],
-    projects: []
+    resourceType: 'Docker'
   });
 
-  const [isRTOpen, setIsRTOpen] = useState(false);
-  const [isProjOpen, setIsProjOpen] = useState(false);
   const [errors, setErrors] = useState({});
-
-  // Check if we're in edit mode
-  const isEditMode = !!editingIntern;
 
   useEffect(() => {
     if (editingIntern) {
-      const toList = (v) =>
-        Array.isArray(v) ? v
-        : (typeof v === 'string' && v.trim() ? v.split(',').map(s => s.trim()).filter(Boolean) : []);
       setFormData({
         internCode: editingIntern.internCode || '',
         name: editingIntern.name || '',
         email: editingIntern.email || '',
-        mobileNumber: editingIntern.mobileNumber || '',
         trainingEndDate: editingIntern.trainingEndDate ? 
           editingIntern.trainingEndDate.split('T')[0] : '',
-        resourceType: toList(editingIntern.resourceType),
-        projects: toList(editingIntern.projects)
+        resourceType: editingIntern.resourceType || 'Docker'
       });
     } else {
       setFormData({
         internCode: '',
         name: '',
         email: '',
-        mobileNumber: '',
         trainingEndDate: '',
-        resourceType: [],
-        projects: []
+        resourceType: 'Docker'
       });
     }
     setErrors({});
@@ -65,17 +50,6 @@ const DevOpsForm = ({
     'Azure DevOps',
     'Terraform',
     'Ansible'
-  ];
-
-  const projects = [
-    'CI/CD',
-    'Monitoring',
-    'Cloud Migration',
-    'Containerization',
-    'Infrastructure as Code',
-    'Observability',
-    'DevSecOps',
-    'Release Automation'
   ];
 
   const validateForm = () => {
@@ -99,12 +73,6 @@ const DevOpsForm = ({
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (!formData.mobileNumber.trim()) {
-      newErrors.mobileNumber = 'Mobile number is required';
-    } else if (!/^(\+?\d{9,15}|0\d{9})$/.test(formData.mobileNumber.trim())) {
-      newErrors.mobileNumber = 'Enter a valid phone number';
-    }
-
     if (!formData.trainingEndDate) {
       newErrors.trainingEndDate = 'Training end date is required';
     } else {
@@ -117,8 +85,8 @@ const DevOpsForm = ({
       }
     }
 
-    if (!Array.isArray(formData.resourceType) || formData.resourceType.length === 0) {
-      newErrors.resourceType = 'Select at least one resource type';
+    if (!formData.resourceType.trim()) {
+      newErrors.resourceType = 'Resource type is required';
     }
 
     return newErrors;
@@ -133,10 +101,7 @@ const DevOpsForm = ({
       return;
     }
 
-    onSubmit({
-      ...formData,
-      internId: editingIntern?.internId ?? null,
-    });
+    onSubmit(formData);
   };
 
   const handleInputChange = (e) => {
@@ -157,26 +122,13 @@ const DevOpsForm = ({
 
   const handleClose = () => {
     if (!isLoading) {
-      setIsRTOpen(false);
-      setIsProjOpen(false);
       onClose();
     }
   };
 
   if (!isOpen) return null;
 
-   const toggleMulti = (field, value) => {
-    setFormData(prev => {
-      const set = new Set(prev[field]);
-      set.has(value) ? set.delete(value) : set.add(value);
-      return { ...prev, [field]: Array.from(set) };
-    });
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
-
-  return createPortal(
+  return (
     <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.header}>
@@ -196,7 +148,6 @@ const DevOpsForm = ({
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.formGrid}>
-            {/* Intern Code - Read-only in edit mode */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="internCode">
                 <FiUser className={styles.labelIcon} />
@@ -208,10 +159,9 @@ const DevOpsForm = ({
                 name="internCode"
                 value={formData.internCode}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.internCode ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
+                className={`${styles.input} ${errors.internCode ? styles.inputError : ''}`}
                 placeholder="e.g., DEV001"
-                disabled={isLoading || isEditMode}
-                readOnly={isEditMode}
+                disabled={isLoading}
                 required
               />
               {errors.internCode && (
@@ -219,7 +169,6 @@ const DevOpsForm = ({
               )}
             </div>
 
-            {/* Name - Read-only in edit mode */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="name">
                 <FiUser className={styles.labelIcon} />
@@ -231,10 +180,9 @@ const DevOpsForm = ({
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.name ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
+                className={`${styles.input} ${errors.name ? styles.inputError : ''}`}
                 placeholder="Enter full name"
-                disabled={isLoading || isEditMode}
-                readOnly={isEditMode}
+                disabled={isLoading}
                 required
               />
               {errors.name && (
@@ -242,7 +190,6 @@ const DevOpsForm = ({
               )}
             </div>
 
-            {/* Email - Read-only in edit mode */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="email">
                 <FiMail className={styles.labelIcon} />
@@ -254,10 +201,9 @@ const DevOpsForm = ({
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.email ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
+                className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
                 placeholder="Enter email address"
-                disabled={isLoading || isEditMode}
-                readOnly={isEditMode}
+                disabled={isLoading}
                 required
               />
               {errors.email && (
@@ -265,32 +211,6 @@ const DevOpsForm = ({
               )}
             </div>
 
-            {/* Mobile Number - Read-only in edit mode */}
-            <div className={styles.inputGroup}>
-              <label className={styles.label} htmlFor="mobileNumber">
-                <FiPhone className={styles.labelIcon} />
-                Mobile Number
-              </label>
-              <input
-                type="tel"
-                id="mobileNumber"
-                name="mobileNumber"
-                value={formData.mobileNumber}
-                onChange={handleInputChange}
-                className={`${styles.input} ${errors.mobileNumber ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
-                placeholder="e.g., 0771234567"
-                pattern="^(\+?\d{9,15}|0\d{9})$"
-                title="Enter a valid phone number"
-                disabled={isLoading || isEditMode}
-                readOnly={isEditMode}
-                required
-              />
-              {errors.mobileNumber && (
-                <span className={styles.errorText}>{errors.mobileNumber}</span>
-              )}
-            </div>
-
-            {/* Training End Date - Always editable */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="trainingEndDate">
                 <FiCalendar className={styles.labelIcon} />
@@ -311,91 +231,30 @@ const DevOpsForm = ({
               )}
             </div>
 
-             {/* Resource Type - Always editable */}
             <div className={styles.inputGroup}>
-              <label className={styles.label}>
+              <label className={styles.label} htmlFor="resourceType">
                 <FiServer className={styles.labelIcon} />
                 Resource Type
               </label>
-              <div
-                className={`${styles.multiSelect} ${errors.resourceType ? styles.inputError : ''}`}
-                onClick={() => !isLoading && setIsRTOpen(v => !v)}
-                role="button"
-                aria-expanded={isRTOpen}
+              <select
+                id="resourceType"
+                name="resourceType"
+                value={formData.resourceType}
+                onChange={handleInputChange}
+                className={`${styles.input} ${styles.select} ${errors.resourceType ? styles.inputError : ''}`}
+                disabled={isLoading}
+                required
               >
-                <div className={styles.multiControl}>
-                  <div className={styles.multiValue}>
-                    {formData.resourceType.length
-                      ? formData.resourceType.join(', ')
-                      : 'Select one or more…'}
-                  </div>
-                  <FiChevronDown className={styles.caret} />
-                </div>
-                {isRTOpen && (
-                  <div
-                    className={styles.multiMenu}
-                    onClick={(e) => e.stopPropagation()}
-                    role="listbox"
-                  >
-                    {resourceTypes.map(opt => (
-                      <label key={opt} className={styles.optionRow}>
-                        <input
-                          type="checkbox"
-                          checked={formData.resourceType.includes(opt)}
-                          onChange={() => toggleMulti('resourceType', opt)}
-                          disabled={isLoading}
-                        />
-                        <span>{opt}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
+                <option value="">Select resource type</option>
+                {resourceTypes.map(type => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
               {errors.resourceType && (
                 <span className={styles.errorText}>{errors.resourceType}</span>
               )}
-            </div>
-
-            {/* Projects - Always editable */}
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>
-                <FiLayers className={styles.labelIcon} />
-                Projects
-              </label>
-              <div
-                className={styles.multiSelect}
-                onClick={() => !isLoading && setIsProjOpen(v => !v)}
-                role="button"
-                aria-expanded={isProjOpen}
-              >
-                <div className={styles.multiControl}>
-                  <div className={styles.multiValue}>
-                    {formData.projects.length
-                      ? formData.projects.join(', ')
-                      : 'Select one or more…'}
-                  </div>
-                  <FiChevronDown className={styles.caret} />
-                </div>
-                {isProjOpen && (
-                  <div
-                    className={styles.multiMenu}
-                    onClick={(e) => e.stopPropagation()}
-                    role="listbox"
-                  >
-                    {projects.map(opt => (
-                      <label key={opt} className={styles.optionRow}>
-                        <input
-                          type="checkbox"
-                          checked={formData.projects.includes(opt)}
-                          onChange={() => toggleMulti('projects', opt)}
-                          disabled={isLoading}
-                        />
-                        <span>{opt}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 
@@ -425,8 +284,7 @@ const DevOpsForm = ({
           </div>
         </form>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 };
 

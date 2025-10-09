@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { InternForm, InternTable } from '../../components';
 import { internService } from '../../services/api';
 import styles from './Interns.module.css';
+import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
 
 const Interns = () => {
   const [interns, setInterns] = useState([]);
@@ -150,6 +151,7 @@ const Interns = () => {
         )}
 
         <div className={styles.actionSection}>
+          <CategoryDropdown current="all" />
           <button 
             className={styles.primaryBtn}
             onClick={handleAddIntern}
