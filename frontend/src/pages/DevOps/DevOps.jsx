@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DevOpsForm, DevOpsTable } from '../../components';
 import styles from './DevOps.module.css';
+import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
 
 const DevOps = () => {
   const [devOpsInterns, setDevOpsInterns] = useState([]);
@@ -235,6 +236,7 @@ const DevOps = () => {
         )}
 
         <div className={styles.actionSection}>
+          <CategoryDropdown current="devops" />
           <button 
             className={styles.primaryBtn}
             onClick={handleAddIntern}
