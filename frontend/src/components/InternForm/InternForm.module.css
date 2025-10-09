@@ -1,3 +1,4 @@
+/* ========== Overlay & Modal ========== */
 .overlay {
   position: fixed;
   top: 0;
@@ -14,10 +15,10 @@
 }
 
 .modal {
-  background: white;
+  background: #fff;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  max-width: 600px;
+  max-width: 650px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -35,6 +36,7 @@
   }
 }
 
+/* ========== Header ========== */
 .header {
   display: flex;
   justify-content: space-between;
@@ -50,7 +52,7 @@
   font-weight: 600;
 }
 
-.closeBtn {
+.closeButton {
   background: none;
   border: none;
   font-size: 1.8rem;
@@ -66,11 +68,12 @@
   transition: all 0.2s ease;
 }
 
-.closeBtn:hover {
+.closeButton:hover {
   background-color: #f8f9fa;
   color: #495057;
 }
 
+/* ========== Form Layout ========== */
 .form {
   padding: 2rem;
 }
@@ -82,13 +85,9 @@
   margin-bottom: 2rem;
 }
 
-.formGroup {
+.inputGroup {
   display: flex;
   flex-direction: column;
-}
-
-.formGroup:nth-child(5) {
-  grid-column: 1 / -1;
 }
 
 .label {
@@ -96,14 +95,22 @@
   color: #2c3e50;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
+.labelIcon {
+  color: #3498db;
+}
+
+/* ========== Inputs ========== */
 .input {
   padding: 0.75rem 1rem;
   border: 2px solid #e9ecef;
   border-radius: 6px;
   font-size: 1rem;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
   outline: none;
 }
 
@@ -112,15 +119,83 @@
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
-.input.error {
+.inputError {
   border-color: #e74c3c;
 }
 
-.input.error:focus {
+.inputError:focus {
   border-color: #e74c3c;
   box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
 }
 
+/* Disabled Fields */
+.input:disabled {
+  background-color: #f5f6f7;
+  color: #7a7a7a;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
+/* ========== Multi-select Dropdowns ========== */
+.multiSelect {
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  background: #fff;
+  padding: 0.6rem 0.8rem;
+  font-size: 1rem;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.3s ease;
+}
+
+.multiSelect:hover {
+  border-color: #3498db;
+}
+
+.multiControl {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.multiValue {
+  color: #34495e;
+}
+
+.caret {
+  color: #6c757d;
+}
+
+.multiMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  margin-top: 6px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  color: #333;
+}
+
+.optionRow:hover {
+  background-color: #f7f9fb;
+}
+
+/* ========== Error Text ========== */
 .errorText {
   color: #e74c3c;
   font-size: 0.8rem;
@@ -128,7 +203,8 @@
   font-weight: 500;
 }
 
-.actions {
+/* ========== Actions ========== */
+.formActions {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
@@ -136,7 +212,7 @@
   border-top: 1px solid #e9ecef;
 }
 
-.cancelBtn {
+.cancelButton {
   padding: 0.75rem 1.5rem;
   border: 2px solid #6c757d;
   background: transparent;
@@ -148,17 +224,17 @@
   transition: all 0.3s ease;
 }
 
-.cancelBtn:hover:not(:disabled) {
+.cancelButton:hover:not(:disabled) {
   background-color: #6c757d;
   color: white;
 }
 
-.cancelBtn:disabled {
+.cancelButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.submitBtn {
+.submitButton {
   padding: 0.75rem 1.5rem;
   border: none;
   background-color: #3498db;
@@ -170,52 +246,67 @@
   transition: background-color 0.3s ease;
 }
 
-.submitBtn:hover:not(:disabled) {
+.submitButton:hover:not(:disabled) {
   background-color: #2980b9;
 }
 
-.submitBtn:disabled {
+.submitButton:disabled {
   background-color: #bdc3c7;
   cursor: not-allowed;
 }
 
-/* Responsive Design */
+/* ========== Spinner ========== */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  border-top: 3px solid #fff;
+  border-radius: 50%;
+  margin-right: 8px;
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========== Responsive ========== */
 @media (max-width: 768px) {
   .overlay {
     padding: 0.5rem;
   }
-  
+
   .modal {
     max-height: 95vh;
   }
-  
+
   .header {
     padding: 1rem 1.5rem;
   }
-  
+
   .title {
     font-size: 1.25rem;
   }
-  
+
   .form {
     padding: 1.5rem;
   }
-  
+
   .formGrid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
-  .formGroup:nth-child(5) {
-    grid-column: 1;
-  }
-  
-  .actions {
+
+  .formActions {
     flex-direction: column-reverse;
   }
-  
-  .cancelBtn,
-  .submitBtn {
+
+  .cancelButton,
+  .submitButton {
     width: 100%;
   }
 }
