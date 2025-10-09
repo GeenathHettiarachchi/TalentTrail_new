@@ -84,8 +84,42 @@
 }
 
 .endDate {
-  color: #dc3545;
   font-weight: 500;
+}
+
+/* <30 days remains for end date */
+.endDateSoon {
+  color: #dc3545;
+}
+
+/* >30 days remains for end date */
+.endDateSafe {
+  color: #00c821;
+}
+
+.mobile {
+  white-space: nowrap;
+}
+
+.projectsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.projectBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #374151;
+  font-size: 12px;
+  line-height: 18px;
+  border: 1px solid #e5e7eb;
+}
+
+.projects {
+  color: #6c757d;
 }
 
 .resourceType {
@@ -96,6 +130,13 @@
   position: relative; 
   width: 50px; 
   text-align: center; 
+}
+
+.cellPills {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .menuButton {
@@ -202,6 +243,93 @@
   text-align: center;
 }
 
+.moreBtn {
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
+}
+
+.moreBtn:hover {
+  background: #eef2f7;
+}
+
+.expanderTh {
+  width: 32px;
+  min-width: 32px;
+  padding-left: 0.5rem;
+  padding-right: 0.25rem;
+}
+
+.expanderCell {
+  width: 32px;
+  min-width: 32px;
+  text-align: left;
+  padding-left: 0.5rem;
+  padding-right: 0.25rem;
+}
+
+.expanderBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+
+.expanderBtn:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.expanderBtn svg {
+  transition: transform .2s ease;
+  transform: rotate(0deg);
+}
+
+.expanderBtnOpen svg {
+  transform: rotate(90deg);
+}
+
+.expanderSpacer {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  visibility: hidden;
+}
+
+.expandedRow {
+  background: #fafcff;
+}
+
+.expandedCell {
+  padding: 0.85rem 1rem 1rem 1rem;
+  border-top: 1px solid #eef2f7;
+}
+
+.expandedContent {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+}
+
+.sectionTitle {
+  font-size: 0.8rem;
+  color: #475569;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .th,
@@ -243,6 +371,10 @@
   
   .menuButton {
     font-size: 1.1rem;
+  }
+
+  .expandedContent {
+    grid-template-columns: 1fr;
   }
 }
 
