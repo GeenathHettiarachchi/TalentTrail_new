@@ -7,6 +7,7 @@
  * - Expand/collapse per-row chips for Tools and Projects (shows 1 item, expand to all)
  * - Row actions menu (Edit/Delete) visible to admins only
  * - Loading and empty states
+ * - Color-coded end dates (red if within 1 month, green otherwise)
  *
  * Props:
  *  - interns: Array of intern objects (see helpers for normalization)
