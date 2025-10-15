@@ -2,6 +2,7 @@ import React from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import SweetAlert from '../Common/SweetAlert';
+import styles from '../../pages/Developer/Developer.module.css';
 
 const DeveloperReport = ({ interns = [] }) => {
   const generateReport = async () => {
@@ -71,7 +72,7 @@ const DeveloperReport = ({ interns = [] }) => {
   return (
     <button
       type="button"
-      className="btn-generate-report"
+      className={styles.primaryBtn}
       onClick={generateReport}
     >
       Generate Report
