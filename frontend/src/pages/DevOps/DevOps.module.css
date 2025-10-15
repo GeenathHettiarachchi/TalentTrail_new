@@ -1,4 +1,29 @@
-.container { min-height: calc(100vh - 140px); padding: 2rem 1rem; max-width: 1440px; min-width: 1440px; margin: 0 auto; }
+:root {
+  /* Page tokens (shared across pages) */
+  --page-max: 1200px;          /* max readable width */
+  --page-pad-y: 2rem;
+  --page-pad-x: 1rem;
+  --header-h: 72px;            /* if your top bar is fixed, this offsets content */
+  --brand: #3b82f6;
+  --brand-hover: #2563eb;
+  --title: #2c3e50;
+  --subtitle: #6c757d;
+  --muted: #6c757d;
+  --border: #e9ecef;
+}
+
+.container {
+  /* was: min-height: calc(100vh - 140px); min/max/min-width fixed */
+  min-height: calc(100vh - var(--header-h));
+  padding: var(--page-pad-y) var(--page-pad-x);
+  max-width: var(--page-max);
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* If your top bar is NOT fixed, and you don't want an offset, comment this out:
+.container { min-height: 100vh; }
+*/
 
 .header {
   text-align: center;
@@ -6,20 +31,24 @@
 }
 
 .title {
-  color: #2c3e50;
+  color: var(--title);
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
 }
 
 .subtitle {
-  color: #6c757d;
+  color: var(--subtitle);
   font-size: 1.1rem;
   margin: 0;
   line-height: 1.6;
 }
 
-.content { min-width: calc(1440px - 2rem); margin: 0 auto; }
+.content {
+  /* was: min-width calc(1440px - 2rem) */
+  width: 100%;
+  margin: 0 auto;
+}
 
 .actionSection {
   display: flex;
@@ -27,10 +56,11 @@
   align-items: center;
   margin-bottom: 2rem;
   gap: 1rem;
+  flex-wrap: wrap; /* allows clean wrapping on smaller widths */
 }
 
 .primaryBtn {
-  background-color: #3b82f6;
+  background-color: var(--brand);
   color: white;
   border: none;
   padding: 0.625rem 1.5rem;
@@ -41,34 +71,42 @@
   transition: background-color 0.3s ease;
 }
 
-.primaryBtn:hover {
-  background-color: #2563eb;
-}
+.primaryBtn:hover { background-color: var(--brand-hover); }
 
 .filterSection {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .searchSection { display: flex; align-items: center; gap: 0.5rem; }
 .sortSection { display: flex; align-items: center; gap: 0.75rem; }
-.filterSelect { padding: 0.625rem 1.5rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 0.875rem; background: #fff; cursor: pointer; outline: none; min-width: 220px; }
+
+.filterSelect {
+  padding: 0.625rem 1.5rem;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+  min-width: 220px;
+}
+
 .filterSelect:focus { border-color: #3498db; }
 
 .searchInput {
   padding: 0.685rem 1rem;
-  border: 2px solid #e9ecef;
+  border: 2px solid var(--border);
   border-radius: 8px;
   font-size: 0.875rem;
-  min-width: 300px;
+  min-width: 280px;
   outline: none;
   transition: border-color 0.3s ease;
 }
 
-.searchInput:focus {
-  border-color: #3498db;
-}
+.searchInput:focus { border-color: #3498db; }
 
 .errorAlert {
   background-color: #fff5f5;
@@ -83,14 +121,8 @@
   gap: 0.75rem;
 }
 
-.errorIcon {
-  font-size: 1.2rem;
-}
-
-.errorText {
-  flex: 1;
-  font-weight: 500;
-}
+.errorIcon { font-size: 1.2rem; }
+.errorText { flex: 1; font-weight: 500; }
 
 .errorClose {
   background: none;
@@ -108,13 +140,9 @@
   transition: background-color 0.2s ease;
 }
 
-.errorClose:hover {
-  background-color: #fed7d7;
-}
+.errorClose:hover { background-color: #fed7d7; }
 
-.tableSection {
-  margin-top: 1rem;
-}
+.tableSection { margin-top: 1rem; }
 
 .tableHeader {
   display: flex;
@@ -126,7 +154,7 @@
 }
 
 .tableTitle {
-  color: #2c3e50;
+  color: var(--title);
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0;
@@ -136,7 +164,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #6c757d;
+  color: var(--muted);
   font-size: 0.9rem;
   margin: 0;
 }
@@ -150,33 +178,25 @@
   font-size: 0.9rem;
 }
 
-.clearSearch:hover {
-  color: #2980b9;
-}
+.clearSearch:hover { color: #2980b9; }
 
-/* Responsive Design */
+/* ---------- Responsive ---------- */
 @media (max-width: 1024px) {
   .container {
-    min-width: auto;
-    max-width: 100%;
     padding: 1.5rem 1rem;
+    max-width: 100%;
   }
-  
-  .content {
-    min-width: auto;
-    width: 100%;
-  }
-  
+
+  .content { width: 100%; }
+
   .actionSection {
     flex-direction: column;
     align-items: stretch;
     gap: 1rem;
   }
-  
-  .sortSection {
-    justify-content: center;
-  }
-  
+
+  .sortSection { justify-content: center; }
+
   .filterSelect {
     min-width: auto;
     flex: 1;
@@ -184,72 +204,28 @@
 }
 
 @media (max-width: 768px) {
-  .container {
-    min-width: auto;
-    max-width: 100%;
-    padding: 1.5rem 0.5rem;
-  }
-  
-  .content {
-    min-width: auto;
-    width: 100%;
-  }
-  
-  .title {
-    font-size: 2rem;
-  }
-  
-  .subtitle {
-    font-size: 1rem;
-  }
-  
-  .actionSection {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .searchSection {
-    justify-content: center;
-  }
-  
-  .searchInput {
-    min-width: 200px;
-    flex: 1;
-  }
-  
-  .tableHeader {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  .container { padding: 1.5rem 0.5rem; }
+  .content { width: 100%; }
+
+  .title { font-size: 2rem; }
+  .subtitle { font-size: 1rem; }
+
+  .actionSection { flex-direction: column; align-items: stretch; }
+  .searchSection { justify-content: center; }
+
+  .searchInput { min-width: 200px; flex: 1; }
+
+  .tableHeader { flex-direction: column; align-items: flex-start; }
 }
 
 @media (max-width: 480px) {
-  .container {
-    min-width: auto;
-    max-width: 100%;
-    padding: 1rem 0.5rem;
-  }
-  
-  .content {
-    min-width: auto;
-    width: 100%;
-  }
-  
-  .title {
-    font-size: 1.75rem;
-  }
-  
-  .searchSection {
-    flex-direction: column;
-  }
-  
-  .searchInput {
-    min-width: auto;
-    width: 100%;
-  }
-  
-  .filterSelect {
-    width: 100%;
-    min-width: auto;
-  }
+  .container { padding: 1rem 0.5rem; }
+  .content { width: 100%; }
+
+  .title { font-size: 1.75rem; }
+
+  .searchSection { flex-direction: column; }
+  .searchInput { min-width: auto; width: 100%; }
+
+  .filterSelect { width: 100%; min-width: auto; }
 }
