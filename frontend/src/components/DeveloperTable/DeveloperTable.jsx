@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { FiMoreVertical } from 'react-icons/fi';
 import styles from './DeveloperTable.module.css';
 
-const DeveloperTable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) => {
+const DeveloperTable = React.memo(({ interns, onEdit, onDelete, onMakeLead, isLoading = false }) => {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -238,6 +238,30 @@ const DeveloperTable = React.memo(({ interns, onEdit, onDelete, isLoading = fals
                             }}
                           >
                             Delete
+                          </button>
+
+                          <button
+                            className={styles.menuItem}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              if (
+                                window.confirm(
+                                  `Make ${intern.name} the lead developer? This will set them as a lead.`
+                                )
+                              ) {
+                                if (typeof onMakeLead === 'function') {
+                                  onMakeLead(intern.internId);
+                                } else {
+                                  // Fallback - inform developer to implement handler
+                                  window.alert(
+                                    'Make as Lead action is not implemented. Provide an onMakeLead prop to handle this.'
+                                  );
+                                }
+                              }
+                            }}
+                          >
+                            Make as Lead
                           </button>
                         </div>
                       )}
