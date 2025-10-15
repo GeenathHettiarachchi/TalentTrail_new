@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { FiMoreVertical } from 'react-icons/fi';
+import { FiMoreVertical, FiChevronRight } from 'react-icons/fi';
 import styles from './DevOpsTable.module.css';
 
 const DevOpsTable = React.memo(({ 
@@ -79,13 +79,16 @@ const DevOpsTable = React.memo(({
       e.target.closest(`.${styles.menuButton}`) ||
       e.target.closest(`.${styles.menu}`) ||
       e.target.closest(`.${styles.menuItem}`) ||
-      e.target.closest(`.${styles.moreBtn}`)
+      e.target.closest(`.${styles.expanderBtn}`)
     ) {
       return;
     }
-    // For now, we don't have individual DevOps intern profile pages
-    // navigate(`/devops/${intern.internId}`);
-  }, []);
+    const rts = toList(intern.resourceType);
+    const pjs = toList(intern.projects);
+    if (rts.length > 2 || pjs.length > 2) {
+      toggleExpand(intern.internId);
+    }
+  }, [toList, toggleExpand]);
 
   if (isLoading) {
     return (
@@ -114,6 +117,7 @@ const DevOpsTable = React.memo(({
         <table className={styles.table}>
           <thead className={styles.thead}>
             <tr>
+              <th className={`${styles.th} ${styles.expanderTh}`}></th>
               <th className={styles.th}>Intern Code</th>
               <th className={styles.th}>Name</th>
               <th className={styles.th}>Email</th>
@@ -131,159 +135,156 @@ const DevOpsTable = React.memo(({
               const isExpanded = expanded.has(intern.internId);
               const rtHidden = Math.max(0, resourceTypes.length - 2);
               const pjHidden = Math.max(0, projects.length - 2);
+              const canExpand = rtHidden > 0 || pjHidden > 0;
 
               return (
                 <React.Fragment key={intern.internId}>
                 <tr
-                className={styles.tr}
-                onClick={(e) => handleRowClick(intern, e)}
-                title="DevOps intern details"
-              >
-                <td className={styles.td}>
-                  <span className={styles.internCode}>{intern.internCode}</span>
-                </td>
-                <td className={styles.td}>
-                  <div className={styles.nameCell}>
-                    <span className={styles.name}>{intern.name}</span>
-                  </div>
-                </td>
-                <td className={styles.td}>
-                  <span className={styles.email}>{intern.email}</span>
-                </td>
-                <td className={styles.td}>                   
-                  <span className={styles.mobile}>           
-                    {intern.mobileNumber}             
-                  </span>  
-                </td>
-                <td className={styles.td}>
-                  <span
-                    className={`${styles.endDate} ${
-                      isDueSoon(intern.trainingEndDate)
-                        ? styles.endDateSoon
-                        : styles.endDateSafe
-                    }`}
-                  >
-                    {formatDate(intern.trainingEndDate)}
-                  </span>
-                </td>
-                <td className={styles.td}>
-                  {resourceTypes.length === 0 ? (
-                    <span className={styles.resourceType}>-</span>
-                  ) : (
-                    <div className={styles.cellPills} aria-label="Resource Types"> {/* NEW */}
-                      {resourceTypes.slice(0, 2).map((rt, idx) => (
-                        <span key={idx} className={styles.projectBadge}>{rt}</span>
-                      ))}
-                      {rtHidden > 0 && (
-                        <button
-                          type="button"
-                          className={styles.moreBtn}
-                          onClick={(e) => { e.stopPropagation(); toggleExpand(intern.internId); }}
-                          aria-expanded={isExpanded}
-                          title={isExpanded ? 'Show less' : `Show ${rtHidden} more`}
-                        >
-                          {isExpanded ? 'Show less' : `+${rtHidden} more`}
-                        </button>
-                      )}
+                  className={`${styles.tr} ${canExpand ? styles.trInteractive : ''}`}
+                  onClick={(e) => handleRowClick(intern, e)}
+                  aria-expanded={isExpanded}
+                  role={canExpand ? 'button' : undefined}
+                  title="DevOps intern details"
+                >
+                  <td className={`${styles.td} ${styles.expanderCell}`}>
+                    {canExpand ? (
+                      <button
+                        type="button"
+                        className={`${styles.expanderBtn} ${isExpanded ? styles.expanderBtnOpen : ''}`}
+                        onClick={(e) => { e.stopPropagation(); toggleExpand(intern.internId); }}
+                        aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
+                        aria-expanded={isExpanded}
+                        title={isExpanded ? 'Collapse' : 'Expand'}
+                      >
+                        <FiChevronRight />
+                      </button>
+                    ) : (
+                      <span className={styles.expanderSpacer} />
+                    )}
+                  </td>
+                  <td className={styles.td}>
+                    <span className={styles.internCode}>{intern.internCode}</span>
+                  </td>
+                  <td className={styles.td}>
+                    <div className={styles.nameCell}>
+                      <span className={styles.name}>{intern.name}</span>
                     </div>
-                  )}
-                </td>
-                <td className={styles.td}>
-                  {projects.length === 0 ? (
-                    <span className={styles.projects}>-</span>
-                  ) : (
-                    <div className={styles.cellPills} aria-label="Projects"> {/* NEW */}
-                      {projects.slice(0, 2).map((p, idx) => (
-                        <span key={idx} className={styles.projectBadge}>{p}</span>
-                      ))}
-                      {pjHidden > 0 && (
-                        <button
-                          type="button"
-                          className={styles.moreBtn}
-                          onClick={(e) => { e.stopPropagation(); toggleExpand(intern.internId); }}
-                          aria-expanded={isExpanded}
-                          title={isExpanded ? 'Show less' : `Show ${pjHidden} more`}
-                        >
-                          {isExpanded ? 'Show less' : `+${pjHidden} more`}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </td>
-                {isAdmin && (
-                  <td className={styles.actionsCell}>
-                    <button
-                      className={styles.menuButton}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenMenuId((prev) => (prev === intern.internId ? null : intern.internId));
-                      }}
-                      aria-haspopup="menu"
-                      aria-expanded={openMenuId === intern.internId}
-                      title="Actions"
+                  </td>
+                  <td className={styles.td}>
+                    <span className={styles.email}>{intern.email}</span>
+                  </td>
+                  <td className={styles.td}>                   
+                    <span className={styles.mobile}>           
+                      {intern.mobileNumber}             
+                    </span>  
+                  </td>
+                  <td className={styles.td}>
+                    <span
+                      className={`${styles.endDate} ${
+                        isDueSoon(intern.trainingEndDate)
+                          ? styles.endDateSoon
+                          : styles.endDateSafe
+                      }`}
                     >
-                      <FiMoreVertical />
-                    </button>
-                    {openMenuId === intern.internId && (
-                      <div className={styles.menu} role="menu">
-                        <button
-                          className={styles.menuItem}
-                          role="menuitem"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenMenuId(null);
-                            onEdit(intern);
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className={styles.menuItem}
-                          role="menuitem"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenMenuId(null);
-                            if (window.confirm(`Are you sure you want to delete ${intern.name}?`)) {
-                              onDelete(intern.internId);
-                            }
-                          }}
-                        >
-                          Delete
-                        </button>
+                      {formatDate(intern.trainingEndDate)}
+                    </span>
+                  </td>
+                  <td className={styles.td}>
+                    {resourceTypes.length === 0 ? (
+                      <span className={styles.resourceType}>-</span>
+                    ) : (
+                      <div className={styles.cellPills} aria-label="Resource Types">
+                        {resourceTypes.slice(0, 2).map((rt, idx) => (
+                          <span key={idx} className={styles.projectBadge}>{rt}</span>
+                        ))}
                       </div>
                     )}
                   </td>
-                )}
-              </tr>
-              {isExpanded && (
-                <tr className={styles.expandedRow}>
-                  <td className={styles.expandedCell} colSpan={isAdmin ? 8 : 7}>
-                    <div className={styles.expandedContent}>
-                      {resourceTypes.length > 2 && (
-                        <div className={styles.expandedSection}>
-                          <div className={styles.sectionTitle}>All Resource Types</div>
-                          <div className={styles.projectsList}>
-                            {resourceTypes.map((rt, i) => (
-                              <span key={i} className={styles.projectBadge}>{rt}</span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {projects.length > 2 && (
-                        <div className={styles.expandedSection}>
-                          <div className={styles.sectionTitle}>All Projects</div>
-                          <div className={styles.projectsList}>
-                            {projects.map((p, i) => (
-                              <span key={i} className={styles.projectBadge}>{p}</span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  <td className={styles.td}>
+                    {projects.length === 0 ? (
+                      <span className={styles.projects}>-</span>
+                    ) : (
+                      <div className={styles.cellPills} aria-label="Projects">
+                        {projects.slice(0, 2).map((p, idx) => (
+                          <span key={idx} className={styles.projectBadge}>{p}</span>
+                        ))}
+                      </div>
+                    )}
                   </td>
+                  {isAdmin && (
+                    <td className={styles.actionsCell}>
+                      <button
+                        className={styles.menuButton}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId((prev) => (prev === intern.internId ? null : intern.internId));
+                        }}
+                        aria-haspopup="menu"
+                        aria-expanded={openMenuId === intern.internId}
+                        title="Actions"
+                      >
+                        <FiMoreVertical />
+                      </button>
+                      {openMenuId === intern.internId && (
+                        <div className={styles.menu} role="menu">
+                          <button
+                            className={styles.menuItem}
+                            role="menuitem"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              onEdit(intern);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className={styles.menuItem}
+                            role="menuitem"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              if (window.confirm(`Are you sure you want to delete ${intern.name}?`)) {
+                                onDelete(intern.internId);
+                              }
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  )}
                 </tr>
-              )}
-              </React.Fragment>
+                {isExpanded && (
+                  <tr className={styles.expandedRow}>
+                    <td className={styles.expandedCell} colSpan={isAdmin ? 9 : 8}>
+                      <div className={styles.expandedContent}>
+                        {resourceTypes.length > 2 && (
+                          <div className={styles.expandedSection}>
+                            <div className={styles.sectionTitle}>All Resource Types</div>
+                            <div className={styles.projectsList}>
+                              {resourceTypes.map((rt, i) => (
+                                <span key={i} className={styles.projectBadge}>{rt}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {projects.length > 2 && (
+                          <div className={styles.expandedSection}>
+                            <div className={styles.sectionTitle}>All Projects</div>
+                            <div className={styles.projectsList}>
+                              {projects.map((p, i) => (
+                                <span key={i} className={styles.projectBadge}>{p}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                </React.Fragment>
               );              
             })}
           </tbody>

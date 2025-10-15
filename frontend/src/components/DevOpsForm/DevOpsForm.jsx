@@ -24,6 +24,12 @@ const DevOpsForm = ({
   const [isProjOpen, setIsProjOpen] = useState(false);
   const [errors, setErrors] = useState({});
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+  const [projectOptions, setProjectOptions] = useState([]);
+  const [projLoading, setProjLoading] = useState(false);
+  const [projError, setProjError] = useState('');
+
   // Check if we're in edit mode
   const isEditMode = !!editingIntern;
 
@@ -56,6 +62,58 @@ const DevOpsForm = ({
     setErrors({});
   }, [editingIntern, isOpen]);
 
+  const getProjectName = (p) => p?.projectName?.trim() ?? '';
+
+  const fetchProjects = async () => {
+    setProjLoading(true);
+    setProjError('');
+    try {
+      // try common keys so it “just works”
+      const token =
+        localStorage.getItem('token') ||
+        localStorage.getItem('accessToken') ||
+        localStorage.getItem('jwt') ||
+        localStorage.getItem('id_token') ||
+        sessionStorage.getItem('token') ||
+        sessionStorage.getItem('accessToken') ||
+        sessionStorage.getItem('jwt') ||
+        sessionStorage.getItem('id_token');
+
+      const authHeader =
+        token ? (token.startsWith('Bearer ') ? token : `Bearer ${token}`) : undefined;
+
+      const res = await fetch(`${API_BASE}/projects`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          ...(authHeader ? { Authorization: authHeader } : {}),
+        }
+      });
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        throw new Error(`HTTP ${res.status}${body ? ` - ${body}` : ''}`);
+      }
+
+      const data = await res.json();
+      const names = Array.from(new Set(
+        (data || []).map(p => p?.projectName?.trim()).filter(Boolean)
+      )).sort((a,b) => a.localeCompare(b));
+
+      setProjectOptions(names);
+    } catch (err) {
+      console.error('Failed to load projects', err);
+      setProjError('Failed to load projects (auth required?). Please sign in again.');
+    } finally {
+      setProjLoading(false);
+    }
+  };
+
+  // FETCH when the modal opens (or edit target changes)
+  useEffect(() => {
+    if (isOpen) fetchProjects();
+  }, [isOpen]);
+
   const resourceTypes = [
     'Docker',
     'Kubernetes',
@@ -65,17 +123,6 @@ const DevOpsForm = ({
     'Azure DevOps',
     'Terraform',
     'Ansible'
-  ];
-
-  const projects = [
-    'CI/CD',
-    'Monitoring',
-    'Cloud Migration',
-    'Containerization',
-    'Infrastructure as Code',
-    'Observability',
-    'DevSecOps',
-    'Release Automation'
   ];
 
   const validateForm = () => {
@@ -362,8 +409,9 @@ const DevOpsForm = ({
                 <FiLayers className={styles.labelIcon} />
                 Projects
               </label>
+
               <div
-                className={styles.multiSelect}
+                className={`${styles.multiSelect} ${projError ? styles.inputError : ''}`}
                 onClick={() => !isLoading && setIsProjOpen(v => !v)}
                 role="button"
                 aria-expanded={isProjOpen}
@@ -372,17 +420,36 @@ const DevOpsForm = ({
                   <div className={styles.multiValue}>
                     {formData.projects.length
                       ? formData.projects.join(', ')
-                      : 'Select one or more…'}
+                      : (projLoading ? 'Loading…' : 'Select one or more…')}
                   </div>
                   <FiChevronDown className={styles.caret} />
                 </div>
+
                 {isProjOpen && (
                   <div
                     className={styles.multiMenu}
                     onClick={(e) => e.stopPropagation()}
                     role="listbox"
                   >
-                    {projects.map(opt => (
+                    {projLoading && (
+                      <div className={styles.optionRow}>
+                        <span>Loading projects…</span>
+                      </div>
+                    )}
+
+                    {!projLoading && projError && (
+                      <div className={styles.optionRow}>
+                        <span>{projError}</span>
+                      </div>
+                    )}
+
+                    {!projLoading && !projError && projectOptions.length === 0 && (
+                      <div className={styles.optionRow}>
+                        <span>No projects found</span>
+                      </div>
+                    )}
+
+                    {!projLoading && !projError && projectOptions.map(opt => (
                       <label key={opt} className={styles.optionRow}>
                         <input
                           type="checkbox"
