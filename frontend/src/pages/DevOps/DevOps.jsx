@@ -1,3 +1,4 @@
+// src/pages/DevOps/DevOps.jsx
 import React, { useState, useEffect } from 'react';
 import { DevOpsForm, DevOpsTable } from '../../components';
 import styles from './DevOps.module.css';
@@ -24,7 +25,7 @@ const DevOps = () => {
       mobileNumber: '0712356172',
       trainingEndDate: '2024-12-15',
       resourceType: 'Cloud Engineer',
-      projects: ['CI/CD', 'MERN']
+      projects: [{ name: 'CI/CD' }, { name: 'MERN' }] // Matched project structure for consistency
     },
     {
       internId: 2,
@@ -34,7 +35,7 @@ const DevOps = () => {
       mobileNumber: '0776502837',
       trainingEndDate: '2024-11-30',
       resourceType: 'DevOps Engineer',
-      projects: ['CI/CD', 'MERN', 'AWS']
+      projects: [{ name: 'CI/CD' }, { name: 'MERN' }, { name: 'AWS' }]
     },
     {
       internId: 3,
@@ -44,7 +45,7 @@ const DevOps = () => {
       mobileNumber: '0776502837',
       trainingEndDate: '2025-01-20',
       resourceType: 'Site Reliability Engineer',
-      projects: ['CI/CD', 'MERN', 'AWS']
+      projects: [{ name: 'CI/CD' }, { name: 'MERN' }, { name: 'AWS' }]
     },
     {
       internId: 4,
@@ -54,7 +55,7 @@ const DevOps = () => {
       mobileNumber: '0776502837',
       trainingEndDate: '2024-12-10',
       resourceType: 'Infrastructure Engineer',
-      projects: ['CI/CD', 'MERN', 'AWS']
+      projects: [{ name: 'CI/CD' }, { name: 'MERN' }, { name: 'AWS' }]
     },
     {
       internId: 5,
@@ -64,7 +65,7 @@ const DevOps = () => {
       mobileNumber: '0776502837',
       trainingEndDate: '2025-02-05',
       resourceType: 'Platform Engineer',
-      projects: ['CI/CD', 'MERN', 'AWS']
+      projects: [{ name: 'CI/CD' }, { name: 'MERN' }, { name: 'AWS' }]
     },
     {
       internId: 6,
@@ -74,7 +75,7 @@ const DevOps = () => {
       mobileNumber: '0776502837',
       trainingEndDate: '2024-12-28',
       resourceType: 'Cloud Architect',
-      projects: ['CI/CD', 'MERN', 'AWS']
+      projects: [{ name: 'CI/CD' }, { name: 'MERN' }, { name: 'AWS' }]
     }
   ];
 
@@ -90,45 +91,47 @@ const DevOps = () => {
     loadData();
   }, []);
 
-  const asText = (v) => Array.isArray(v) ? v.join(', ') : (v ?? '');
-
-  // Filter interns based on search term
+  // Filter + Sort (aligned with QA page logic)
   useEffect(() => {
-    const term = searchTerm.toLowerCase().trim();
-    let list = !term ? [...devOpsInterns] : devOpsInterns.filter(intern => {
-      const name = (intern.name || '').toLowerCase();
-      const code = (intern.internCode || '').toLowerCase();
-      const resType = asText(intern.resourceType).toLowerCase();
-      const proj = asText(intern.projects).toLowerCase();
-      const mobile = (intern.mobileNumber || '').toLowerCase();
-      return name.includes(term) || code.includes(term) || resType.includes(term) || proj.includes(term) || mobile.includes(term);
-    });
+    const term = searchTerm.trim().toLowerCase();
+
+    let list = !term
+      ? [...devOpsInterns]
+      : devOpsInterns.filter((intern) => {
+          const resourceTypeText = String(intern.resourceType || '').toLowerCase();
+          const projectsText = Array.isArray(intern.projects)
+            ? intern.projects.map((p) => (p?.name || p || '')).join(' ').toLowerCase()
+            : String(intern.projects || '').toLowerCase();
+
+          return (
+            (intern.name || '').toLowerCase().includes(term) ||
+            (intern.internCode || '').toLowerCase().includes(term) ||
+            (intern.email || '').toLowerCase().includes(term) ||
+            (intern.mobileNumber || '').toLowerCase().includes(term) ||
+            resourceTypeText.includes(term) ||
+            projectsText.includes(term)
+          );
+        });
 
     // Sorting
     const [sortField, sortOrder] = (sortOption || 'none').split(':');
     if (sortField && sortOrder && sortField !== 'none') {
+      const toText = (v) => (v ?? '').toString();
+      const joinNames = (arr) =>
+        arr && arr.length ? arr.map((x) => (x?.name || x || '')).join(', ') : '';
+
       list.sort((a, b) => {
         let aVal, bVal;
-        
+
         switch (sortField) {
-          case 'internCode':
-            aVal = a.internCode;
-            bVal = b.internCode;
-            break;
-          case 'endDate':
-            aVal = a.trainingEndDate;
-            bVal = b.trainingEndDate;
-            break;
-          case 'resourceType':
-            aVal = asText(a.resourceType);
-            bVal = asText(b.resourceType);
-            break;
-          case 'projects':
-            aVal = asText(a.projects);
-            bVal = asText(b.projects);
-            break;
-          default:
-            return 0;
+          case 'internCode': aVal = a.internCode; bVal = b.internCode; break;
+          case 'name': aVal = a.name; bVal = b.name; break;
+          case 'email': aVal = a.email; bVal = b.email; break;
+          case 'mobile': aVal = a.mobileNumber; bVal = b.mobileNumber; break;
+          case 'endDate': aVal = a.trainingEndDate; bVal = b.trainingEndDate; break;
+          case 'resourceType': aVal = toText(a.resourceType); bVal = toText(b.resourceType); break;
+          case 'projects': aVal = joinNames(a.projects); bVal = joinNames(b.projects); break;
+          default: return 0;
         }
 
         let cmp = 0;
@@ -139,12 +142,15 @@ const DevOps = () => {
           else if (aDate && !bDate) cmp = 1;
           else if (aDate && bDate) cmp = aDate - bDate;
         } else {
-          cmp = (aVal || '').localeCompare(bVal || '', undefined, { numeric: true, sensitivity: 'base' });
+          cmp = toText(aVal).localeCompare(toText(bVal), undefined, {
+            numeric: true,
+            sensitivity: 'base'
+          });
         }
-        
         return sortOrder === 'asc' ? cmp : -cmp;
       });
     }
+
     setFilteredInterns(list);
   }, [devOpsInterns, searchTerm, sortOption]);
 
@@ -161,39 +167,34 @@ const DevOps = () => {
   const handleDeleteIntern = async (internId) => {
     try {
       setError('');
-      // Mock delete functionality
-      setDevOpsInterns(prev => prev.filter(intern => intern.internId !== internId));
+      setDevOpsInterns((prev) => prev.filter((intern) => intern.internId !== internId));
     } catch (err) {
       console.error('Error deleting DevOps intern:', err);
       setError('Failed to delete DevOps intern. Please try again.');
     }
   };
 
-  const handleFormSubmit = async (payload) => {
+  const handleFormSubmit = async (formData) => {
     try {
       setIsSubmitting(true);
       setError('');
       
-      // Mock form submission
-      if (payload?.internId != null) {
-        setDevOpsInterns(prev =>
-          prev.map(intern =>
-            intern.internId === payload.internId ? { ...intern, ...payload } : intern
+      if (selectedIntern) {
+        setDevOpsInterns((prev) =>
+          prev.map((intern) =>
+            intern.internId === selectedIntern.internId ? { ...intern, ...formData } : intern
           )
         );
       } else {
-        const newIntern = {
-        ...payload,
-          internId: Date.now()
-        };
-        setDevOpsInterns(prev => [...prev, newIntern]);
+        const newIntern = { ...formData, internId: Date.now() };
+        setDevOpsInterns((prev) => [...prev, newIntern]);
       }
       
       setIsFormOpen(false);
       setSelectedIntern(null);
     } catch (err) {
       console.error('Error saving DevOps intern:', err);
-      setError(`Failed to ${payload?.internId ? 'update' : 'create'} DevOps intern. Please try again.`);
+      setError(`Failed to ${selectedIntern ? 'update' : 'create'} DevOps intern. Please try again.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -204,20 +205,15 @@ const DevOps = () => {
     setSelectedIntern(null);
   };
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleSearch = (e) => { 
-    e.preventDefault(); 
-  };
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
+  const handleSearch = (e) => e.preventDefault();
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>DevOps Interns Management</h1>
         <p className={styles.subtitle}>
-          Manage DevOps interns, infrastructure resources, and deployment tracking
+          Manage DevOps interns, resources, and project assignments
         </p>
       </div>
 
@@ -226,12 +222,7 @@ const DevOps = () => {
           <div className={styles.errorAlert}>
             <span className={styles.errorIcon}>⚠️</span>
             <span className={styles.errorText}>{error}</span>
-            <button 
-              className={styles.errorClose}
-              onClick={() => setError('')}
-            >
-              ×
-            </button>
+            <button className={styles.errorClose} onClick={() => setError('')}>×</button>
           </div>
         )}
 
@@ -243,16 +234,18 @@ const DevOps = () => {
           >
             + Add New DevOps Intern
           </button>
+
           <div className={styles.filterSection}>
             <form onSubmit={handleSearch} className={styles.searchSection}>
-              <input 
-                type="text" 
-                placeholder="Search by name, code, resource type, projects, or mobile..." 
+              <input
+                type="text"
+                placeholder="Search by name, trainee ID, email, mobile, resource, or projects..."
                 className={styles.searchInput}
                 value={searchTerm}
                 onChange={handleSearchChange}
               />
             </form>
+
             <div className={styles.sortSection}>
               <select
                 className={styles.filterSelect}
@@ -261,12 +254,20 @@ const DevOps = () => {
                 title="Sort by"
               >
                 <option value="none">None</option>
-                <option value="internCode:asc">Intern Code (Ascending)</option>
-                <option value="internCode:desc">Intern Code (Descending)</option>
+                <option value="internCode:asc">Trainee ID (Ascending)</option>
+                <option value="internCode:desc">Trainee ID (Descending)</option>
+                <option value="name:asc">Name (Ascending)</option>
+                <option value="name:desc">Name (Descending)</option>
+                <option value="email:asc">Email (Ascending)</option>
+                <option value="email:desc">Email (Descending)</option>
+                <option value="mobile:asc">Mobile (Ascending)</option>
+                <option value="mobile:desc">Mobile (Descending)</option>
                 <option value="endDate:asc">End Date (Ascending)</option>
                 <option value="endDate:desc">End Date (Descending)</option>
-                <option value="resourceType:asc">Resource Type (Ascending)</option>
-                <option value="resourceType:desc">Resource Type (Descending)</option>
+                <option value="resourceType:asc">Resource (A→Z)</option>
+                <option value="resourceType:desc">Resource (Z→A)</option>
+                <option value="projects:asc">Projects (A→Z)</option>
+                <option value="projects:desc">Projects (Z→A)</option>
               </select>
             </div>
           </div>
@@ -280,10 +281,7 @@ const DevOps = () => {
             {searchTerm && (
               <p className={styles.searchInfo}>
                 Showing results for "{searchTerm}"
-                <button 
-                  className={styles.clearSearch}
-                  onClick={() => setSearchTerm('')}
-                >
+                <button className={styles.clearSearch} onClick={() => setSearchTerm('')}>
                   Clear
                 </button>
               </p>
@@ -303,7 +301,7 @@ const DevOps = () => {
         isOpen={isFormOpen}
         onClose={handleCloseForm}
         onSubmit={handleFormSubmit}
-        editingIntern={selectedIntern}
+        intern={selectedIntern} 
         isLoading={isSubmitting}
       />
     </div>
