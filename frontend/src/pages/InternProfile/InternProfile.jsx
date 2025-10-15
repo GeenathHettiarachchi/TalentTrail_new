@@ -1,11 +1,498 @@
+// src/pages/InternProfile/InternProfile.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { internService, teamMemberService, projectService, teamService, internUpdateRequestService } from '../../services/api';
+import {
+  internService,
+  teamMemberService,
+  projectService,
+  teamService,
+  internUpdateRequestService, // used for end-date approval
+} from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { InternForm, TeamForm, ProjectForm } from '../../components';
+import { TeamForm, ProjectForm } from '../../components';
 import { FiUsers, FiFolder } from 'react-icons/fi';
 import styles from './InternProfile.module.css';
 
+const LS_KEY = 'pending_update_requests:v1';
+
+/* ---------------------------------------------------------------------- */
+/* INTERN-ONLY WIZARD (SCROLLABLE + DATE VALIDATION)                      */
+/* ---------------------------------------------------------------------- */
+const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
+  if (!isOpen) return null;
+
+  const [step, setStep] = useState('overview');
+  const [picks, setPicks] = useState({
+    specializations: false,
+    academic: false,
+    skills: false,
+    enddate: false,
+  });
+
+  // local form state
+  const [specializations, setSpecializations] = useState([]);
+  const [university, setUniversity] = useState('');
+  const [faculty, setFaculty] = useState('');
+  const [degreeProgram, setDegreeProgram] = useState('');
+  const [skills, setSkills] = useState([]);
+  const [newSkill, setNewSkill] = useState('');
+  const [newEndDate, setNewEndDate] = useState('');
+  const [endDateReason, setEndDateReason] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  // today (yyyy-mm-dd) -> used to block past dates
+  const todayISO = React.useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString().slice(0, 10);
+  }, []);
+
+  const UNI = {
+    SLIIT: {
+      Engineering: ['B.Sc. in Information Technology', 'B.Sc. in Software Engineering', 'B.Sc. in Computer Science'],
+      Business: ['B.Sc. in Business Analytics', 'B.Sc. in Management'],
+      'Applied Sciences': ['B.Sc. in Data Science', 'B.Sc. in Cybersecurity'],
+    },
+    'University of Colombo': {
+      Engineering: ['B.Sc. in Computer Science', 'B.Sc. in Software Engineering'],
+      Sciences: ['B.Sc. in Information Technology', 'B.Sc. in Mathematics with IT'],
+      Management: ['B.Sc. in Business Administration'],
+    },
+    'University of Peradeniya': {
+      Engineering: ['B.Sc. in Computer Engineering', 'B.Sc. in Software Engineering'],
+      Sciences: ['B.Sc. in Information Technology'],
+      'Applied Sciences': ['B.Sc. in Data Science'],
+    },
+  };
+
+  const SPEC = ['MERN', 'Java', 'Flutter', 'Python', 'React', 'Node.js', 'Android', 'iOS', 'DevOps', 'Cloud', 'Machine Learning', 'Data Analytics'];
+  const faculties = university ? Object.keys(UNI[university] || {}) : [];
+  const programs = university && faculty ? UNI[university]?.[faculty] || [] : [];
+
+  const togglePick = (k) => setPicks((p) => ({ ...p, [k]: !p[k] }));
+  const toggleSpec = (s) =>
+    setSpecializations((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
+  const addSkill = () => {
+    const v = newSkill.trim();
+    if (!v || skills.includes(v)) return;
+    setSkills((p) => [...p, v]);
+    setNewSkill('');
+  };
+  const removeSkill = (s) => setSkills((p) => p.filter((x) => x !== s));
+
+  const safeGetArray = () => {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return [];
+    }
+  };
+  const safeSetArray = (arr) => {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(arr || []));
+    } catch {}
+  };
+
+  const submit = async () => {
+    if (!Object.values(picks).some(Boolean)) {
+      alert('Select at least one section to update.');
+      return;
+    }
+    if (picks.academic && (!university || !faculty || !degreeProgram)) {
+      alert('Please complete academic details.');
+      return;
+    }
+    if (picks.enddate) {
+      if (!newEndDate || !endDateReason.trim()) {
+        alert('Please provide a new end date and a reason.');
+        return;
+      }
+      const chosen = new Date(newEndDate);
+      const today = new Date(todayISO);
+      if (chosen < today) {
+        alert('End date cannot be in the past.');
+        return;
+      }
+    }
+
+    try {
+      setBusy(true);
+
+      // 1) Immediate updates (no admin approval)
+      const immediatePayload = {};
+      if (picks.specializations) immediatePayload.specializations = specializations;
+      if (picks.academic) {
+        immediatePayload.university = university;
+        immediatePayload.faculty = faculty;
+        immediatePayload.degreeProgram = degreeProgram;
+      }
+      if (picks.skills) immediatePayload.skills = skills;
+
+      if (Object.keys(immediatePayload).length > 0) {
+        await internService.updateIntern(intern.internId, immediatePayload);
+      }
+
+      // 2) End-date change requires admin approval
+      if (picks.enddate) {
+        // Try API first
+        try {
+          await internUpdateRequestService.createForIntern(intern.internId, {
+            type: 'END_DATE',
+            requestedEndDate: newEndDate,
+            reason: endDateReason,
+          });
+        } catch {
+          // swallow; we still create a shadow request below
+        }
+
+        // Always create a local "shadow" request so Admin UI can show it instantly
+        const now = new Date().toISOString();
+        const shadow = {
+          id: `LS-${Date.now()}`,
+          status: 'PENDING',
+          type: 'END_DATE',
+          internId: intern.internId,
+          requestedEndDate: newEndDate,
+          reason: endDateReason,
+          submittedAt: now,
+        };
+        const arr = safeGetArray();
+        arr.push(shadow);
+        safeSetArray(arr);
+      }
+
+      if (picks.enddate && Object.keys(immediatePayload).length === 0) {
+        alert('End date change request submitted and is pending admin approval.');
+      } else if (!picks.enddate && Object.keys(immediatePayload).length > 0) {
+        alert('Profile updated successfully.');
+      } else {
+        alert('Profile updated and end date request submitted for approval.');
+      }
+
+      onClose();
+      onAfterSubmit?.();
+    } catch (e) {
+      console.error(e);
+      alert('Something went wrong while saving. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /* ---------- SCROLLABLE MODAL LAYOUT ---------- */
+  const overlay = {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(15,23,42,.45)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 50,
+    padding: 16,
+  };
+  const card = {
+    width: 'min(960px, 92vw)',
+    maxHeight: '90vh',
+    background: '#fff',
+    borderRadius: 12,
+    boxShadow: '0 24px 60px rgba(2,8,23,.35)',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+  };
+  const header = {
+    padding: 20,
+    borderBottom: '1px solid #e6eaf3',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flex: '0 0 auto',
+  };
+  const body = {
+    padding: 20,
+    overflowY: 'auto', // ← scrolls
+    flex: '1 1 auto',
+  };
+  const btn = { padding: '10px 14px', borderRadius: 10, border: '1px solid #d6dbe7', fontWeight: 700 };
+  const btnPri = { ...btn, background: '#2563eb', color: '#fff', borderColor: '#2563eb' };
+  const pick = (on) => ({
+    border: '2px solid',
+    borderColor: on ? '#2563eb' : '#e5e7eb',
+    borderRadius: 12,
+    padding: 16,
+    cursor: 'pointer',
+    background: on ? '#eff6ff' : '#fff',
+  });
+
+  return (
+    <div style={overlay} role="dialog" aria-modal="true">
+      <div style={card}>
+        <div style={header}>
+          <div style={{ fontWeight: 800, fontSize: 18, color: '#0f172a' }}>Update Profile</div>
+          <button style={btn} onClick={onClose} disabled={busy}>Close</button>
+        </div>
+
+        <div style={body}>
+          {step === 'overview' && (
+            <>
+              <p style={{ color: '#475569', marginBottom: 12 }}>
+                Select what you'd like to update. All sections are optional.
+              </p>
+
+              <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
+                <label style={pick(picks.specializations)} onClick={() => togglePick('specializations')}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <input type="checkbox" readOnly checked={picks.specializations} />
+                    <div>
+                      <div style={{ fontWeight: 700 }}>Update Specializations</div>
+                      <div style={{ fontSize: 12, color: '#64748b' }}>Select your field of specialization</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label style={pick(picks.academic)} onClick={() => togglePick('academic')}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <input type="checkbox" readOnly checked={picks.academic} />
+                    <div>
+                      <div style={{ fontWeight: 700 }}>Update Academic Details</div>
+                      <div style={{ fontSize: 12, color: '#64748b' }}>University, Faculty, and Degree Program</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label style={pick(picks.skills)} onClick={() => togglePick('skills')}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <input type="checkbox" readOnly checked={picks.skills} />
+                    <div>
+                      <div style={{ fontWeight: 700 }}>Update Skills</div>
+                      <div style={{ fontSize: 12, color: '#64748b' }}>Add or modify your technical skills</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label style={pick(picks.enddate)} onClick={() => togglePick('enddate')}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <input type="checkbox" readOnly checked={picks.enddate} />
+                    <div>
+                      <div style={{ fontWeight: 700 }}>Update End Date</div>
+                      <div style={{ fontSize: 12, color: '#64748b' }}>
+                        Request a change to internship end date (needs admin approval)
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
+                <button style={btn} onClick={onClose} disabled={busy}>Back</button>
+                <button
+                  style={btnPri}
+                  onClick={() => setStep('update')}
+                  disabled={!Object.values(picks).some(Boolean) || busy}
+                >
+                  Proceed with Selected Updates
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === 'update' && (
+            <div style={{ display: 'grid', gap: 20 }}>
+              {picks.specializations && (
+                <section>
+                  <h3 style={{ fontWeight: 800, marginBottom: 8 }}>Field of Specialization</h3>
+                  <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                    {SPEC.map((s) => {
+                      const on = specializations.includes(s);
+                      return (
+                        <label
+                          key={s}
+                          style={{
+                            border: '2px solid',
+                            borderColor: on ? '#2563eb' : '#e5e7eb',
+                            borderRadius: 10,
+                            padding: 10,
+                            cursor: 'pointer',
+                            background: on ? '#eff6ff' : '#fff',
+                          }}
+                          onClick={() => toggleSpec(s)}
+                        >
+                          <input type="checkbox" readOnly checked={on} />{' '}
+                          <span style={{ marginLeft: 6 }}>{s}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
+              {picks.academic && (
+                <section>
+                  <h3 style={{ fontWeight: 800, marginBottom: 8 }}>Academic Details</h3>
+                  <div style={{ display: 'grid', gap: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>University *</div>
+                      <select
+                        value={university}
+                        onChange={(e) => {
+                          setUniversity(e.target.value);
+                          setFaculty('');
+                          setDegreeProgram('');
+                        }}
+                        className="wizard-select"
+                      >
+                        <option value="">Select University</option>
+                        {Object.keys(UNI).map((u) => (
+                          <option key={u} value={u}>
+                            {u}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {university && (
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Faculty *</div>
+                        <select
+                          value={faculty}
+                          onChange={(e) => {
+                            setFaculty(e.target.value);
+                            setDegreeProgram('');
+                          }}
+                          className="wizard-select"
+                        >
+                          <option value="">Select Faculty</option>
+                          {faculties.map((f) => (
+                            <option key={f} value={f}>
+                              {f}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {faculty && (
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Degree Program *</div>
+                        <select
+                          value={degreeProgram}
+                          onChange={(e) => setDegreeProgram(e.target.value)}
+                          className="wizard-select"
+                        >
+                          <option value="">Select Degree Program</option>
+                          {programs.map((p) => (
+                            <option key={p} value={p}>
+                              {p}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {picks.skills && (
+                <section>
+                  <h3 style={{ fontWeight: 800, marginBottom: 8 }}>Add Your Skills</h3>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+                    {skills.length === 0 ? (
+                      <span style={{ color: '#64748b', fontStyle: 'italic' }}>No skills added yet</span>
+                    ) : (
+                      skills.map((s) => (
+                        <span
+                          key={s}
+                          style={{
+                            background: '#2563eb',
+                            color: '#fff',
+                            borderRadius: 999,
+                            padding: '6px 12px',
+                          }}
+                        >
+                          {s}{' '}
+                          <button
+                            onClick={() => removeSkill(s)}
+                            style={{ color: '#cfe0ff', background: 'transparent', border: 0, cursor: 'pointer' }}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      value={newSkill}
+                      onChange={(e) => setNewSkill(e.target.value)}
+                      placeholder="e.g., TypeScript, SQL"
+                      className="wizard-input"
+                      onKeyDown={(e) => e.key === 'Enter' && addSkill()}
+                    />
+                    <button style={btnPri} onClick={addSkill}>
+                      Add
+                    </button>
+                  </div>
+                </section>
+              )}
+
+              {picks.enddate && (
+                <section>
+                  <h3 style={{ fontWeight: 800, marginBottom: 8 }}>Internship End Date</h3>
+                  <div style={{ display: 'grid', gap: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>New End Date *</div>
+                      <input
+                        type="date"
+                        value={newEndDate}
+                        onChange={(e) => setNewEndDate(e.target.value)}
+                        min={todayISO}
+                        className="wizard-input"
+                      />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Reason for Change *</div>
+                      <textarea
+                        rows={3}
+                        value={endDateReason}
+                        onChange={(e) => setEndDateReason(e.target.value)}
+                        className="wizard-input"
+                        placeholder="Provide a brief reason..."
+                      />
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                <button style={btn} onClick={() => setStep('overview')} disabled={busy}>
+                  Back
+                </button>
+                <button style={btnPri} onClick={submit} disabled={busy}>
+                  {busy ? 'Saving…' : 'Submit Updates'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* input look */}
+      <style>{`
+        .wizard-input, .wizard-select {
+          width: 100%; border: 2px solid #e5e7eb; border-radius: 10px;
+          padding: 10px 12px; outline: none;
+        }
+        .wizard-input:focus, .wizard-select:focus { border-color: #2563eb; }
+      `}</style>
+    </div>
+  );
+};
+
+/* ---------------------------------------------------------------------- */
+/* PAGE: Intern Profile                                                   */
+/* ---------------------------------------------------------------------- */
 const InternProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -15,14 +502,9 @@ const InternProfile = () => {
   const [intern, setIntern] = useState(null);
   const [teams, setTeams] = useState([]);
   const [projects, setProjects] = useState([]);
-  const [allTeamMembers, setAllTeamMembers] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Forms & edit flags
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
 
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
@@ -32,17 +514,13 @@ const InternProfile = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [isEditingProject, setIsEditingProject] = useState(false);
 
-  // Update request workflow
-  const [myRequests, setMyRequests] = useState([]);
-  const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
 
-  // Is this the intern’s own profile page (no :id, user is Intern, not Admin)
+  // intern’s own profile route?
   const isProfileRoute = location.pathname === '/profile' && isIntern && !isAdmin;
 
   useEffect(() => {
-    if (user && !authLoading) {
-      fetchIntern();
-    }
+    if (user && !authLoading) fetchIntern();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user, authLoading, location.pathname]);
 
@@ -52,14 +530,9 @@ const InternProfile = () => {
       setError(null);
 
       let internResponse;
-
       if (isProfileRoute && user?.traineeId) {
-        // Load intern by code for intern’s own profile
         internResponse = await internService.getInternByCode(user.traineeId);
-      } else if (isProfileRoute && !user?.traineeId) {
-        throw new Error('Trainee ID not found in user profile. Please contact administrator.');
       } else if (id) {
-        // Admin or others viewing by ID
         internResponse = await internService.getInternById(id);
       } else {
         throw new Error('No intern identifier provided');
@@ -70,32 +543,17 @@ const InternProfile = () => {
 
       const internId = internData.internId;
 
-      // Teams (load all team members, filter by this intern)
+      // Teams
       const teamMembersResponse = await teamMemberService.getAllTeamMembers();
-      setAllTeamMembers(teamMembersResponse.data);
-      const internTeams = teamMembersResponse.data.filter(m => m.internId === internId);
+      const internTeams = (teamMembersResponse.data || []).filter((m) => m.internId === internId);
       setTeams(internTeams);
 
-      // Projects (any project whose assignedTeamIds contains one of intern's teamIds)
+      // Projects
       const projectsResponse = await projectService.getAllProjects();
-      const internProjects = projectsResponse.data.filter(project =>
-        internTeams.some(team => project.assignedTeamIds && project.assignedTeamIds.includes(team.teamId))
+      const internProjects = (projectsResponse.data || []).filter((project) =>
+        internTeams.some((team) => project.assignedTeamIds && project.assignedTeamIds.includes(team.teamId)),
       );
       setProjects(internProjects);
-
-      // Load update requests for intern’s own profile
-      if (isProfileRoute && internId) {
-        try {
-          const reqRes = await internUpdateRequestService.listForIntern(internId);
-          setMyRequests(reqRes.data || []);
-        } catch (e) {
-          console.warn('Could not load update requests', e);
-          setMyRequests([]);
-        }
-      } else {
-        setMyRequests([]);
-      }
-
     } catch (err) {
       console.error('Error fetching intern:', err);
       setError(err?.message || 'Failed to load intern details. Please try again.');
@@ -104,36 +562,6 @@ const InternProfile = () => {
     }
   };
 
-  // ====== Admin direct edit (immediate update) ======
-  const handleEdit = () => setShowEditForm(true);
-
-  const handleEditSubmit = async (internData) => {
-    try {
-      setIsEditing(true);
-      const updated = await internService.updateIntern(intern.internId, internData);
-      setIntern(updated.data);
-      setShowEditForm(false);
-    } catch (err) {
-      console.error('Error updating intern:', err);
-      throw err; // let InternForm show the error
-    } finally {
-      setIsEditing(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (window.confirm(`Are you sure you want to delete the intern "${intern.name}"? This action cannot be undone.`)) {
-      try {
-        await internService.deleteIntern(intern.internId);
-        navigate('/interns');
-      } catch (err) {
-        console.error('Error deleting intern:', err);
-        alert('Failed to delete intern. Please try again.');
-      }
-    }
-  };
-
-  // ====== Team & Project edit helpers ======
   const handleEditTeam = async (team) => {
     try {
       const teamResponse = await teamService.getTeamById(team.teamId);
@@ -180,31 +608,6 @@ const InternProfile = () => {
     }
   };
 
-  // ====== Intern self-update (create approval request) ======
-  const handleInternSelfEditSubmit = async (formData) => {
-    try {
-      setSubmittingRequest(true);
-      await internUpdateRequestService.createForIntern(intern.internId, {
-        name: formData.name,
-        email: formData.email,
-        institute: formData.institute,
-        trainingStartDate: formData.trainingStartDate,
-        trainingEndDate: formData.trainingEndDate,
-      });
-      setShowEditForm(false);
-      // refresh request list
-      const reqRes = await internUpdateRequestService.listForIntern(intern.internId);
-      setMyRequests(reqRes.data || []);
-      alert('Update request submitted and is pending admin approval.');
-    } catch (err) {
-      console.error('Failed to submit update request:', err);
-      alert('Failed to submit update request.');
-    } finally {
-      setSubmittingRequest(false);
-    }
-  };
-
-  // ====== helpers ======
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
@@ -242,7 +645,7 @@ const InternProfile = () => {
     return { status: 'active', message: `${daysRemaining} days remaining`, class: styles.statusActive };
   };
 
-  // ====== loading / error states ======
+  // loading & error states
   if (loading || authLoading) {
     return (
       <div className={styles.container}>
@@ -261,7 +664,9 @@ const InternProfile = () => {
           <div className={styles.errorIcon}>⚠️</div>
           <h2>Error Loading Intern</h2>
           <p>{error}</p>
-          <button className={styles.retryBtn} onClick={fetchIntern}>Try Again</button>
+          <button className={styles.retryBtn} onClick={fetchIntern}>
+            Try Again
+          </button>
         </div>
       </div>
     );
@@ -274,7 +679,9 @@ const InternProfile = () => {
           <div className={styles.errorIcon}>👤</div>
           <h2>Intern Not Found</h2>
           <p>The intern you're looking for could not be found.</p>
-          <button className={styles.retryBtn} onClick={() => navigate('/interns')}>Back to Interns</button>
+          <button className={styles.retryBtn} onClick={() => navigate('/interns')}>
+            Back to Interns
+          </button>
         </div>
       </div>
     );
@@ -286,29 +693,14 @@ const InternProfile = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         {!isProfileRoute && (
-          <button
-            className={styles.backButton}
-            onClick={() => navigate(isAdmin ? '/interns' : '/profile')}
-          >
+          <button className={styles.backButton} onClick={() => navigate(isAdmin ? '/interns' : '/profile')}>
             ← Back to {isAdmin ? 'Interns' : 'Profile'}
           </button>
         )}
 
-        {/* Admin controls */}
-        {isAdmin && (
-          <div className={styles.actions}>
-            <button className={styles.editBtn} onClick={handleEdit}>✏️ Edit Intern</button>
-            <button className={styles.deleteBtn} onClick={handleDelete}>🗑️ Delete Intern</button>
-          </div>
-        )}
-
-        {/* Intern self-update button */}
         {isProfileRoute && (
           <div className={styles.actions}>
-            <button
-              className={styles.primaryBtn}
-              onClick={() => { setShowEditForm(true); setIsEditing(false); }}
-            >
+            <button className={styles.primaryBtn} onClick={() => setShowWizard(true)}>
               Request Profile Update
             </button>
           </div>
@@ -320,11 +712,7 @@ const InternProfile = () => {
           <div className={styles.internInfo}>
             <h1 className={styles.internName}>{intern.name}</h1>
             <div className={styles.internCode}>{intern.internCode}</div>
-            {trainingStatus && (
-              <span className={`${styles.statusBadge} ${trainingStatus.class}`}>
-                {trainingStatus.message}
-              </span>
-            )}
+            {trainingStatus && <span className={`${styles.statusBadge} ${trainingStatus.class}`}>{trainingStatus.message}</span>}
           </div>
         </div>
 
@@ -387,7 +775,9 @@ const InternProfile = () => {
                           style={{ cursor: 'pointer' }}
                           title="Click to view team profile"
                         >
-                          <div className={styles.teamIcon}><FiUsers /></div>
+                          <div className={styles.teamIcon}>
+                            <FiUsers />
+                          </div>
                           <div className={styles.assignmentInfo}>
                             <div className={styles.assignmentName}>{team.teamName}</div>
                             <div className={styles.assignmentRole}>Team Member</div>
@@ -395,11 +785,7 @@ const InternProfile = () => {
                         </div>
                         {(isProjectManager || isTeamLeader) && (
                           <div className={styles.assignmentActions}>
-                            <button
-                              className={styles.actionBtn}
-                              onClick={() => handleEditTeam(team)}
-                              title="Edit team"
-                            >
+                            <button className={styles.actionBtn} onClick={() => handleEditTeam(team)} title="Edit team">
                               ✏️
                             </button>
                           </div>
@@ -429,21 +815,17 @@ const InternProfile = () => {
                           style={{ cursor: 'pointer' }}
                           title="Click to view project profile"
                         >
-                          <div className={styles.projectIcon}><FiFolder /></div>
+                          <div className={styles.projectIcon}>
+                            <FiFolder />
+                          </div>
                           <div className={styles.assignmentInfo}>
                             <div className={styles.assignmentName}>{project.projectName}</div>
-                            <div className={styles.assignmentRole}>
-                              Status: {project.status?.replace('_', ' ') || 'Unknown'}
-                            </div>
+                            <div className={styles.assignmentRole}>Status: {project.status?.replace('_', ' ') || 'Unknown'}</div>
                           </div>
                         </div>
                         {isProjectManager && (
                           <div className={styles.assignmentActions}>
-                            <button
-                              className={styles.actionBtn}
-                              onClick={() => handleEditProject(project)}
-                              title="Edit project"
-                            >
+                            <button className={styles.actionBtn} onClick={() => handleEditProject(project)} title="Edit project">
                               ✏️
                             </button>
                           </div>
@@ -461,56 +843,12 @@ const InternProfile = () => {
             </div>
           </div>
         </div>
-
-        {/* Intern’s update request history (only on their own profile) */}
-        {isProfileRoute && (
-          <div className={styles.card}>
-            <h3>My Profile Update Requests</h3>
-            {myRequests.length === 0 ? (
-              <p>No requests yet.</p>
-            ) : (
-              <ul className={styles.requestsList}>
-                {myRequests.map((r) => (
-                  <li key={r.id} className={styles.requestItem}>
-                    <div>
-                      <strong>Status:</strong> {r.status}
-                      {r.status === 'REJECTED' && r.rejectionReason && (
-                        <> — <em>{r.rejectionReason}</em></>
-                      )}
-                    </div>
-                    <div><strong>Submitted:</strong> {new Date(r.submittedAt).toLocaleString()}</div>
-                    <details>
-                      <summary>Proposed changes</summary>
-                      <pre className={styles.diffBlock}>
-{JSON.stringify({
-  name: r.name,
-  email: r.email,
-  institute: r.institute,
-  trainingStartDate: r.trainingStartDate,
-  trainingEndDate: r.trainingEndDate
-}, null, 2)}
-                      </pre>
-                    </details>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
       </div>
 
-      {/* Intern/Admin edit form modal:
-          - On intern's own profile → submit creates an approval request
-          - On admin view by ID → submit updates directly */}
-      <InternForm
-        isOpen={showEditForm}
-        onClose={() => setShowEditForm(false)}
-        onSubmit={isProfileRoute ? handleInternSelfEditSubmit : handleEditSubmit}
-        intern={intern}
-        isLoading={isProfileRoute ? submittingRequest : isEditing}
-      />
+      {/* INTERN wizard modal */}
+      <Wizard isOpen={showWizard} onClose={() => setShowWizard(false)} intern={intern} onAfterSubmit={fetchIntern} />
 
-      {/* Team edit modal */}
+      {/* Team / Project edit modals */}
       <TeamForm
         isOpen={showTeamForm}
         onClose={() => {
@@ -521,8 +859,6 @@ const InternProfile = () => {
         team={selectedTeam}
         isLoading={isEditingTeam}
       />
-
-      {/* Project edit modal */}
       <ProjectForm
         isOpen={showProjectForm}
         onClose={() => {
