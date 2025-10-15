@@ -336,7 +336,7 @@ const Developer = () => {
 
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
             <DeveloperReport interns={filteredInterns} />
-            <button className={styles.addButton} onClick={handleAddIntern}>Add Intern</button>
+            
           </div>
         </div>
 
