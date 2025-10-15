@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { FiMoreVertical } from 'react-icons/fi';
+import SweetAlert from '../Common/SweetAlert';
 import styles from './DeveloperTable.module.css';
 
 const DeveloperTable = React.memo(({ interns, onEdit, onDelete, onMakeLead, isLoading = false }) => {
@@ -225,14 +226,17 @@ const DeveloperTable = React.memo(({ interns, onEdit, onDelete, onMakeLead, isLo
                           </button>
                           <button
                             className={styles.menuItem}
-                            onClick={(e) => {
+                            onClick={async (e) => {
                               e.stopPropagation();
                               setOpenMenuId(null);
-                              if (
-                                window.confirm(
-                                  `Are you sure you want to delete ${intern.name}?`
-                                )
-                              ) {
+                              const ok = await SweetAlert.confirm({
+                                title: `Delete ${intern.name}?`,
+                                text: 'This action will permanently remove the intern.',
+                                confirmButtonText: 'Delete',
+                                cancelButtonText: 'Cancel',
+                                icon: 'warning'
+                              });
+                              if (ok) {
                                 onDelete(intern.internId);
                               }
                             }}
@@ -242,21 +246,26 @@ const DeveloperTable = React.memo(({ interns, onEdit, onDelete, onMakeLead, isLo
 
                           <button
                             className={styles.menuItem}
-                            onClick={(e) => {
+                            onClick={async (e) => {
                               e.stopPropagation();
                               setOpenMenuId(null);
-                              if (
-                                window.confirm(
-                                  `Make ${intern.name} the lead developer? This will set them as a lead.`
-                                )
-                              ) {
+                              const ok = await SweetAlert.confirm({
+                                title: `Make ${intern.name} Lead?`,
+                                text: 'This will assign the lead role to this intern.',
+                                confirmButtonText: 'Make Lead',
+                                cancelButtonText: 'Cancel',
+                                icon: 'question'
+                              });
+                              if (ok) {
                                 if (typeof onMakeLead === 'function') {
                                   onMakeLead(intern.internId);
                                 } else {
-                                  // Fallback - inform developer to implement handler
-                                  window.alert(
-                                    'Make as Lead action is not implemented. Provide an onMakeLead prop to handle this.'
-                                  );
+                                  await SweetAlert.alert({
+                                    title: 'Not implemented',
+                                    text: 'Make as Lead action is not implemented. Provide an onMakeLead prop to handle this.',
+                                    icon: 'info',
+                                    confirmButtonText: 'OK'
+                                  });
                                 }
                               }
                             }}
