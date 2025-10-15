@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DeveloperForm, DeveloperTable } from '../../components';
+import DeveloperReport from '../../components/Reports/DeveloperReport';
 import styles from './Developer.module.css';
 import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
 
@@ -331,6 +332,11 @@ const Developer = () => {
                 <option value="projects:desc">Projects (Descending)</option>
               </select>
             </div>
+          </div>
+
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+            <DeveloperReport interns={filteredInterns} />
+            <button className={styles.addButton} onClick={handleAddIntern}>Add Intern</button>
           </div>
         </div>
 
