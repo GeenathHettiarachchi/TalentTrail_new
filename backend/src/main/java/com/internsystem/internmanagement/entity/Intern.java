@@ -18,8 +18,8 @@ import java.time.LocalDateTime;
 public class Intern {
 
     @Id
-   
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "intern_id")
     private Long internId;
 
     @Column(unique = true)
@@ -40,6 +40,10 @@ public class Intern {
     private LocalDate trainingStartDate;
     private LocalDate trainingEnDate;
     private String institute;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private InternCategory category;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
