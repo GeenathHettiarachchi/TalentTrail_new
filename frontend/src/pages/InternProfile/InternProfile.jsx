@@ -1,5 +1,5 @@
 // src/pages/InternProfile/InternProfile.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   internService,
@@ -8,16 +8,17 @@ import {
   teamService,
   internUpdateRequestService, // used for end-date approval
 } from '../../services/api';
+import { academicService } from '../../services/universityCatalog';
 import { useAuth } from '../../contexts/AuthContext';
 import { TeamForm, ProjectForm } from '../../components';
-import { FiUsers, FiFolder } from 'react-icons/fi';
+import { FiUsers, FiFolder, FiSearch } from 'react-icons/fi';
 import styles from './InternProfile.module.css';
 
 const LS_KEY = 'pending_update_requests:v1';
 
-/* ---------------------------------------------------------------------- */
-/* INTERN-ONLY WIZARD (SCROLLABLE + DATE VALIDATION)                      */
-/* ---------------------------------------------------------------------- */
+/* ========================================================================== */
+/*                              WIZARD (MODAL)                                 */
+/* ========================================================================== */
 const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
   if (!isOpen) return null;
 
@@ -29,45 +30,151 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
     enddate: false,
   });
 
-  // local form state
+  // immediate update fields
   const [specializations, setSpecializations] = useState([]);
-  const [university, setUniversity] = useState('');
-  const [faculty, setFaculty] = useState('');
-  const [degreeProgram, setDegreeProgram] = useState('');
   const [skills, setSkills] = useState([]);
   const [newSkill, setNewSkill] = useState('');
+
+  // end date request
   const [newEndDate, setNewEndDate] = useState('');
   const [endDateReason, setEndDateReason] = useState('');
+
   const [busy, setBusy] = useState(false);
 
-  // today (yyyy-mm-dd) -> used to block past dates
-  const todayISO = React.useMemo(() => {
+  // ---------- Academic (live) ----------
+  const [universityQuery, setUniversityQuery] = useState('');
+  const [university, setUniversity] = useState(''); // chosen university name
+  const [universities, setUniversities] = useState([]);
+  const [uLoading, setULoading] = useState(false);
+  const [uOpen, setUOpen] = useState(false); // suggestions visible
+  const [uHi, setUHi] = useState(-1);
+
+  const [faculty, setFaculty] = useState('');
+  const [faculties, setFaculties] = useState([]);
+  const [fLoading, setFLoading] = useState(false);
+
+  const [degreeProgram, setDegreeProgram] = useState('');
+  const [programs, setPrograms] = useState([]);
+  const [pLoading, setPLoading] = useState(false);
+
+  // caches (avoid refetch)
+  const facultiesCache = useMemo(() => new Map(), []);
+  const programsCache = useMemo(() => new Map(), []);
+
+  // today (yyyy-mm-dd)
+  const todayISO = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d.toISOString().slice(0, 10);
   }, []);
 
-  const UNI = {
-    SLIIT: {
-      Engineering: ['B.Sc. in Information Technology', 'B.Sc. in Software Engineering', 'B.Sc. in Computer Science'],
-      Business: ['B.Sc. in Business Analytics', 'B.Sc. in Management'],
-      'Applied Sciences': ['B.Sc. in Data Science', 'B.Sc. in Cybersecurity'],
-    },
-    'University of Colombo': {
-      Engineering: ['B.Sc. in Computer Science', 'B.Sc. in Software Engineering'],
-      Sciences: ['B.Sc. in Information Technology', 'B.Sc. in Mathematics with IT'],
-      Management: ['B.Sc. in Business Administration'],
-    },
-    'University of Peradeniya': {
-      Engineering: ['B.Sc. in Computer Engineering', 'B.Sc. in Software Engineering'],
-      Sciences: ['B.Sc. in Information Technology'],
-      'Applied Sciences': ['B.Sc. in Data Science'],
-    },
+  // ---------------- helpers ----------------
+  const toTitleCase = (s = '') =>
+    s
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  const norm = (s = '') => s.trim().toLowerCase();
+
+  // --------- University typeahead (debounced) ----------
+  useEffect(() => {
+    if (!picks.academic) return;
+    if (!universityQuery || university) return;
+
+    const t = setTimeout(async () => {
+      try {
+        setULoading(true);
+        const list = await academicService.searchUniversitiesLK(universityQuery);
+        setUniversities(Array.isArray(list) ? list : []);
+        setUOpen(true);
+        setUHi(-1);
+      } catch {
+        setUniversities([]);
+        setUOpen(false);
+      } finally {
+        setULoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(t);
+  }, [universityQuery, university, picks.academic]);
+
+  // --------- Faculties for selected university ----------
+  const loadFaculties = async (uniName) => {
+    setFaculty('');
+    setDegreeProgram('');
+    setPrograms([]);
+    if (!uniName) {
+      setFaculties([]);
+      return;
+    }
+    if (facultiesCache.has(uniName)) {
+      setFaculties(facultiesCache.get(uniName));
+      return;
+    }
+    try {
+      setFLoading(true);
+      const list = await academicService.getFacultiesLK(uniName);
+      const items = Array.isArray(list) ? list : [];
+      facultiesCache.set(uniName, items);
+      setFaculties(items);
+    } catch {
+      setFaculties([]);
+    } finally {
+      setFLoading(false);
+    }
   };
 
-  const SPEC = ['MERN', 'Java', 'Flutter', 'Python', 'React', 'Node.js', 'Android', 'iOS', 'DevOps', 'Cloud', 'Machine Learning', 'Data Analytics'];
-  const faculties = university ? Object.keys(UNI[university] || {}) : [];
-  const programs = university && faculty ? UNI[university]?.[faculty] || [] : [];
+  // keep faculties in sync if university changes elsewhere
+  useEffect(() => {
+    if (!university) return;
+    if (faculties.length > 0) return;
+    loadFaculties(university);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [university]);
+
+  // --------- Programs for selected faculty ----------
+  const loadPrograms = async (uniName, facName) => {
+    setDegreeProgram('');
+    if (!uniName || !facName) {
+      setPrograms([]);
+      return;
+    }
+    const key = `${uniName}::${facName}::ug`;
+    if (programsCache.has(key)) {
+      setPrograms(programsCache.get(key));
+      return;
+    }
+    try {
+      setPLoading(true);
+      const list = await academicService.getProgramsLK(uniName, facName, 'ug');
+      const items = Array.isArray(list) ? list : [];
+      programsCache.set(key, items);
+      setPrograms(items);
+    } catch {
+      setPrograms([]);
+    } finally {
+      setPLoading(false);
+    }
+  };
+
+  // specialization catalog
+  const SPEC = [
+    'MERN',
+    'Java',
+    'Flutter',
+    'Python',
+    'React',
+    'Node.js',
+    'Android',
+    'iOS',
+    'DevOps',
+    'Cloud',
+    'Machine Learning',
+    'Data Analytics',
+  ];
 
   const togglePick = (k) => setPicks((p) => ({ ...p, [k]: !p[k] }));
   const toggleSpec = (s) =>
@@ -80,6 +187,7 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
   };
   const removeSkill = (s) => setSkills((p) => p.filter((x) => x !== s));
 
+  // local shadow for admin page
   const safeGetArray = () => {
     try {
       const raw = localStorage.getItem(LS_KEY);
@@ -120,7 +228,6 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
     try {
       setBusy(true);
 
-      // 1) Immediate updates (no admin approval)
       const immediatePayload = {};
       if (picks.specializations) immediatePayload.specializations = specializations;
       if (picks.academic) {
@@ -134,20 +241,14 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
         await internService.updateIntern(intern.internId, immediatePayload);
       }
 
-      // 2) End-date change requires admin approval
       if (picks.enddate) {
-        // Try API first
         try {
           await internUpdateRequestService.createForIntern(intern.internId, {
             type: 'END_DATE',
             requestedEndDate: newEndDate,
             reason: endDateReason,
           });
-        } catch {
-          // swallow; we still create a shadow request below
-        }
-
-        // Always create a local "shadow" request so Admin UI can show it instantly
+        } catch {}
         const now = new Date().toISOString();
         const shadow = {
           id: `LS-${Date.now()}`,
@@ -163,14 +264,7 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
         safeSetArray(arr);
       }
 
-      if (picks.enddate && Object.keys(immediatePayload).length === 0) {
-        alert('End date change request submitted and is pending admin approval.');
-      } else if (!picks.enddate && Object.keys(immediatePayload).length > 0) {
-        alert('Profile updated successfully.');
-      } else {
-        alert('Profile updated and end date request submitted for approval.');
-      }
-
+      alert('Submitted successfully.');
       onClose();
       onAfterSubmit?.();
     } catch (e) {
@@ -181,7 +275,7 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
     }
   };
 
-  /* ---------- SCROLLABLE MODAL LAYOUT ---------- */
+  /* --------------------------- UI helpers / styles -------------------------- */
   const overlay = {
     position: 'fixed',
     inset: 0,
@@ -210,11 +304,7 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
     alignItems: 'center',
     flex: '0 0 auto',
   };
-  const body = {
-    padding: 20,
-    overflowY: 'auto', // ← scrolls
-    flex: '1 1 auto',
-  };
+  const body = { padding: 20, overflowY: 'auto', flex: '1 1 auto' };
   const btn = { padding: '10px 14px', borderRadius: 10, border: '1px solid #d6dbe7', fontWeight: 700 };
   const btnPri = { ...btn, background: '#2563eb', color: '#fff', borderColor: '#2563eb' };
   const pick = (on) => ({
@@ -226,16 +316,330 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
     background: on ? '#eff6ff' : '#fff',
   });
 
+  /* ----------------- University Search (typeahead + browse) ---------------- */
+  const UniversitySearch = () => {
+    // local input state (separate from chosen value)
+    const [q, setQ] = useState(university || '');
+    const [open, setOpen] = useState(false);
+    const [options, setOptions] = useState([]);
+    const [busySearch, setBusySearch] = useState(false);
+    const [hi, setHi] = useState(-1);
+
+    // debounce
+    const [debouncedQ, setDebouncedQ] = useState(q);
+    useEffect(() => {
+      const t = setTimeout(() => setDebouncedQ(q), 300);
+      return () => clearTimeout(t);
+    }, [q]);
+
+    // live search (only if not selected yet)
+    useEffect(() => {
+      let cancel = false;
+      if (!picks.academic || university) return;
+
+      const run = async () => {
+        const query = debouncedQ.trim();
+        if (!query) {
+          setOptions([]);
+          setOpen(false);
+          return;
+        }
+        try {
+          setBusySearch(true);
+          const list = await academicService.searchUniversitiesLK(query);
+          if (cancel) return;
+          const items = Array.isArray(list) ? list : [];
+          setOptions(items);
+
+          const exact = items.find((u) => norm(u?.name) === norm(query));
+          if (exact?.name) {
+            await choose(exact.name);
+            return;
+          }
+          if (items.length === 1 && items[0]?.name) {
+            await choose(items[0].name);
+            return;
+          }
+
+          setOpen(true);
+          setHi(-1);
+        } catch {
+          if (!cancel) {
+            setOptions([]);
+            setOpen(false);
+          }
+        } finally {
+          if (!cancel) setBusySearch(false);
+        }
+      };
+
+      run();
+      return () => {
+        cancel = true;
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [debouncedQ, university, picks.academic]);
+
+    const choose = async (name) => {
+      setUniversity(name);
+      setQ(name);
+      setOpen(false);
+      setOptions([]);
+      setHi(-1);
+      await loadFaculties(name); // load faculties immediately
+    };
+
+    const browse = async () => {
+      const raw = q.trim();
+      const normalized = toTitleCase(raw);
+      try {
+        setBusySearch(true);
+
+        if (university) {
+          await loadFaculties(university);
+          return;
+        }
+
+        const list = await academicService.searchUniversitiesLK(raw);
+        const items = Array.isArray(list) ? list : [];
+        setOptions(items);
+
+        const exact = items.find((u) => norm(u?.name) === norm(raw));
+        if (exact?.name) {
+          await choose(exact.name);
+          return;
+        }
+        if (items.length === 1 && items[0]?.name) {
+          await choose(items[0].name);
+          return;
+        }
+
+        // fallback: try normalized name even if search is empty
+        if (!items.length && normalized.length >= 3) {
+          await choose(normalized);
+          return;
+        }
+
+        setOpen(true);
+        setHi(-1);
+      } finally {
+        setBusySearch(false);
+      }
+    };
+
+    return (
+      <div>
+        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>University *</div>
+
+        {!university && (
+          <div style={{ position: 'relative', display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <input
+                type="text"
+                className="wizard-input"
+                style={{ paddingLeft: 36 }}
+                value={q}
+                onChange={(e) => {
+                  setQ(e.target.value);
+                  setOpen(true);
+                }}
+                onFocus={() => {
+                  if (options.length) setOpen(true);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    browse();
+                    return;
+                  }
+                  if (!open || !options.length) return;
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setHi((i) => Math.min(i + 1, options.length - 1));
+                  } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setHi((i) => Math.max(i - 1, 0));
+                  } else if (e.key === 'Tab' && hi >= 0) {
+                    e.preventDefault();
+                    choose(options[hi].name);
+                  } else if (e.key === 'Escape') {
+                    setOpen(false);
+                  }
+                }}
+                placeholder="Type a Sri Lankan university (e.g., University of Colombo)"
+              />
+              <FiSearch
+                style={{
+                  position: 'absolute',
+                  left: 10,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  opacity: 0.25,
+                }}
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={browse}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #d6dbe7',
+                borderRadius: 8,
+                background: '#f3f4f6',
+                fontWeight: 600,
+              }}
+            >
+              {busySearch ? '…' : 'Browse'}
+            </button>
+
+            {open && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  top: 'calc(100% + 6px)',
+                  zIndex: 30,
+                  background: '#fff',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: 10,
+                  maxHeight: 260,
+                  overflowY: 'auto',
+                }}
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                {busySearch && <div style={{ padding: 10, fontSize: 12 }}>Searching…</div>}
+                {!busySearch && options.length === 0 && (
+                  <div style={{ padding: 10, fontSize: 12, color: '#64748b' }}>No matches</div>
+                )}
+                {!busySearch &&
+                  options.map((u, idx) => (
+                    <div
+                      key={u.name}
+                      onClick={() => choose(u.name)}
+                      onMouseEnter={() => setHi(idx)}
+                      style={{
+                        padding: '10px 12px',
+                        cursor: 'pointer',
+                        background: hi === idx ? '#f1f5f9' : '#fff',
+                      }}
+                    >
+                      {u.name}
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {university && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input className="wizard-input" value={university} readOnly />
+            <button
+              type="button"
+              onClick={() => {
+                setUniversity('');
+                setFaculties([]);
+                setFaculty('');
+                setPrograms([]);
+                setDegreeProgram('');
+                setUniversityQuery('');
+              }}
+              style={{
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: '1px solid #d6dbe7',
+                fontWeight: 700,
+                background: '#fff',
+              }}
+            >
+              Change
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const FacultySelect = () => (
+    <div>
+      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Faculty *</div>
+
+      {university && !fLoading && faculties.length === 0 && (
+        <div style={{ marginBottom: 8, fontSize: 12, color: '#64748b' }}>
+          {`No faculties returned for “${university}”. `}
+          <button
+            type="button"
+            onClick={() => loadFaculties(university)}
+            style={{
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              border: 0,
+              background: 'transparent',
+              padding: 0,
+            }}
+          >
+            Reload
+          </button>
+        </div>
+      )}
+
+      <select
+        className="wizard-select"
+        value={faculty}
+        onChange={(e) => {
+          const v = e.target.value;
+          setFaculty(v);
+          loadPrograms(university, v);
+        }}
+        disabled={!university || fLoading}
+        onFocus={() => {
+          if (university && faculties.length === 0 && !fLoading) loadFaculties(university);
+        }}
+      >
+        <option value="">{fLoading ? 'Loading faculties…' : 'Select Faculty'}</option>
+        {faculties.map((f) => (
+          <option key={f.name} value={f.name}>
+            {f.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const ProgramSelect = () => (
+    <div>
+      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Undergraduate Program *</div>
+      <select
+        className="wizard-select"
+        value={degreeProgram}
+        onChange={(e) => setDegreeProgram(e.target.value)}
+        disabled={!faculty || pLoading}
+      >
+        <option value="">{pLoading ? 'Loading programs…' : 'Select Program'}</option>
+        {programs.map((p) => (
+          <option key={p.name} value={p.name}>
+            {p.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  /* ------------------------------ Render modal ----------------------------- */
   return (
     <div style={overlay} role="dialog" aria-modal="true">
       <div style={card}>
         <div style={header}>
           <div style={{ fontWeight: 800, fontSize: 18, color: '#0f172a' }}>Update Profile</div>
-          <button style={btn} onClick={onClose} disabled={busy}>Close</button>
+          <button style={btn} onClick={onClose} disabled={busy}>
+            Close
+          </button>
         </div>
 
         <div style={body}>
-          {step === 'overview' && (
+          {step === 'overview' ? (
             <>
               <p style={{ color: '#475569', marginBottom: 12 }}>
                 Select what you'd like to update. All sections are optional.
@@ -257,7 +661,7 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
                     <input type="checkbox" readOnly checked={picks.academic} />
                     <div>
                       <div style={{ fontWeight: 700 }}>Update Academic Details</div>
-                      <div style={{ fontSize: 12, color: '#64748b' }}>University, Faculty, and Degree Program</div>
+                      <div style={{ fontSize: 12, color: '#64748b' }}>University, Faculty, Program (SL · UG)</div>
                     </div>
                   </div>
                 </label>
@@ -286,7 +690,9 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-                <button style={btn} onClick={onClose} disabled={busy}>Back</button>
+                <button style={btn} onClick={onClose} disabled={busy}>
+                  Back
+                </button>
                 <button
                   style={btnPri}
                   onClick={() => setStep('update')}
@@ -296,10 +702,9 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
                 </button>
               </div>
             </>
-          )}
-
-          {step === 'update' && (
+          ) : (
             <div style={{ display: 'grid', gap: 20 }}>
+              {/* Specializations */}
               {picks.specializations && (
                 <section>
                   <h3 style={{ fontWeight: 800, marginBottom: 8 }}>Field of Specialization</h3>
@@ -328,72 +733,19 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
                 </section>
               )}
 
+              {/* Academic (Sri Lanka · UG) */}
               {picks.academic && (
                 <section>
-                  <h3 style={{ fontWeight: 800, marginBottom: 8 }}>Academic Details</h3>
+                  <h3 style={{ fontWeight: 800, marginBottom: 8 }}>Academic Details (Sri Lanka · Undergraduate)</h3>
                   <div style={{ display: 'grid', gap: 12 }}>
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>University *</div>
-                      <select
-                        value={university}
-                        onChange={(e) => {
-                          setUniversity(e.target.value);
-                          setFaculty('');
-                          setDegreeProgram('');
-                        }}
-                        className="wizard-select"
-                      >
-                        <option value="">Select University</option>
-                        {Object.keys(UNI).map((u) => (
-                          <option key={u} value={u}>
-                            {u}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {university && (
-                      <div>
-                        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Faculty *</div>
-                        <select
-                          value={faculty}
-                          onChange={(e) => {
-                            setFaculty(e.target.value);
-                            setDegreeProgram('');
-                          }}
-                          className="wizard-select"
-                        >
-                          <option value="">Select Faculty</option>
-                          {faculties.map((f) => (
-                            <option key={f} value={f}>
-                              {f}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {faculty && (
-                      <div>
-                        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Degree Program *</div>
-                        <select
-                          value={degreeProgram}
-                          onChange={(e) => setDegreeProgram(e.target.value)}
-                          className="wizard-select"
-                        >
-                          <option value="">Select Degree Program</option>
-                          {programs.map((p) => (
-                            <option key={p} value={p}>
-                              {p}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
+                    <UniversitySearch />
+                    {university && <FacultySelect />}
+                    {faculty && <ProgramSelect />}
                   </div>
                 </section>
               )}
 
+              {/* Skills */}
               {picks.skills && (
                 <section>
                   <h3 style={{ fontWeight: 800, marginBottom: 8 }}>Add Your Skills</h3>
@@ -404,12 +756,7 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
                       skills.map((s) => (
                         <span
                           key={s}
-                          style={{
-                            background: '#2563eb',
-                            color: '#fff',
-                            borderRadius: 999,
-                            padding: '6px 12px',
-                          }}
+                          style={{ background: '#2563eb', color: '#fff', borderRadius: 999, padding: '6px 12px' }}
                         >
                           {s}{' '}
                           <button
@@ -437,6 +784,7 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
                 </section>
               )}
 
+              {/* End date */}
               {picks.enddate && (
                 <section>
                   <h3 style={{ fontWeight: 800, marginBottom: 8 }}>Internship End Date</h3>
@@ -490,9 +838,9 @@ const Wizard = ({ isOpen, onClose, intern, onAfterSubmit }) => {
   );
 };
 
-/* ---------------------------------------------------------------------- */
-/* PAGE: Intern Profile                                                   */
-/* ---------------------------------------------------------------------- */
+/* ========================================================================== */
+/*                             PAGE: Intern Profile                           */
+/* ========================================================================== */
 const InternProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -645,7 +993,6 @@ const InternProfile = () => {
     return { status: 'active', message: `${daysRemaining} days remaining`, class: styles.statusActive };
   };
 
-  // loading & error states
   if (loading || authLoading) {
     return (
       <div className={styles.container}>
@@ -712,7 +1059,9 @@ const InternProfile = () => {
           <div className={styles.internInfo}>
             <h1 className={styles.internName}>{intern.name}</h1>
             <div className={styles.internCode}>{intern.internCode}</div>
-            {trainingStatus && <span className={`${styles.statusBadge} ${trainingStatus.class}`}>{trainingStatus.message}</span>}
+            {trainingStatus && (
+              <span className={`${styles.statusBadge} ${trainingStatus.class}`}>{trainingStatus.message}</span>
+            )}
           </div>
         </div>
 
@@ -820,12 +1169,18 @@ const InternProfile = () => {
                           </div>
                           <div className={styles.assignmentInfo}>
                             <div className={styles.assignmentName}>{project.projectName}</div>
-                            <div className={styles.assignmentRole}>Status: {project.status?.replace('_', ' ') || 'Unknown'}</div>
+                            <div className={styles.assignmentRole}>
+                              Status: {project.status?.replace('_', ' ') || 'Unknown'}
+                            </div>
                           </div>
                         </div>
                         {isProjectManager && (
                           <div className={styles.assignmentActions}>
-                            <button className={styles.actionBtn} onClick={() => handleEditProject(project)} title="Edit project">
+                            <button
+                              className={styles.actionBtn}
+                              onClick={() => handleEditProject(project)}
+                              title="Edit project"
+                            >
                               ✏️
                             </button>
                           </div>
@@ -848,7 +1203,7 @@ const InternProfile = () => {
       {/* INTERN wizard modal */}
       <Wizard isOpen={showWizard} onClose={() => setShowWizard(false)} intern={intern} onAfterSubmit={fetchIntern} />
 
-      {/* Team / Project edit modals */}
+      {/* Team / Project modals */}
       <TeamForm
         isOpen={showTeamForm}
         onClose={() => {
