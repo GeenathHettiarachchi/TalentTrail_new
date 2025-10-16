@@ -330,6 +330,17 @@
   margin-bottom: 6px;
 }
 
+.leadBadge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: #ffd700; /* Gold color */
+  color: #333;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .th,
