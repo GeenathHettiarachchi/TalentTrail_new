@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 public class Intern {
 
     @Id
+   
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long internId;
 
@@ -27,9 +28,17 @@ public class Intern {
     @Column(nullable = false)
     private String name;
 
+     @Column(name = "training_end_date") // Make sure this matches your column name
+    private LocalDate trainingEndDate;
+
+    // --- ADD THE NEW FIELD FOR THE ALERT FLAG ---
+    @Column(name = "end_date_alert_sent") // This will create a new column in your database
+    private boolean endDateAlertSent = false; // <-- ADD THIS. It defaults to false.
+
+
     private String email;
     private LocalDate trainingStartDate;
-    private LocalDate trainingEndDate;
+    private LocalDate trainingEnDate;
     private String institute;
 
     @CreationTimestamp

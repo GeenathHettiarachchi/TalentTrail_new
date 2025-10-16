@@ -83,9 +83,34 @@
   white-space: nowrap;
 }
 
+/* End Date Styles with Color Coding */
 .endDate {
-  color: #dc3545;
   font-weight: 500;
+  transition: all 0.2s ease;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* Normal end date (more than 1 month away) */
+.endDateNormal {
+  color: #16a34a; /* green-600 */
+  background-color: #f0fdf4; /* green-50 */
+  border: 1px solid #bbf7d0; /* green-200 */
+}
+
+/* Warning end date (within 1 month) */
+.endDateWarning {
+  color: #dc2626; /* red-600 */
+  background-color: #fef2f2; /* red-50 */
+  border: 1px solid #fecaca; /* red-200 */
+  font-weight: 600;
+}
+
+/* Enhanced hover effect for warning dates */
+.endDateWarning:hover {
+  background-color: #fee2e2; /* red-100 */
+  transform: translateY(-1px);
 }
 
 .skills {
@@ -372,4 +397,3 @@
 /* If you had these earlier, make sure they DO NOT override to wrapping */
 .listOneLine { display: inline-flex; flex-wrap: nowrap; gap: 6px; }
 .listWrap    { display: flex;        flex-wrap: wrap;   gap: 6px; }
-

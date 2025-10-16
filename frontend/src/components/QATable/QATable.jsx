@@ -7,6 +7,7 @@
  * - Expand/collapse per-row chips for Tools and Projects (shows 1 item, expand to all)
  * - Row actions menu (Edit/Delete) visible to admins only
  * - Loading and empty states
+ * - Color-coded end dates (red if within 1 month, green otherwise)
  *
  * Props:
  *  - interns: Array of intern objects (see helpers for normalization)
@@ -64,6 +65,26 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
       return dateString;
     }
   }, []);
+
+  /**
+   * Check if end date is within 1 month (30 days) from today
+   * Returns true if within 1 month, false otherwise
+   */
+  const isWithinOneMonth = (endDate) => {
+    if (!endDate) return false;
+    
+    const today = new Date();
+    const end = new Date(endDate);
+    
+    // Reset times to compare only dates
+    today.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    
+    const timeDiff = end.getTime() - today.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    
+    return daysDiff <= 30 && daysDiff >= 0;
+  };
 
   /**
    * Row click handler—currently a placeholder for a future details page.
@@ -139,7 +160,7 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
   };
 
   /**
-   * Small reusable “show 1 item, expand to all” list with a chevron button.
+   * Small reusable "show 1 item, expand to all" list with a chevron button.
    * - Keeps chevron right-aligned across rows using a fixed slot
    * - Accessible labels for expand/collapse
    */
@@ -265,8 +286,17 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
                     <span className={styles.mobile}>{intern.mobileNumber || '—'}</span>
                   </td>
 
+                  {/* END DATE with color coding */}
                   <td className={styles.td}>
-                    <span className={styles.endDate}>{formatDate(intern.trainingEndDate)}</span>
+                    <span 
+                      className={`${styles.endDate} ${
+                        isWithinOneMonth(intern.trainingEndDate) 
+                          ? styles.endDateWarning 
+                          : styles.endDateNormal
+                      }`}
+                    >
+                      {formatDate(intern.trainingEndDate)}
+                    </span>
                   </td>
 
                   {/* TOOLS (1 item by default; expand to show all) */}
