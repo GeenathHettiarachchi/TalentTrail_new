@@ -62,6 +62,10 @@ public class InternService {
         return internRepository.findByInternCode(internCode);
     }
 
+    public List<Intern> getInternsByCategoryId(Integer categoryId) {
+        return internRepository.findByCategory_CategoryId(categoryId);
+    }
+
     public Intern updateIntern(Long id, Intern updatedIntern) {
         Intern intern = internRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Intern not found with ID: " + id));

@@ -33,8 +33,7 @@ public class Intern {
 
     // --- ADD THE NEW FIELD FOR THE ALERT FLAG ---
     @Column(name = "end_date_alert_sent") // This will create a new column in your database
-    private boolean endDateAlertSent = false; // <-- ADD THIS. It defaults to false.
-
+    private Boolean endDateAlertSent = false; // <-- ADD THIS. It defaults to false.
 
     private String email;
     private LocalDate trainingStartDate;
