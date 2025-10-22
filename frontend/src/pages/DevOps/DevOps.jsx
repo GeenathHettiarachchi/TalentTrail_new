@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { DevOpsForm, DevOpsTable } from '../../components';
 import styles from './DevOps.module.css';
+import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
 
 const DevOps = () => {
   const [devOpsInterns, setDevOpsInterns] = useState([]);
@@ -16,80 +18,99 @@ const DevOps = () => {
   const DEVOPS_CATEGORY_ID = 3;
 
   // Mock data for DevOps interns
-  const mockDevOpsData = [
-    {
-      internId: 367,
-      internCode: '3142',
-      name: 'John Smith',
-      email: 'john.smith@example.com',
-      mobileNumber: '0712356172',
-      trainingEndDate: '2024-12-15',
-      resourceType: 'Cloud Engineer',
-      projects: ['CI/CD', 'MERN']
-    },
-    {
-      internId: 368,
-      internCode: '3143',
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2024-11-30',
-      resourceType: 'DevOps Engineer',
-      projects: ['CI/CD', 'MERN', 'AWS']
-    },
-    {
-      internId: 369,
-      internCode: '3145',
-      name: 'Michael Brown',
-      email: 'michael.brown@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2025-01-20',
-      resourceType: 'Site Reliability Engineer',
-      projects: ['CI/CD', 'MERN', 'AWS']
-    },
-    {
-      internId: 370,
-      internCode: '3146',
-      name: 'Emily Davis',
-      email: 'emily.davis@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2024-12-10',
-      resourceType: 'Infrastructure Engineer',
-      projects: ['CI/CD', 'MERN', 'AWS']
-    },
-    {
-      internId: 371,
-      internCode: '3147',
-      name: 'David Wilson',
-      email: 'david.wilson@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2025-02-05',
-      resourceType: 'Platform Engineer',
-      projects: ['CI/CD', 'MERN', 'AWS']
-    },
-    {
-      internId: 372,
-      internCode: '3148',
-      name: 'Lisa Anderson',
-      email: 'lisa.anderson@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2024-12-28',
-      resourceType: 'Cloud Architect',
-      projects: ['CI/CD', 'MERN', 'AWS']
-    }
-  ];
+  // const mockDevOpsData = [
+  //   {
+  //     internId: 367,
+  //     internCode: '3142',
+  //     name: 'John Smith',
+  //     email: 'john.smith@example.com',
+  //     mobileNumber: '0712356172',
+  //     trainingEndDate: '2024-12-15',
+  //     resourceType: 'Cloud Engineer',
+  //     projects: ['CI/CD', 'MERN']
+  //   },
+  //   {
+  //     internId: 368,
+  //     internCode: '3143',
+  //     name: 'Sarah Johnson',
+  //     email: 'sarah.johnson@example.com',
+  //     mobileNumber: '0776502837',
+  //     trainingEndDate: '2024-11-30',
+  //     resourceType: 'DevOps Engineer',
+  //     projects: ['CI/CD', 'MERN', 'AWS']
+  //   },
+  //   {
+  //     internId: 369,
+  //     internCode: '3145',
+  //     name: 'Michael Brown',
+  //     email: 'michael.brown@example.com',
+  //     mobileNumber: '0776502837',
+  //     trainingEndDate: '2025-01-20',
+  //     resourceType: 'Site Reliability Engineer',
+  //     projects: ['CI/CD', 'MERN', 'AWS']
+  //   },
+  //   {
+  //     internId: 370,
+  //     internCode: '3146',
+  //     name: 'Emily Davis',
+  //     email: 'emily.davis@example.com',
+  //     mobileNumber: '0776502837',
+  //     trainingEndDate: '2024-12-10',
+  //     resourceType: 'Infrastructure Engineer',
+  //     projects: ['CI/CD', 'MERN', 'AWS']
+  //   },
+  //   {
+  //     internId: 371,
+  //     internCode: '3147',
+  //     name: 'David Wilson',
+  //     email: 'david.wilson@example.com',
+  //     mobileNumber: '0776502837',
+  //     trainingEndDate: '2025-02-05',
+  //     resourceType: 'Platform Engineer',
+  //     projects: ['CI/CD', 'MERN', 'AWS']
+  //   },
+  //   {
+  //     internId: 372,
+  //     internCode: '3148',
+  //     name: 'Lisa Anderson',
+  //     email: 'lisa.anderson@example.com',
+  //     mobileNumber: '0776502837',
+  //     trainingEndDate: '2024-12-28',
+  //     resourceType: 'Cloud Architect',
+  //     projects: ['CI/CD', 'MERN', 'AWS']
+  //   }
+  // ];
+
 
   // Simulate loading data
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       setError('');
+
+      const token = Cookies.get('authToken');
+      if (!token) {
+        setError("Authorization failed. Please log in.");
+        setIsLoading(false);
+        return;
+      }
+      const authHeader = { 'Authorization': `Bearer ${token}` };
+      
       try {
-        // Step 1: Set your hardcoded intern data
-        setDevOpsInterns(mockDevOpsData);
+        // Step 1: Fetch all interns for the DevOps category
+        const internsResponse = await fetch(`http://localhost:8080/api/interns/category/${DEVOPS_CATEGORY_ID}` , {
+          headers: authHeader
+        });
+        if (!internsResponse.ok) {
+          throw new Error('Failed to fetch DevOps interns from the server.');
+        }
+        const internsData = await internsResponse.json();
+        setDevOpsInterns(internsData);
 
         // Step 2: Fetch the current lead from the backend
-        const categoryResponse = await fetch(`http://localhost:8080/api/categories/${DEVOPS_CATEGORY_ID}`);
+        const categoryResponse = await fetch(`http://localhost:8080/api/categories/${DEVOPS_CATEGORY_ID}` , {
+          headers: authHeader
+        });
         if (categoryResponse.ok) {
           const categoryData = await categoryResponse.json();
           if (categoryData && categoryData.leadIntern) {
@@ -106,7 +127,7 @@ const DevOps = () => {
       }
     };
     loadData();
-  }, []);
+  }, [DEVOPS_CATEGORY_ID]);
 
   const asText = (v) => Array.isArray(v) ? v.join(', ') : (v ?? '');
 
@@ -168,14 +189,25 @@ const DevOps = () => {
 
   // Assign new lead
   const handleAssignLead = async (internId) => {
+    const token = Cookies.get('authToken');
+    if (!token) {
+      setError("Authorization failed. Please log in.");
+      return;
+    }
+
     try {
       setError('');
       const response = await fetch(`http://localhost:8080/api/categories/${DEVOPS_CATEGORY_ID}/assign-lead/${internId}`, {
           method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
       });
 
       if (!response.ok) {
-          throw new Error('Failed to assign lead. The intern ID might be invalid.');
+        const errorText = await response.text();
+        throw new Error('Failed to assign lead. The intern ID might be invalid.');
       }
       
       // Update the UI immediately on success
@@ -284,6 +316,7 @@ const DevOps = () => {
             + Add New DevOps Intern
           </button>
           <div className={styles.filterSection}>
+            <CategoryDropdown current="devops" />
             <form onSubmit={handleSearch} className={styles.searchSection}>
               <input 
                 type="text" 
@@ -335,6 +368,8 @@ const DevOps = () => {
             onEdit={handleEditIntern}
             onDelete={handleDeleteIntern}
             isLoading={isLoading}
+            onAssignLead={handleAssignLead}
+            currentLeadId={currentLeadId}
           />
         </div>
       </div>
