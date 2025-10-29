@@ -1,8 +1,12 @@
 package com.internsystem.internmanagement.controller;
 
 import com.internsystem.internmanagement.entity.Intern;
+import com.internsystem.internmanagement.dto.InternCategoryDTO;
 import com.internsystem.internmanagement.entity.InternCategory;
 import com.internsystem.internmanagement.service.InternCategoryService;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +24,16 @@ public class InternCategoryController {
     @GetMapping
     public ResponseEntity<List<InternCategory>> getAllCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories());
+    }
+
+    @GetMapping("/{categoryId}")
+    public ResponseEntity<?> getCategoryById(@PathVariable Integer categoryId) {
+        try {
+            InternCategoryDTO categoryDTO = categoryService.getCategoryById(categoryId);
+            return ResponseEntity.ok(categoryDTO);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
     }
 
     @PostMapping

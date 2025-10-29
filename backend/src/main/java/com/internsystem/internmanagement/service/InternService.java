@@ -3,8 +3,10 @@ package com.internsystem.internmanagement.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.internsystem.internmanagement.entity.Intern;
+import com.internsystem.internmanagement.entity.InternCategory;
 import com.internsystem.internmanagement.exception.ExistingResourceException;
 import com.internsystem.internmanagement.exception.ResourceNotFoundException;
+import com.internsystem.internmanagement.repository.InternCategoryRepository;
 import com.internsystem.internmanagement.repository.InternRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +25,9 @@ public class InternService {
 
     @Autowired
     private InternRepository internRepository;
+
+    @Autowired
+    private InternCategoryRepository internCategoryRepository;
 
     @Autowired
     private AuthRoleService authRoleService;
@@ -82,6 +87,7 @@ public class InternService {
         intern.setInternCode(updatedIntern.getInternCode());
         intern.setName(updatedIntern.getName());
         intern.setEmail(updatedIntern.getEmail());
+        intern.setSpecialization(updatedIntern.getSpecialization());
         intern.setTrainingStartDate(updatedIntern.getTrainingStartDate());
         intern.setTrainingEndDate(updatedIntern.getTrainingEndDate());
         intern.setInstitute(updatedIntern.getInstitute());
@@ -146,6 +152,7 @@ public class InternService {
                         String traineeName = extractField(trainee, "name", "Trainee_Name");
                         String traineeInstitute = extractField(trainee, "institute", "Institute");
                         String traineeEmail = extractField(trainee, "email", "Trainee_Email");
+                        String traineeSpecialization = extractField(trainee, "specialization", "field_of_spec_name");
                         
                         LocalDate startDate = parseTrainingDate(trainee, "trainingStartDate", "Training_StartDate", isoFormatter, oldFormatter);
                         LocalDate endDate = parseTrainingDate(trainee, "trainingEndDate", "Training_EndDate", isoFormatter, oldFormatter);
@@ -159,6 +166,9 @@ public class InternService {
                         intern.setName(traineeName);
                         intern.setInstitute(traineeInstitute);
                         intern.setEmail(traineeEmail);
+                        intern.setSpecialization(traineeSpecialization);
+                        InternCategory category = findCategoryBySpecialization(traineeSpecialization);
+                        intern.setCategory(category);
                         intern.setTrainingStartDate(startDate);
                         intern.setTrainingEndDate(endDate);
 
@@ -182,6 +192,36 @@ public class InternService {
             e.printStackTrace();
             statsService.setActiveInternsFromApi(0);
         }
+    }
+
+    /**
+     * Determine InternCategory based on specialization keywords
+     */
+    private InternCategory findCategoryBySpecialization(String specialization) {
+        String specLower = specialization.toLowerCase();
+
+        if (specLower.contains("devops") || specLower.contains("cloud") || specLower.contains("cicd")) {
+            return internCategoryRepository.findByCategoryName("DevOps").orElse(null);
+        }
+
+        if (specLower.contains("qa") || specLower.contains("quality assurance")) {
+            return internCategoryRepository.findByCategoryName("QA").orElse(null);
+        }
+        
+        if (specLower.contains("fullstack") || 
+            specLower.contains("mern") ||
+            specLower.contains("c#") || 
+            specLower.contains("java") || 
+            specLower.contains("python") ||
+            specLower.contains("flutter") ||
+            specLower.contains("reactjs") ||
+            specLower.contains("php")) {
+                
+            return internCategoryRepository.findByCategoryName("Web Developer").orElse(null);
+        }
+
+        // If no match is found, you can return null or a "General" category
+        return null;
     }
     
     /**

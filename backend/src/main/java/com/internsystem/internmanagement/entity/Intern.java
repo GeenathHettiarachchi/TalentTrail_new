@@ -40,6 +40,9 @@ public class Intern {
     private LocalDate trainingEnDate;
     private String institute;
 
+    @Column(name = "specialization")
+    private String specialization;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private InternCategory category;

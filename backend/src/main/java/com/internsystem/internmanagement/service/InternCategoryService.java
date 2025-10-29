@@ -4,6 +4,7 @@ import com.internsystem.internmanagement.entity.Intern;
 import com.internsystem.internmanagement.entity.InternCategory;
 import com.internsystem.internmanagement.repository.InternCategoryRepository;
 import com.internsystem.internmanagement.repository.InternRepository;
+import com.internsystem.internmanagement.dto.InternCategoryDTO;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,24 @@ public class InternCategoryService {
 
     @Autowired
     private InternRepository internRepository;
+
+    // Get category by ID and return as DTO
+    public InternCategoryDTO getCategoryById(Integer categoryId) {
+        InternCategory category = categoryRepository.findById(categoryId)
+            .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + categoryId));
+
+        // Create the DTO
+        InternCategoryDTO dto = new InternCategoryDTO();
+        dto.setCategoryId(category.getCategoryId());
+        dto.setCategoryName(category.getCategoryName());
+
+        // Safely get the lead intern's ID, if one exists
+        if (category.getLeadIntern() != null) {
+            dto.setLeadInternId(category.getLeadIntern().getInternId());
+        }
+
+        return dto;
+    }
 
     // Get all categories
     public List<InternCategory> getAllCategories() {
