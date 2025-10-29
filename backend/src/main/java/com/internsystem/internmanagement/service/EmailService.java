@@ -19,7 +19,15 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    @Value("${intern.email.alerts.enabled}")
+    private boolean emailAlertsEnabled;
+
     public void sendInternshipAlert(String toEmail, String internName, LocalDate endDate) {
+        if (!emailAlertsEnabled) {
+            System.out.println("Internship alert email NOT SENT to " + toEmail + " because feature is disabled.");
+            return; // This stops the email from being sent
+        }
+
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
