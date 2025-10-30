@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DeveloperForm, DeveloperTable } from '../../components';
+import DeveloperReport from '../../components/Reports/DeveloperReport';
 import styles from './Developer.module.css';
 import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
 
@@ -195,6 +196,22 @@ const Developer = () => {
     }
   };
 
+  // Make an intern the lead (from interns only)
+  const handleMakeLead = async (internId) => {
+    try {
+      setError('');
+      setDeveloperInterns(prev =>
+        prev.map(intern => ({
+          ...intern,
+          isLead: intern.internId === internId
+        }))
+      );
+    } catch (err) {
+      console.error('Error setting lead Developer intern:', err);
+      setError('Failed to set lead Developer intern. Please try again.');
+    }
+  };
+
   const handleFormSubmit = async (payload) => {
     try {
       setIsSubmitting(true);
@@ -316,6 +333,11 @@ const Developer = () => {
               </select>
             </div>
           </div>
+
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+            <DeveloperReport interns={filteredInterns} />
+            
+          </div>
         </div>
 
         <div className={styles.tableSection}>
@@ -340,6 +362,7 @@ const Developer = () => {
             interns={filteredInterns}
             onEdit={handleEditIntern}
             onDelete={handleDeleteIntern}
+            onMakeLead={handleMakeLead}
             isLoading={isLoading}
           />
         </div>
