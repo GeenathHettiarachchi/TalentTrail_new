@@ -75,6 +75,18 @@
   color: #2c3e50;
 }
 
+.leadBadge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: #ffd700;
+  color: #333;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .email {
   color: #6c757d;
 }
@@ -180,6 +192,15 @@
 
 .menuItem:hover {
   background: #f8fafc;
+}
+
+.menuItem:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.menuItem:disabled:hover {
+  background: none;
 }
 
 .loadingContainer {
