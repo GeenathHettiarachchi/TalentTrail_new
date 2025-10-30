@@ -46,6 +46,17 @@ export const internService = {
   
   // DELETE intern
   deleteIntern: (id) => api.delete(`/interns/${id}`),
+
+  // GET interns by category ID
+  getInternsByCategoryId: (categoryId) => api.get(`/interns/category/${categoryId}`),
+};
+
+export const categoryService = {
+  // GET category by ID (to find the current lead)
+  getCategoryById: (id) => api.get(`/categories/${id}`),
+
+  // PUT assign new lead
+  assignLead: (categoryId, internId) => api.put(`/categories/${categoryId}/assign-lead/${internId}`),
 };
 
 export const teamService = {
