@@ -26,22 +26,15 @@ public class InternCategoryService {
         InternCategory category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + categoryId));
 
-        // Create the DTO
-        InternCategoryDTO dto = new InternCategoryDTO();
-        dto.setCategoryId(category.getCategoryId());
-        dto.setCategoryName(category.getCategoryName());
-
-        // Safely get the lead intern's ID, if one exists
-        if (category.getLeadIntern() != null) {
-            dto.setLeadInternId(category.getLeadIntern().getInternId());
-        }
-
-        return dto;
+        return toDto(category);
     }
 
     // Get all categories
-    public List<InternCategory> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<InternCategoryDTO> getAllCategories() {
+    return categoryRepository.findAll()
+        .stream()
+        .map(this::toDto)
+        .collect(java.util.stream.Collectors.toList());
     }
 
     // Create a new category
@@ -76,5 +69,21 @@ public class InternCategoryService {
 
         intern.setCategory(category);
         return internRepository.save(intern);
+    }
+
+    private InternCategoryDTO toDto(InternCategory category) {
+        if (category == null) {
+            return null;
+        }
+
+        InternCategoryDTO dto = new InternCategoryDTO();
+        dto.setCategoryId(category.getCategoryId());
+        dto.setCategoryName(category.getCategoryName());
+
+        if (category.getLeadIntern() != null) {
+            dto.setLeadInternId(category.getLeadIntern().getInternId());
+        }
+
+        return dto;
     }
 }

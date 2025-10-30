@@ -8,6 +8,22 @@ import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8080/api';
 const DEVELOPER_CATEGORY_KEYWORDS = ['web developer', 'developer', 'developers'];
 
+const parseJsonResponse = async (response, contextLabel) => {
+  const rawBody = await response.text();
+
+  if (!rawBody) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawBody);
+  } catch (parseError) {
+    const preview = rawBody.length > 160 ? `${rawBody.slice(0, 157)}...` : rawBody;
+    console.error(`Invalid JSON while parsing ${contextLabel}:`, preview);
+    throw new Error(`Received invalid data from the server while loading ${contextLabel}.`);
+  }
+};
+
 const toStringArray = (value, extractor) => {
   if (!value) return [];
 
@@ -207,7 +223,7 @@ const Developer = () => {
           throw new Error('Failed to fetch categories from the server.');
         }
 
-        const categoriesData = await categoriesResponse.json();
+  const categoriesData = (await parseJsonResponse(categoriesResponse, 'categories')) ?? [];
         const developerCategory = findDeveloperCategory(categoriesData);
 
         if (!developerCategory) {
@@ -240,7 +256,7 @@ const Developer = () => {
           throw new Error('Failed to fetch Developer interns from the server.');
         }
 
-        const internsData = await internsResponse.json();
+  const internsData = (await parseJsonResponse(internsResponse, 'developer interns')) ?? [];
 
         if (!isMounted) {
           return;
@@ -259,7 +275,7 @@ const Developer = () => {
         );
 
         if (categoryDetailResponse.ok) {
-          const categoryDetail = await categoryDetailResponse.json();
+          const categoryDetail = await parseJsonResponse(categoryDetailResponse, 'developer lead details');
           if (isMounted) {
             const leadId =
               categoryDetail?.leadInternId ??

@@ -22,7 +22,7 @@ public class InternCategoryController {
     private InternCategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<List<InternCategory>> getAllCategories() {
+    public ResponseEntity<List<InternCategoryDTO>> getAllCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
 
