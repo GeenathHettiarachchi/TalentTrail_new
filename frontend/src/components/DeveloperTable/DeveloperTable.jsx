@@ -1,12 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { FiMoreVertical } from 'react-icons/fi';
 import SweetAlert from '../Common/SweetAlert';
 import styles from './DeveloperTable.module.css';
 
-const DeveloperTable = React.memo(({ interns, onEdit, onDelete, onMakeLead, isLoading = false }) => {
-  const navigate = useNavigate();
+const DeveloperTable = React.memo(({ interns, onEdit, onDelete, onAssignLead, currentLeadId = null, isLoading = false }) => {
   const { isAdmin } = useAuth();
   const [openMenuId, setOpenMenuId] = useState(null);
   const tableRef = useRef(null);
@@ -54,7 +52,24 @@ const DeveloperTable = React.memo(({ interns, onEdit, onDelete, onMakeLead, isLo
 
   const toList = useCallback((value) => {
     if (Array.isArray(value)) {
-      return value.map((v) => String(v).trim()).filter(Boolean);
+      return value
+        .map((item) => {
+          if (typeof item === 'string') {
+            return item.trim();
+          }
+          if (item && typeof item === 'object') {
+            const fallback = item.name ?? item.projectName ?? item.title ?? item.value ?? item.label;
+            if (typeof fallback === 'string') {
+              return fallback.trim();
+            }
+            if (fallback != null) {
+              return String(fallback).trim();
+            }
+            return '';
+          }
+          return String(item ?? '').trim();
+        })
+        .filter(Boolean);
     }
     if (typeof value === 'string' && value.trim()) {
       return value.split(',').map((v) => v.trim()).filter(Boolean);
@@ -128,10 +143,17 @@ const DeveloperTable = React.memo(({ interns, onEdit, onDelete, onMakeLead, isLo
 
               return (
                 <tr key={intern.internId} className={styles.tr}>
-                  <td className={styles.td}>{intern.internCode}</td>
-                  <td className={styles.td}>{intern.name}</td>
-                  <td className={styles.td}>{intern.email}</td>
-                  <td className={styles.td}>{intern.mobileNumber}</td>
+                  <td className={styles.td}>{intern.internCode || '-'}</td>
+                  <td className={styles.td}>
+                    <div className={styles.nameCell}>
+                      <span className={styles.name}>{intern.name || '-'}</span>
+                      {currentLeadId != null && intern.internId === currentLeadId && (
+                        <span className={styles.leadBadge}>⭐ Lead</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className={styles.td}>{intern.email || '-'}</td>
+                  <td className={styles.td}>{intern.mobileNumber || '-'}</td>
                   <td className={styles.td}>
                     <span
                       className={`${styles.endDate} ${
@@ -244,34 +266,57 @@ const DeveloperTable = React.memo(({ interns, onEdit, onDelete, onMakeLead, isLo
                             Delete
                           </button>
 
-                          <button
-                            className={styles.menuItem}
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              setOpenMenuId(null);
-                              const ok = await SweetAlert.confirm({
-                                title: `Make ${intern.name} Lead?`,
-                                text: 'This will assign the lead role to this intern.',
-                                confirmButtonText: 'Make Lead',
-                                cancelButtonText: 'Cancel',
-                                icon: 'question'
-                              });
-                              if (ok) {
-                                if (typeof onMakeLead === 'function') {
-                                  onMakeLead(intern.internId);
-                                } else {
+                          {typeof onAssignLead === 'function' && (
+                            <button
+                              className={styles.menuItem}
+                              disabled={intern.internId === currentLeadId}
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(null);
+
+                                if (intern.internId === currentLeadId) {
                                   await SweetAlert.alert({
-                                    title: 'Not implemented',
-                                    text: 'Make as Lead action is not implemented. Provide an onMakeLead prop to handle this.',
+                                    title: 'Already Lead',
+                                    text: `${intern.name} is already the assigned lead.`,
                                     icon: 'info',
                                     confirmButtonText: 'OK'
                                   });
+                                  return;
                                 }
-                              }
-                            }}
-                          >
-                            Make as Lead
-                          </button>
+
+                                const ok = await SweetAlert.confirm({
+                                  title: `Assign ${intern.name} as Lead?`,
+                                  text: 'This will assign the lead role to this intern.',
+                                  confirmButtonText: 'Assign Lead',
+                                  cancelButtonText: 'Cancel',
+                                  icon: 'question'
+                                });
+
+                                if (!ok) {
+                                  return;
+                                }
+
+                                try {
+                                  await onAssignLead(intern.internId);
+                                  await SweetAlert.alert({
+                                    title: 'Lead Assigned',
+                                    text: `${intern.name} is now the lead.`,
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                  });
+                                } catch (err) {
+                                  await SweetAlert.alert({
+                                    title: 'Failed to assign lead',
+                                    text: err?.message || 'Please try again.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                  });
+                                }
+                              }}
+                            >
+                              {intern.internId === currentLeadId ? 'Current Lead' : 'Assign as Lead'}
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>

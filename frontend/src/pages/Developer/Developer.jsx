@@ -1,8 +1,101 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import Cookies from 'js-cookie';
 import { DeveloperForm, DeveloperTable } from '../../components';
 import DeveloperReport from '../../components/Reports/DeveloperReport';
 import styles from './Developer.module.css';
 import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
+
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8080/api';
+const DEVELOPER_CATEGORY_KEYWORDS = ['web developer', 'developer', 'developers'];
+
+const toStringArray = (value, extractor) => {
+  if (!value) return [];
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === 'string') {
+          return item.trim();
+        }
+
+        if (typeof item === 'object' && item !== null) {
+          const extracted = extractor
+            ? extractor(item)
+            : item?.name ?? item?.title ?? item?.value ?? item?.label;
+          if (typeof extracted === 'string') {
+            return extracted.trim();
+          }
+          if (extracted != null) {
+            return String(extracted).trim();
+          }
+          return '';
+        }
+
+        return String(item ?? '').trim();
+      })
+      .filter(Boolean);
+  }
+
+  if (typeof value === 'string' && value.trim()) {
+    return value
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
+const normaliseDeveloperIntern = (intern) => {
+  if (!intern || typeof intern !== 'object') {
+    return {
+      internId: intern?.internId ?? null,
+      internCode: intern?.internCode ?? '',
+      name: intern?.name ?? '',
+      email: intern?.email ?? '',
+      mobileNumber:
+        intern?.mobileNumber ??
+        intern?.mobile ??
+        intern?.phoneNumber ??
+        intern?.phone ??
+        intern?.contactNumber ??
+        intern?.contactNo ??
+        '',
+      trainingEndDate: intern?.trainingEndDate ?? intern?.trainingEnDate ?? '',
+      languagesAndFrameworks: [],
+      projects: [],
+    };
+  }
+
+  const mobileNumber =
+    intern.mobileNumber ??
+    intern.mobile ??
+    intern.phoneNumber ??
+    intern.phone ??
+    intern.contactNumber ??
+    intern.contactNo ??
+    '';
+
+  return {
+    ...intern,
+    mobileNumber,
+    languagesAndFrameworks: toStringArray(intern.languagesAndFrameworks),
+    projects: toStringArray(intern.projects, (item) => item?.name ?? item?.projectName ?? item?.title),
+  };
+};
+
+const findDeveloperCategory = (categories) => {
+  if (!Array.isArray(categories)) {
+    return null;
+  }
+
+  return (
+    categories.find((category) => {
+      const name = (category?.categoryName || '').toLowerCase();
+      return DEVELOPER_CATEGORY_KEYWORDS.some((keyword) => name.includes(keyword));
+    }) ?? null
+  );
+};
 
 const Developer = () => {
   const [developerInterns, setDeveloperInterns] = useState([]);
@@ -17,8 +110,12 @@ const Developer = () => {
 
   // 🔹 New state for language filter dropdown
   const [languageFilter, setLanguageFilter] = useState('All');
+  const [developerCategoryId, setDeveloperCategoryId] = useState(null);
+  const [currentLeadId, setCurrentLeadId] = useState(null);
+  const [isCategoryMissing, setIsCategoryMissing] = useState(false);
 
-  // Mock data for Developer interns
+  // Mock data for Developer interns (retained for reference only)
+  /*
   const mockDeveloperData = [
     {
       internId: 1,
@@ -81,17 +178,117 @@ const Developer = () => {
       projects: ['Mobile E-Learning App']
     }
   ];
+  */
 
-  // Simulate loading data
+  // Load developer interns from backend
   useEffect(() => {
-    const loadData = () => {
-      setIsLoading(true);
-      setTimeout(() => {
-        setDeveloperInterns(mockDeveloperData);
+    let isMounted = true;
+
+    const loadData = async () => {
+  setIsLoading(true);
+  setError('');
+  setIsCategoryMissing(false);
+
+      const token = Cookies.get('authToken');
+      if (!token) {
+        setError('Authorization failed. Please log in.');
         setIsLoading(false);
-      }, 1000);
+        return;
+      }
+
+      const authHeader = { Authorization: `Bearer ${token}` };
+
+      try {
+        const categoriesResponse = await fetch(`${API_BASE_URL}/categories`, {
+          headers: authHeader,
+        });
+
+        if (!categoriesResponse.ok) {
+          throw new Error('Failed to fetch categories from the server.');
+        }
+
+        const categoriesData = await categoriesResponse.json();
+        const developerCategory = findDeveloperCategory(categoriesData);
+
+        if (!developerCategory) {
+          if (!isMounted) {
+            return;
+          }
+
+          setDeveloperCategoryId(null);
+          setDeveloperInterns([]);
+          setLanguageFilter('All');
+          setIsCategoryMissing(true);
+          setError(
+            'Developer category is missing in the backend. Please create a "Web Developer" category (or similar) to enable this view.'
+          );
+          return;
+        }
+
+        if (!isMounted) {
+          return;
+        }
+
+        setDeveloperCategoryId(developerCategory.categoryId);
+
+        const internsResponse = await fetch(
+          `${API_BASE_URL}/interns/category/${developerCategory.categoryId}`,
+          { headers: authHeader }
+        );
+
+        if (!internsResponse.ok) {
+          throw new Error('Failed to fetch Developer interns from the server.');
+        }
+
+        const internsData = await internsResponse.json();
+
+        if (!isMounted) {
+          return;
+        }
+
+        const normalisedInterns = Array.isArray(internsData)
+          ? internsData.map((intern) => normaliseDeveloperIntern(intern))
+          : [];
+
+        setDeveloperInterns(normalisedInterns);
+        setLanguageFilter('All');
+
+        const categoryDetailResponse = await fetch(
+          `${API_BASE_URL}/categories/${developerCategory.categoryId}`,
+          { headers: authHeader }
+        );
+
+        if (categoryDetailResponse.ok) {
+          const categoryDetail = await categoryDetailResponse.json();
+          if (isMounted) {
+            const leadId =
+              categoryDetail?.leadInternId ??
+              categoryDetail?.leadIntern?.internId ??
+              null;
+            setCurrentLeadId(leadId);
+          }
+        } else {
+          console.warn('Could not fetch current lead information.');
+        }
+      } catch (err) {
+        if (!isMounted) {
+          return;
+        }
+        console.error('Error loading Developer interns:', err);
+        setDeveloperInterns([]);
+        setError(err.message || 'Could not load Developer interns from the server.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
     };
+
     loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Helper: normalize values for search/sort
@@ -120,7 +317,7 @@ const Developer = () => {
     // 🔹 Apply language filter if not "All"
     if (languageFilter !== 'All' ) {
       list = list.filter(intern =>
-        intern.languagesAndFrameworks.some(lang =>
+        toStringArray(intern.languagesAndFrameworks).some(lang =>
           lang.toLowerCase() === languageFilter.toLowerCase()
         )
       );
@@ -174,6 +371,29 @@ const Developer = () => {
     setFilteredInterns(list);
   }, [developerInterns, searchTerm, sortOption, languageFilter]);
 
+  const allLanguages = useMemo(() => {
+    const unique = new Set();
+
+    developerInterns.forEach((intern) => {
+      const languages = Array.isArray(intern.languagesAndFrameworks)
+        ? intern.languagesAndFrameworks
+        : toStringArray(intern.languagesAndFrameworks);
+      languages.forEach((lang) => {
+        if (lang) {
+          unique.add(lang);
+        }
+      });
+    });
+
+    return ['All', ...Array.from(unique).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))];
+  }, [developerInterns]);
+
+  useEffect(() => {
+    if (!allLanguages.includes(languageFilter)) {
+      setLanguageFilter('All');
+    }
+  }, [allLanguages, languageFilter]);
+
   const handleAddIntern = () => {
     setSelectedIntern(null);
     setIsFormOpen(true);
@@ -190,25 +410,12 @@ const Developer = () => {
       setDeveloperInterns(prev =>
         prev.filter(intern => intern.internId !== internId)
       );
+      if (currentLeadId === internId) {
+        setCurrentLeadId(null);
+      }
     } catch (err) {
       console.error('Error deleting Developer intern:', err);
       setError('Failed to delete Developer intern. Please try again.');
-    }
-  };
-
-  // Make an intern the lead (from interns only)
-  const handleMakeLead = async (internId) => {
-    try {
-      setError('');
-      setDeveloperInterns(prev =>
-        prev.map(intern => ({
-          ...intern,
-          isLead: intern.internId === internId
-        }))
-      );
-    } catch (err) {
-      console.error('Error setting lead Developer intern:', err);
-      setError('Failed to set lead Developer intern. Please try again.');
     }
   };
 
@@ -221,12 +428,14 @@ const Developer = () => {
         // Update existing
         setDeveloperInterns(prev =>
           prev.map(intern =>
-            intern.internId === payload.internId ? { ...intern, ...payload } : intern
+            intern.internId === payload.internId
+              ? { ...intern, ...normaliseDeveloperIntern(payload) }
+              : intern
           )
         );
       } else {
         // Add new
-        const newIntern = { ...payload, internId: Date.now() };
+        const newIntern = normaliseDeveloperIntern({ ...payload, internId: Date.now() });
         setDeveloperInterns(prev => [...prev, newIntern]);
       }
 
@@ -253,15 +462,44 @@ const Developer = () => {
     e.preventDefault();
   };
 
-  // 🔹 Unique list of all languages for dropdown filter
-  const allLanguages = [
-    'All',
-    ...Array.from(
-      new Set(
-        developerInterns.flatMap((i) => i.languagesAndFrameworks || [])
-      )
-    )
-  ];
+  const handleAssignLead = async (internId) => {
+    if (!developerCategoryId) {
+      setError('Developer category is not loaded yet. Please try again shortly.');
+      return;
+    }
+
+    const token = Cookies.get('authToken');
+    if (!token) {
+      setError('Authorization failed. Please log in.');
+      return;
+    }
+
+    try {
+      setError('');
+      const response = await fetch(
+        `${API_BASE_URL}/categories/${developerCategoryId}/assign-lead/${internId}`,
+        {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to assign lead. The intern ID might be invalid.');
+      }
+
+      setCurrentLeadId(internId);
+      return true;
+    } catch (err) {
+      console.error('Error assigning lead:', err);
+      setError(err.message || 'Failed to assign Developer lead. Please try again.');
+      throw err;
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -286,10 +524,33 @@ const Developer = () => {
           </div>
         )}
 
+        {isCategoryMissing && (
+          <div className={styles.infoAlert}>
+            <h3>Developer category not found</h3>
+            <p>
+              We could not locate a developer-focused category in the backend. Please create a
+              category named something like <strong>"Web Developer"</strong> and assign the relevant
+              interns to it. Once it is available, refresh this page to load the developer roster.
+            </p>
+          </div>
+        )}
+
         <div className={styles.actionSection}>
-          <CategoryDropdown current="developers" />
+          <button
+            className={styles.primaryBtn}
+            onClick={handleAddIntern}
+            disabled={isCategoryMissing}
+            title={
+              isCategoryMissing
+                ? 'Create the Developer category in the backend before adding new interns.'
+                : undefined
+            }
+          >
+            + Add New Developer Intern
+          </button>
 
           <div className={styles.filterSection}>
+            <CategoryDropdown current="developers" />
             <form onSubmit={handleSearch} className={styles.searchSection}>
               <input
                 type="text"
@@ -362,8 +623,9 @@ const Developer = () => {
             interns={filteredInterns}
             onEdit={handleEditIntern}
             onDelete={handleDeleteIntern}
-            onMakeLead={handleMakeLead}
             isLoading={isLoading}
+            onAssignLead={developerCategoryId ? handleAssignLead : undefined}
+            currentLeadId={currentLeadId}
           />
         </div>
       </div>
