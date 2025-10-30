@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
 import { DevOpsForm, DevOpsTable } from '../../components';
+import { internService, categoryService } from '../../services/api';
 import styles from './DevOps.module.css';
 import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
 
@@ -87,41 +87,22 @@ const DevOps = () => {
     const loadData = async () => {
       setIsLoading(true);
       setError('');
-
-      const token = Cookies.get('authToken');
-      if (!token) {
-        setError("Authorization failed. Please log in.");
-        setIsLoading(false);
-        return;
-      }
-      const authHeader = { 'Authorization': `Bearer ${token}` };
       
       try {
         // Step 1: Fetch all interns for the DevOps category
-        const internsResponse = await fetch(`http://localhost:8080/api/interns/category/${DEVOPS_CATEGORY_ID}` , {
-          headers: authHeader
-        });
-        if (!internsResponse.ok) {
-          throw new Error('Failed to fetch DevOps interns from the server.');
-        }
-        const internsData = await internsResponse.json();
-        setDevOpsInterns(internsData);
+        const internsResponse = await internService.getInternsByCategoryId(DEVOPS_CATEGORY_ID);
+        setDevOpsInterns(internsResponse.data);
 
         // Step 2: Fetch the current lead from the backend
-        const categoryResponse = await fetch(`http://localhost:8080/api/categories/${DEVOPS_CATEGORY_ID}` , {
-          headers: authHeader
-        });
-        if (categoryResponse.ok) {
-          const categoryData = await categoryResponse.json();
-          if (categoryData && categoryData.leadIntern) {
-            setCurrentLeadId(categoryData.leadIntern.internId);
-          }
-        } else {
-           console.warn("Could not fetch current lead information.");
+        const categoryResponse = await categoryService.getCategoryById(DEVOPS_CATEGORY_ID);
+        if (categoryResponse.data && categoryResponse.data.leadIntern) {
+          setCurrentLeadId(categoryResponse.data.leadIntern.internId);
         }
+
       } catch (err) {
         console.error("Error loading initial data:", err);
         setError("Could not load lead information from the server.");
+
       } finally {
         setIsLoading(false);
       }
@@ -189,28 +170,10 @@ const DevOps = () => {
 
   // Assign new lead
   const handleAssignLead = async (internId) => {
-    const token = Cookies.get('authToken');
-    if (!token) {
-      setError("Authorization failed. Please log in.");
-      return;
-    }
-
     try {
       setError('');
-      const response = await fetch(`http://localhost:8080/api/categories/${DEVOPS_CATEGORY_ID}/assign-lead/${internId}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-      });
+      await categoryService.assignLead(DEVOPS_CATEGORY_ID, internId);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error('Failed to assign lead. The intern ID might be invalid.');
-      }
-      
-      // Update the UI immediately on success
       setCurrentLeadId(internId);
       alert('New DevOps lead has been assigned successfully!');
 
