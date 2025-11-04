@@ -95,8 +95,8 @@ const DevOps = () => {
 
         // Step 2: Fetch the current lead from the backend
         const categoryResponse = await categoryService.getCategoryById(DEVOPS_CATEGORY_ID);
-        if (categoryResponse.data && categoryResponse.data.leadIntern) {
-          setCurrentLeadId(categoryResponse.data.leadIntern.internId);
+        if (categoryResponse.data && categoryResponse.data.leadInternId) {
+          setCurrentLeadId(categoryResponse.data.leadInternId);
         }
 
       } catch (err) {
