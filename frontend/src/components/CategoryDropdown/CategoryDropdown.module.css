@@ -59,6 +59,9 @@
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   z-index: 100;
+  padding: 0;
+  margin: 0;
+  list-style: none;
 }
 
 .dropdownItem {

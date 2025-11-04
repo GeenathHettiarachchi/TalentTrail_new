@@ -14,4 +14,6 @@ public interface InternRepository extends JpaRepository<Intern, Long> {
     // just from the name of the method. "findByTrainingEndDateBetween" tells it
     // exactly what to do.
     List<Intern> findByTrainingEndDateBetweenAndEndDateAlertSentFalse(LocalDate startDate, LocalDate endDate);
+
+    List<Intern> findByCategory_CategoryId(Integer categoryId);
 }

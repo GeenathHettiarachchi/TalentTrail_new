@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaFlask, FaCogs, FaLaptopCode, FaChevronDown } from 'react-icons/fa';
 import styles from './CategoryDropdown.module.css';
@@ -13,6 +13,21 @@ const categories = [
 const CategoryDropdown = ({ current = 'all' }) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    // Add listener when component mounts
+    document.addEventListener('mousedown', handleClickOutside);
+    // Cleanup listener when component unmounts
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownRef]);
 
   const handleSelect = (id) => {
     switch (id) {
@@ -34,7 +49,7 @@ const CategoryDropdown = ({ current = 'all' }) => {
   const active = categories.find((c) => c.id === current);
 
   return (
-    <div className={styles.customDropdown}>
+    <div className={styles.customDropdown} ref={dropdownRef}>
       <button className={styles.dropdownButton} onClick={() => setOpen(!open)}>
         <span className={styles.icon}>{active.icon}</span>
         <span className={styles.label}>{active.name}</span>

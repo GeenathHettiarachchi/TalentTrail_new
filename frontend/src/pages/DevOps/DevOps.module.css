@@ -55,8 +55,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
   gap: 1rem;
-  flex-wrap: wrap; /* allows clean wrapping on smaller widths */
 }
 
 .primaryBtn {
@@ -76,7 +76,7 @@
 .filterSection {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem; /* Creates space between the search bar and sort dropdown */
   flex-wrap: wrap;
 }
 

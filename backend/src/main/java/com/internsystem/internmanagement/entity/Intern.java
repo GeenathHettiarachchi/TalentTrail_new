@@ -18,8 +18,8 @@ import java.time.LocalDateTime;
 public class Intern {
 
     @Id
-   
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "intern_id")
     private Long internId;
 
     @Column(unique = true)
@@ -33,13 +33,19 @@ public class Intern {
 
     // --- ADD THE NEW FIELD FOR THE ALERT FLAG ---
     @Column(name = "end_date_alert_sent") // This will create a new column in your database
-    private boolean endDateAlertSent = false; // <-- ADD THIS. It defaults to false.
-
+    private Boolean endDateAlertSent = false; // <-- ADD THIS. It defaults to false.
 
     private String email;
     private LocalDate trainingStartDate;
     private LocalDate trainingEnDate;
     private String institute;
+
+    @Column(name = "specialization")
+    private String specialization;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private InternCategory category;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

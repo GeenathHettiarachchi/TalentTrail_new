@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FiX, FiUser, FiMail, FiCalendar, FiServer, FiPhone, FiLayers, FiChevronDown } from 'react-icons/fi';
+import { projectService } from '../../services/api';
 import styles from './DevOpsForm.module.css';
 
 const DevOpsForm = ({
@@ -23,9 +24,6 @@ const DevOpsForm = ({
   const [isRTOpen, setIsRTOpen] = useState(false);
   const [isProjOpen, setIsProjOpen] = useState(false);
   const [errors, setErrors] = useState({});
-
-  const API_BASE = import.meta.env.VITE_API_BASE_URL;
-
   const [projectOptions, setProjectOptions] = useState([]);
   const [projLoading, setProjLoading] = useState(false);
   const [projError, setProjError] = useState('');
@@ -62,40 +60,16 @@ const DevOpsForm = ({
     setErrors({});
   }, [editingIntern, isOpen]);
 
-  const getProjectName = (p) => p?.projectName?.trim() ?? '';
+  // const getProjectName = (p) => p?.projectName?.trim() ?? '';
 
   const fetchProjects = async () => {
     setProjLoading(true);
     setProjError('');
     try {
-      // try common keys so it “just works”
-      const token =
-        localStorage.getItem('token') ||
-        localStorage.getItem('accessToken') ||
-        localStorage.getItem('jwt') ||
-        localStorage.getItem('id_token') ||
-        sessionStorage.getItem('token') ||
-        sessionStorage.getItem('accessToken') ||
-        sessionStorage.getItem('jwt') ||
-        sessionStorage.getItem('id_token');
+      // Your api.js file handles the token and URL automatically!
+      const response = await projectService.getAllProjects();
 
-      const authHeader =
-        token ? (token.startsWith('Bearer ') ? token : `Bearer ${token}`) : undefined;
-
-      const res = await fetch(`${API_BASE}/projects`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          ...(authHeader ? { Authorization: authHeader } : {}),
-        }
-      });
-
-      if (!res.ok) {
-        const body = await res.text().catch(() => '');
-        throw new Error(`HTTP ${res.status}${body ? ` - ${body}` : ''}`);
-      }
-
-      const data = await res.json();
+      const data = response.data; // Axios puts data in response.data
       const names = Array.from(new Set(
         (data || []).map(p => p?.projectName?.trim()).filter(Boolean)
       )).sort((a,b) => a.localeCompare(b));
@@ -103,7 +77,8 @@ const DevOpsForm = ({
       setProjectOptions(names);
     } catch (err) {
       console.error('Failed to load projects', err);
-      setProjError('Failed to load projects (auth required?). Please sign in again.');
+      // Use the cleaner Axios error message
+      setProjError(err.response?.data?.message || 'Failed to load projects.');
     } finally {
       setProjLoading(false);
     }

@@ -94,7 +94,7 @@
 
 /* >30 days remains for end date */
 .endDateSafe {
-  color: #00c821;
+  color: #28a745;
 }
 
 .mobile {
@@ -328,6 +328,17 @@
   color: #475569;
   font-weight: 600;
   margin-bottom: 6px;
+}
+
+.leadBadge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: #ffd700; /* Gold color */
+  color: #333;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
 }
 
 /* Responsive Design */

@@ -8,6 +8,8 @@ const DevOpsTable = React.memo(({
   interns, 
   onEdit, 
   onDelete, 
+  onAssignLead,     // NEW PROP: Function to call when assigning a lead
+  currentLeadId,    // NEW PROP: The ID of the current lead intern
   isLoading = false 
 }) => {
   const navigate = useNavigate();
@@ -168,14 +170,18 @@ const DevOpsTable = React.memo(({
                   <td className={styles.td}>
                     <div className={styles.nameCell}>
                       <span className={styles.name}>{intern.name}</span>
+                      {/* NEW: Add a visual indicator if this intern is the lead */}
+                      {intern.internId === currentLeadId && (
+                        <span className={styles.leadBadge}>⭐ Lead</span>
+                      )}
                     </div>
                   </td>
                   <td className={styles.td}>
                     <span className={styles.email}>{intern.email}</span>
                   </td>
-                  <td className={styles.td}>                   
-                    <span className={styles.mobile}>           
-                      {intern.mobileNumber}             
+                  <td className={styles.td}>                     
+                    <span className={styles.mobile}>         
+                      {intern.mobileNumber}          
                     </span>  
                   </td>
                   <td className={styles.td}>
@@ -238,6 +244,19 @@ const DevOpsTable = React.memo(({
                           >
                             Edit
                           </button>
+                          {intern.internId !== currentLeadId && (
+                            <button
+                              className={styles.menuItem}
+                              role="menuitem"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(null);
+                                onAssignLead(intern.internId);
+                              }}
+                            >
+                              Assign as Lead
+                            </button>
+                          )}
                           <button
                             className={styles.menuItem}
                             role="menuitem"
@@ -285,7 +304,7 @@ const DevOpsTable = React.memo(({
                   </tr>
                 )}
                 </React.Fragment>
-              );              
+              );                      
             })}
           </tbody>
         </table>
