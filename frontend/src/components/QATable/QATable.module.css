@@ -94,14 +94,14 @@
 
 /* Normal end date (more than 1 month away) */
 .endDateNormal {
-  color: #16a34a; /* green-600 */
+  color: #28a745; /* green-600 */
   background-color: #f0fdf4; /* green-50 */
   border: 1px solid #bbf7d0; /* green-200 */
 }
 
 /* Warning end date (within 1 month) */
 .endDateWarning {
-  color: #dc2626; /* red-600 */
+  color: #dc3545; /* red-600 */
   background-color: #fef2f2; /* red-50 */
   border: 1px solid #fecaca; /* red-200 */
   font-weight: 600;
