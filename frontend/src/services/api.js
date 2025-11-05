@@ -293,4 +293,11 @@ export const projectDocService = {
   }),
 };
 
+// Add this for Excel service
+export const excelService = {
+  getResourceTypes: async () => {
+    return api.get("/excel/resource-types");
+  },
+};
+
 export default api;
