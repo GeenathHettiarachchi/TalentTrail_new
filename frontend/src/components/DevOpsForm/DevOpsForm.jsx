@@ -27,8 +27,6 @@ const DevOpsForm = ({
   const [projectOptions, setProjectOptions] = useState([]);
   const [projLoading, setProjLoading] = useState(false);
   const [projError, setProjError] = useState('');
-  
-  // NEW: State for resource types from Excel
   const [resourceTypes, setResourceTypes] = useState([]);
   const [rtLoading, setRtLoading] = useState(false);
   const [rtError, setRtError] = useState('');
@@ -65,18 +63,16 @@ const DevOpsForm = ({
     setErrors({});
   }, [editingIntern, isOpen]);
 
-  // NEW: Fetch resource types from Excel
+  // Fetch resource types from Excel
   const fetchResourceTypes = async () => {
     setRtLoading(true);
     setRtError('');
     try {
-      const response = await excelService.getResourceTypes();
-      const types = response.data || [];
-      console.log('Fetched resource types:', types); // Debug log
-      setResourceTypes(types);
+      const response = await excelService.getDevOpsResourceTypes();
+      setResourceTypes(response.data);
     } catch (err) {
       console.error('Failed to load resource types', err);
-      setRtError(err.response?.data?.message || err.message || 'Failed to load resource types from Excel.');
+      setRtError('Failed to load types');
     } finally {
       setRtLoading(false);
     }
@@ -341,7 +337,7 @@ const DevOpsForm = ({
               )}
             </div>
 
-            {/* Resource Type - Fetched from Excel */}
+            {/* Resource Type */}
             <div className={styles.inputGroup}>
               <label className={styles.label}>
                 <FiServer className={styles.labelIcon} />
@@ -368,21 +364,13 @@ const DevOpsForm = ({
                     role="listbox"
                   >
                     {rtLoading && (
-                      <div className={styles.optionRow}>
-                        <span>Loading resource types…</span>
-                      </div>
+                      <div className={styles.optionRow}><span>Loading types…</span></div>
                     )}
-
                     {!rtLoading && rtError && (
-                      <div className={styles.optionRow}>
-                        <span>{rtError}</span>
-                      </div>
+                      <div className={styles.optionRow}><span>{rtError}</span></div>
                     )}
-
                     {!rtLoading && !rtError && resourceTypes.length === 0 && (
-                      <div className={styles.optionRow}>
-                        <span>No resource types found</span>
-                      </div>
+                      <div className={styles.optionRow}><span>No types found</span></div>
                     )}
 
                     {!rtLoading && !rtError && resourceTypes.map(opt => (
