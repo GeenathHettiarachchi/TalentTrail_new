@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DeveloperForm, DeveloperTable } from '../../components';
+import { internService, categoryService } from '../../services/api';
 import styles from './Developer.module.css';
 import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
 
@@ -13,90 +14,37 @@ const Developer = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [sortOption, setSortOption] = useState('internCode:asc');
+  const [currentLeadId, setCurrentLeadId] = useState(null);
+  const DEVELOPERS_CATEGORY_ID = 1;
 
-  // 🔹 New state for language filter dropdown
-  const [languageFilter, setLanguageFilter] = useState('All');
-
-  // Mock data for Developer interns
-  const mockDeveloperData = [
-    {
-      internId: 1,
-      internCode: 'DEV001',
-      name: 'John Smith',
-      email: 'john.smith@example.com',
-      mobileNumber: '0712356172',
-      trainingEndDate: '2025-12-15',
-      languagesAndFrameworks: ['JavaScript', 'React', 'Node.js', 'Springboot'],
-      projects: ['Portfolio Website', 'Inventory System', 'Task Manager']
-    },
-    {
-      internId: 2,
-      internCode: 'DEV002',
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2025-11-30',
-      languagesAndFrameworks: ['Java', 'Spring Boot', 'React'],
-      projects: ['E-Commerce Platform']
-    },
-    {
-      internId: 3,
-      internCode: 'DEV003',
-      name: 'Michael Brown',
-      email: 'michael.brown@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2026-01-20',
-      languagesAndFrameworks: ['Python', 'Django'],
-      projects: ['Analytics Dashboard', 'ML Model API']
-    },
-    {
-      internId: 4,
-      internCode: 'DEV004',
-      name: 'Emily Davis',
-      email: 'emily.davis@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2025-12-10',
-      languagesAndFrameworks: ['C#', '.NET'],
-      projects: ['Student Management System']
-    },
-    {
-      internId: 5,
-      internCode: 'DEV005',
-      name: 'David Wilson',
-      email: 'david.wilson@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2025-10-22',
-      languagesAndFrameworks: ['PHP', 'Laravel'],
-      projects: ['Task Tracker', 'CRM System']
-    },
-    {
-      internId: 6,
-      internCode: 'DEV006',
-      name: 'Lisa Anderson',
-      email: 'lisa.anderson@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2025-12-28',
-      languagesAndFrameworks: ['Flutter', 'Firebase'],
-      projects: ['Mobile E-Learning App']
-    }
-  ];
-
-  // Simulate loading data
   useEffect(() => {
-    const loadData = () => {
+    const loadData = async () => {
       setIsLoading(true);
-      setTimeout(() => {
-        setDeveloperInterns(mockDeveloperData);
-        setIsLoading(false);
-      }, 1000);
-    };
-    loadData();
-  }, []);
+      setError('');
 
-  // Helper: normalize values for search/sort
+      try {
+        // Step 1: Fetch all interns for the Developer category
+        const internsResponse = await internService.getInternsByCategoryId(DEVELOPERS_CATEGORY_ID);
+        setDeveloperInterns(internsResponse.data);
+
+        // Step 2: Fetch the current lead from the backend
+        const categoryResponse = await categoryService.getCategoryById(DEVELOPERS_CATEGORY_ID);
+        if (categoryResponse.data && categoryResponse.data.leadInternId) {
+          setCurrentLeadId(categoryResponse.data.leadInternId);
+        }
+      } catch (err) {
+        console.error('Error loading developer interns:', err);
+        setError('Could not load developer data from the server.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [DEVELOPERS_CATEGORY_ID]);
+
   const asText = (v) => Array.isArray(v) ? v.join(', ') : (v ?? '');
 
-  // Filter interns based on search term & language dropdown
   useEffect(() => {
     const term = searchTerm.toLowerCase().trim();
     let list = !term
@@ -116,20 +64,11 @@ const Developer = () => {
           );
         });
 
-    // 🔹 Apply language filter if not "All"
-    if (languageFilter !== 'All' ) {
-      list = list.filter(intern =>
-        intern.languagesAndFrameworks.some(lang =>
-          lang.toLowerCase() === languageFilter.toLowerCase()
-        )
-      );
-    }
-
-    // Sorting
     const [sortField, sortOrder] = (sortOption || 'none').split(':');
     if (sortField && sortOrder && sortField !== 'none') {
       list.sort((a, b) => {
-        let aVal, bVal;
+        let aVal;
+        let bVal;
 
         switch (sortField) {
           case 'internCode':
@@ -171,7 +110,19 @@ const Developer = () => {
     }
 
     setFilteredInterns(list);
-  }, [developerInterns, searchTerm, sortOption, languageFilter]);
+  }, [developerInterns, searchTerm, sortOption]);
+
+  const handleAssignLead = async (internId) => {
+    try {
+      setError('');
+      await categoryService.assignLead(DEVELOPERS_CATEGORY_ID, internId);
+      setCurrentLeadId(internId);
+      alert('New Developer lead has been assigned successfully!');
+    } catch (err) {
+      console.error('Error assigning developer lead:', err);
+      setError(err.message);
+    }
+  };
 
   const handleAddIntern = () => {
     setSelectedIntern(null);
@@ -186,9 +137,8 @@ const Developer = () => {
   const handleDeleteIntern = async (internId) => {
     try {
       setError('');
-      setDeveloperInterns(prev =>
-        prev.filter(intern => intern.internId !== internId)
-      );
+      // Mock delete functionality
+      setDeveloperInterns(prev => prev.filter(intern => intern.internId !== internId));
     } catch (err) {
       console.error('Error deleting Developer intern:', err);
       setError('Failed to delete Developer intern. Please try again.');
@@ -201,14 +151,12 @@ const Developer = () => {
       setError('');
 
       if (payload?.internId != null) {
-        // Update existing
         setDeveloperInterns(prev =>
           prev.map(intern =>
             intern.internId === payload.internId ? { ...intern, ...payload } : intern
           )
         );
       } else {
-        // Add new
         const newIntern = { ...payload, internId: Date.now() };
         setDeveloperInterns(prev => [...prev, newIntern]);
       }
@@ -236,22 +184,12 @@ const Developer = () => {
     e.preventDefault();
   };
 
-  // 🔹 Unique list of all languages for dropdown filter
-  const allLanguages = [
-    'All',
-    ...Array.from(
-      new Set(
-        developerInterns.flatMap((i) => i.languagesAndFrameworks || [])
-      )
-    )
-  ];
-
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Developer Interns Management</h1>
         <p className={styles.subtitle}>
-          Manage Developer interns, programming stacks, and project assignments
+          Manage developer interns, tech stacks, and project alignments
         </p>
       </div>
 
@@ -270,9 +208,14 @@ const Developer = () => {
         )}
 
         <div className={styles.actionSection}>
-          <CategoryDropdown current="developers" />
-
+          <button
+            className={styles.primaryBtn}
+            onClick={handleAddIntern}
+          >
+            + Add New Developer Intern
+          </button>
           <div className={styles.filterSection}>
+            <CategoryDropdown current="developers" />
             <form onSubmit={handleSearch} className={styles.searchSection}>
               <input
                 type="text"
@@ -282,21 +225,6 @@ const Developer = () => {
                 onChange={handleSearchChange}
               />
             </form>
-
-            {/* 🔹 Added Language Dropdown Filter */}
-            <select
-              className={styles.filterSelect}
-              value={languageFilter}
-              onChange={(e) => setLanguageFilter(e.target.value)}
-              title="Filter by Language"
-            >
-              {allLanguages.map((lang) => (
-                <option key={lang} value={lang}>
-                  {lang}
-                </option>
-              ))}
-            </select>
-
             <div className={styles.sortSection}>
               <select
                 className={styles.filterSelect}
@@ -340,6 +268,8 @@ const Developer = () => {
             interns={filteredInterns}
             onEdit={handleEditIntern}
             onDelete={handleDeleteIntern}
+            onAssignLead={handleAssignLead}
+            currentLeadId={currentLeadId}
             isLoading={isLoading}
           />
         </div>
