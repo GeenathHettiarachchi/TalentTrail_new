@@ -3,11 +3,20 @@ import { useAuth } from '../../contexts/AuthContext';
 import { FiMoreVertical } from 'react-icons/fi';
 import SweetAlert from '../Common/SweetAlert';
 import styles from './DeveloperTable.module.css';
+import DeveloperForm from './DeveloperForm';           //new added 
+import { developerService } from '../../services/api'; // new added 
+
+
 
 const DeveloperTable = React.memo(({ interns, onEdit, onDelete, onAssignLead, currentLeadId = null, isLoading = false }) => {
   const { isAdmin } = useAuth();
   const [openMenuId, setOpenMenuId] = useState(null);
   const tableRef = useRef(null);
+  const [isFormOpen, setIsFormOpen] = useState(false); // new added 
+  const [editingIntern, setEditingIntern] = useState(null); //
+  const [developers, setDevelopers] = useState([]); //
+
+
 
   //  Separate expansion states for each column type
   const [expandedLangs, setExpandedLangs] = useState(() => new Set());
@@ -85,6 +94,22 @@ const DeveloperTable = React.memo(({ interns, onEdit, onDelete, onAssignLead, cu
       return next;
     });
   };
+  // new added 
+  const openForm = (developer = null) => {
+  setEditingIntern(developer); // set data if editing existing intern
+  setIsFormOpen(true); // open popup
+  };
+
+const closeForm = () => {
+  setIsFormOpen(false); // close popup
+  setEditingIntern(null); // clear form data
+};
+
+
+
+
+
+
 
   const toggleProjExpand = (id) => {
     setExpandedProjects((prev) => {
