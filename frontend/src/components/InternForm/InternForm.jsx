@@ -6,6 +6,7 @@ import {
   FiChevronDown
 } from "react-icons/fi";
 import styles from "./InternForm.module.css";
+import { FiSearch } from "react-icons/fi";
 
 /**
  * Props
@@ -132,7 +133,7 @@ const InternForm = ({
   const validateForm = () => {
     const newErrors = {};
 
-    // In internOnly mode: only End Date validation
+    // In internOnly mode:End Date validation
     if (internOnly) {
       if (!formData.trainingEndDate) {
         newErrors.trainingEndDate = "Training end date is required";
@@ -157,11 +158,7 @@ const InternForm = ({
       }
     }
 
-    // Developer sections are optional — enforce if you want:
-    // if (!formData.languagesAndFrameworks.length)
-    //   newErrors.languagesAndFrameworks = "Select at least one language/framework.";
-    // if (!formData.projects.length)
-    //   newErrors.projects = "Select at least one project.";
+    
 
     return newErrors;
   };
