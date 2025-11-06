@@ -21,7 +21,14 @@ import { useAuth } from '../../contexts/AuthContext';
 import { FiMoreVertical, FiChevronDown } from 'react-icons/fi';
 import styles from './QATable.module.css';
 
-const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) => {
+const QATable = React.memo(({ 
+  interns, 
+  onEdit, 
+  onDelete, 
+  onAssignLead,     // NEW PROP: Function to call when assigning a lead
+  currentLeadId,    // NEW PROP: The ID of the current lead intern
+  isLoading = false 
+}) => {
   // Role-gated actions (only admins see the kebab menu)
   const { isAdmin } = useAuth();
 
@@ -350,6 +357,19 @@ const QATable = React.memo(({ interns, onEdit, onDelete, isLoading = false }) =>
                           >
                             Edit
                           </button>
+                          {intern.internId !== currentLeadId && (
+                            <button
+                              className={styles.menuItem}
+                              role="menuitem"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(null);
+                                onAssignLead(intern.internId);
+                              }}
+                            >
+                              Assign as Lead
+                            </button>
+                          )}
                           <button
                             className={styles.menuItem}
                             role="menuitem"

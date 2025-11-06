@@ -244,20 +244,19 @@ const DevOpsTable = React.memo(({
                           >
                             Edit
                           </button>
-                          {/* NEW: Button to assign the intern as a lead */}
-                          <button
-                            className={styles.menuItem}
-                            role="menuitem"
-                            onClick={(e) => {
+                          {intern.internId !== currentLeadId && (
+                            <button
+                              className={styles.menuItem}
+                              role="menuitem"
+                              onClick={(e) => {
                                 e.stopPropagation();
                                 setOpenMenuId(null);
                                 onAssignLead(intern.internId);
-                            }}
-                            // Disable the button if the intern is already the lead
-                            disabled={intern.internId === currentLeadId}
-                          >
-                            Assign as Lead
-                          </button>
+                              }}
+                            >
+                              Assign as Lead
+                            </button>
+                          )}
                           <button
                             className={styles.menuItem}
                             role="menuitem"

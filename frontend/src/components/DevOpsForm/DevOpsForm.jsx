@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FiX, FiUser, FiMail, FiCalendar, FiServer, FiPhone, FiLayers, FiChevronDown } from 'react-icons/fi';
+import { projectService, excelService } from '../../services/api';
 import styles from './DevOpsForm.module.css';
 
 const DevOpsForm = ({
@@ -23,12 +24,12 @@ const DevOpsForm = ({
   const [isRTOpen, setIsRTOpen] = useState(false);
   const [isProjOpen, setIsProjOpen] = useState(false);
   const [errors, setErrors] = useState({});
-
-  const API_BASE = import.meta.env.VITE_API_BASE_URL;
-
   const [projectOptions, setProjectOptions] = useState([]);
   const [projLoading, setProjLoading] = useState(false);
   const [projError, setProjError] = useState('');
+  const [resourceTypes, setResourceTypes] = useState([]);
+  const [rtLoading, setRtLoading] = useState(false);
+  const [rtError, setRtError] = useState('');
 
   // Check if we're in edit mode
   const isEditMode = !!editingIntern;
@@ -62,40 +63,27 @@ const DevOpsForm = ({
     setErrors({});
   }, [editingIntern, isOpen]);
 
-  const getProjectName = (p) => p?.projectName?.trim() ?? '';
+  // Fetch resource types from Excel
+  const fetchResourceTypes = async () => {
+    setRtLoading(true);
+    setRtError('');
+    try {
+      const response = await excelService.getDevOpsResourceTypes();
+      setResourceTypes(response.data);
+    } catch (err) {
+      console.error('Failed to load resource types', err);
+      setRtError('Failed to load types');
+    } finally {
+      setRtLoading(false);
+    }
+  };
 
   const fetchProjects = async () => {
     setProjLoading(true);
     setProjError('');
     try {
-      // try common keys so it “just works”
-      const token =
-        localStorage.getItem('token') ||
-        localStorage.getItem('accessToken') ||
-        localStorage.getItem('jwt') ||
-        localStorage.getItem('id_token') ||
-        sessionStorage.getItem('token') ||
-        sessionStorage.getItem('accessToken') ||
-        sessionStorage.getItem('jwt') ||
-        sessionStorage.getItem('id_token');
-
-      const authHeader =
-        token ? (token.startsWith('Bearer ') ? token : `Bearer ${token}`) : undefined;
-
-      const res = await fetch(`${API_BASE}/projects`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          ...(authHeader ? { Authorization: authHeader } : {}),
-        }
-      });
-
-      if (!res.ok) {
-        const body = await res.text().catch(() => '');
-        throw new Error(`HTTP ${res.status}${body ? ` - ${body}` : ''}`);
-      }
-
-      const data = await res.json();
+      const response = await projectService.getAllProjects();
+      const data = response.data;
       const names = Array.from(new Set(
         (data || []).map(p => p?.projectName?.trim()).filter(Boolean)
       )).sort((a,b) => a.localeCompare(b));
@@ -103,27 +91,19 @@ const DevOpsForm = ({
       setProjectOptions(names);
     } catch (err) {
       console.error('Failed to load projects', err);
-      setProjError('Failed to load projects (auth required?). Please sign in again.');
+      setProjError(err.response?.data?.message || 'Failed to load projects.');
     } finally {
       setProjLoading(false);
     }
   };
 
-  // FETCH when the modal opens (or edit target changes)
+  // FETCH when the modal opens
   useEffect(() => {
-    if (isOpen) fetchProjects();
+    if (isOpen) {
+      fetchResourceTypes();
+      fetchProjects();
+    }
   }, [isOpen]);
-
-  const resourceTypes = [
-    'Docker',
-    'Kubernetes',
-    'Jenkins',
-    'GitLab CI/CD',
-    'AWS DevOps',
-    'Azure DevOps',
-    'Terraform',
-    'Ansible'
-  ];
 
   const validateForm = () => {
     const newErrors = {};
@@ -193,7 +173,6 @@ const DevOpsForm = ({
       [name]: value
     }));
 
-    // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -212,7 +191,7 @@ const DevOpsForm = ({
 
   if (!isOpen) return null;
 
-   const toggleMulti = (field, value) => {
+  const toggleMulti = (field, value) => {
     setFormData(prev => {
       const set = new Set(prev[field]);
       set.has(value) ? set.delete(value) : set.add(value);
@@ -243,7 +222,7 @@ const DevOpsForm = ({
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.formGrid}>
-            {/* Intern Code - Read-only in edit mode */}
+            {/* Intern Code */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="internCode">
                 <FiUser className={styles.labelIcon} />
@@ -266,7 +245,7 @@ const DevOpsForm = ({
               )}
             </div>
 
-            {/* Name - Read-only in edit mode */}
+            {/* Name */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="name">
                 <FiUser className={styles.labelIcon} />
@@ -289,7 +268,7 @@ const DevOpsForm = ({
               )}
             </div>
 
-            {/* Email - Read-only in edit mode */}
+            {/* Email */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="email">
                 <FiMail className={styles.labelIcon} />
@@ -312,7 +291,7 @@ const DevOpsForm = ({
               )}
             </div>
 
-            {/* Mobile Number - Read-only in edit mode */}
+            {/* Mobile Number */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="mobileNumber">
                 <FiPhone className={styles.labelIcon} />
@@ -337,7 +316,7 @@ const DevOpsForm = ({
               )}
             </div>
 
-            {/* Training End Date - Always editable */}
+            {/* Training End Date */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="trainingEndDate">
                 <FiCalendar className={styles.labelIcon} />
@@ -358,7 +337,7 @@ const DevOpsForm = ({
               )}
             </div>
 
-             {/* Resource Type - Always editable */}
+            {/* Resource Type */}
             <div className={styles.inputGroup}>
               <label className={styles.label}>
                 <FiServer className={styles.labelIcon} />
@@ -366,7 +345,7 @@ const DevOpsForm = ({
               </label>
               <div
                 className={`${styles.multiSelect} ${errors.resourceType ? styles.inputError : ''}`}
-                onClick={() => !isLoading && setIsRTOpen(v => !v)}
+                onClick={() => !isLoading && !rtLoading && setIsRTOpen(v => !v)}
                 role="button"
                 aria-expanded={isRTOpen}
               >
@@ -374,7 +353,7 @@ const DevOpsForm = ({
                   <div className={styles.multiValue}>
                     {formData.resourceType.length
                       ? formData.resourceType.join(', ')
-                      : 'Select one or more…'}
+                      : (rtLoading ? 'Loading…' : 'Select one or more…')}
                   </div>
                   <FiChevronDown className={styles.caret} />
                 </div>
@@ -384,7 +363,17 @@ const DevOpsForm = ({
                     onClick={(e) => e.stopPropagation()}
                     role="listbox"
                   >
-                    {resourceTypes.map(opt => (
+                    {rtLoading && (
+                      <div className={styles.optionRow}><span>Loading types…</span></div>
+                    )}
+                    {!rtLoading && rtError && (
+                      <div className={styles.optionRow}><span>{rtError}</span></div>
+                    )}
+                    {!rtLoading && !rtError && resourceTypes.length === 0 && (
+                      <div className={styles.optionRow}><span>No types found</span></div>
+                    )}
+
+                    {!rtLoading && !rtError && resourceTypes.map(opt => (
                       <label key={opt} className={styles.optionRow}>
                         <input
                           type="checkbox"
@@ -403,7 +392,7 @@ const DevOpsForm = ({
               )}
             </div>
 
-            {/* Projects - Always editable */}
+            {/* Projects */}
             <div className={styles.inputGroup}>
               <label className={styles.label}>
                 <FiLayers className={styles.labelIcon} />
