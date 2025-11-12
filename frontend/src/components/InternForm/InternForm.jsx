@@ -336,6 +336,139 @@ const InstitutePopup = ({
           </div>
         )}
 
+        
+        {/* Content */}
+        <div className={styles.popupContent}>
+          {step === "university" ? (
+            <div className={styles.listContainer}>
+              <h3 className={styles.sectionTitle}>Universities in Sri Lanka</h3>
+              <div className={styles.list}>
+                {filteredUniversities.length > 0 ? (
+                  filteredUniversities.map((university) => (
+                    <button
+                      key={university.id}
+                      className={`${styles.listItem} ${
+                        selectedUniversity?.id === university.id ? styles.selected : ""
+                      }`}
+                      onClick={() => handleUniversitySelect(university)}
+                    >
+                      <div className={styles.universityInfo}>
+                        <span className={styles.itemText}>{university.name}</span>
+                        <span className={styles.itemDescription}>
+                          {universityDegrees[university.name]?.length || 5} degrees available
+                        </span>
+                      </div>
+                      {selectedUniversity?.id === university.id && (
+                        <FiCheck className={styles.checkIcon} />
+                      )}
+                    </button>
+                  ))
+                ) : (
+                  <div className={styles.emptyState}>
+                    <p>No universities found</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : step === "faculty" ? (
+            <div className={styles.listContainer}>
+              <div className={styles.selectedSection}>
+                <span className={styles.selectedLabel}>Selected University:</span>
+                <span className={styles.selectedValue}>{selectedUniversity?.name}</span>
+              </div>
+              
+              <h3 className={styles.sectionTitle}>Faculties & Departments</h3>
+              <div className={styles.list}>
+                {filteredFaculties.length > 0 ? (
+                  filteredFaculties.map((faculty) => (
+                    <button
+                      key={faculty.id}
+                      className={`${styles.listItem} ${
+                        selectedFaculty?.id === faculty.id ? styles.selected : ""
+                      }`}
+                      onClick={() => handleFacultySelect(faculty)}
+                    >
+                      <div className={styles.facultyInfo}>
+                        <span className={styles.itemText}>{faculty.name}</span>
+                        <span className={styles.itemDescription}>
+                          Multiple degree programs available
+                        </span>
+                      </div>
+                      {selectedFaculty?.id === faculty.id && (
+                        <FiCheck className={styles.checkIcon} />
+                      )}
+                    </button>
+                  ))
+                ) : (
+                  <div className={styles.emptyState}>
+                    <p>No faculties available for {selectedUniversity?.name}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            // Degree Selection Step
+            <div className={styles.listContainer}>
+              <div className={styles.selectedSection}>
+                <div className={styles.selectedRow}>
+                  <span className={styles.selectedLabel}>University:</span>
+                  <span className={styles.selectedValue}>{selectedUniversity?.name}</span>
+                </div>
+                <div className={styles.selectedRow}>
+                  <span className={styles.selectedLabel}>Faculty:</span>
+                  <span className={styles.selectedValue}>{selectedFaculty?.name}</span>
+                </div>
+              </div>
+              
+              <h3 className={styles.sectionTitle}>
+                <FiBook className={styles.sectionTitleIcon} />
+                Available Degrees
+              </h3>
+              <p className={styles.sectionDescription}>
+                Select your degree program from the available options
+              </p>
+              
+              <div className={styles.degreeList}>
+                {filteredDegrees.length > 0 ? (
+                  filteredDegrees.map((degree, index) => (
+                    <button
+                      key={index}
+                      className={`${styles.degreeItem} ${
+                        selectedDegree === degree ? styles.selected : ""
+                      }`}
+                      onClick={() => handleDegreeSelect(degree)}
+                    >
+                      <div className={styles.degreeInfo}>
+                        <span className={styles.degreeName}>{degree}</span>
+                        <span className={styles.degreeType}>Undergraduate Degree</span>
+                      </div>
+                      {selectedDegree === degree && (
+                        <FiCheck className={styles.checkIcon} />
+                      )}
+                    </button>
+                  ))
+                ) : (
+                  <div className={styles.emptyState}>
+                    <p>No degrees available for this faculty</p>
+                    <button 
+                      className={styles.customDegreeButton}
+                      onClick={() => {
+                        const customDegree = prompt("Please enter your degree name:");
+                        if (customDegree) {
+                          setSelectedDegree(customDegree);
+                        }
+                      }}
+                    >
+                      Add Custom Degree
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+
 const InternForm = ({
   isOpen,
   onClose,
