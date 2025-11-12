@@ -152,6 +152,43 @@ const InstitutePopup = ({
   const [filteredFaculties, setFilteredFaculties] = useState([]);
   const [filteredDegrees, setFilteredDegrees] = useState([]);
 
+   // Initialize with current values
+  useEffect(() => {
+    if (currentInstitute && isOpen) {
+      setSelectedUniversity(currentInstitute.university || null);
+      setSelectedFaculty(currentInstitute.faculty || null);
+      setSelectedDegree(currentInstitute.degree || null);
+    } else {
+      setSelectedUniversity(null);
+      setSelectedFaculty(null);
+      setSelectedDegree(null);
+    }
+    setStep("university");
+    setSearchTerm("");
+  }, [currentInstitute, isOpen]);
+
+  // Filter universities based on search
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = universities.filter(uni =>
+        uni.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredUniversities(filtered);
+    } else {
+      setFilteredUniversities(universities);
+    }
+  }, [searchTerm, universities]);
+
+  // Filter faculties when university is selected
+  useEffect(() => {
+    if (selectedUniversity) {
+      setFilteredFaculties(faculties);
+    } else {
+      setFilteredFaculties([]);
+    }
+  }, [selectedUniversity, faculties]);
+
+  
 const InternForm = ({
   isOpen,
   onClose,
