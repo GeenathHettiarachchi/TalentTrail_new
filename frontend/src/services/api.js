@@ -293,16 +293,24 @@ export const projectDocService = {
   }),
 };
 
-// Add this for Excel service
-export const excelService = {
-  // Get DevOps resource types
-  getDevOpsResourceTypes: () => api.get('/excel/devops-resources'),
-  
-  // Get QA resource types
-  getQAResourceTypes: () => api.get('/excel/qa-resources'),
-  
-  // Get Web Development resource types
-  getWebDevResourceTypes: () => api.get('/excel/webdev-resources'),
+export const masterDataService = {
+  // GET active item names for a category
+  getActiveItemNamesForCategory: (category) => api.get(`/masterdata/active/${category}`),
+
+  // GET all items by category
+  getAllItemsByCategory: (category) => api.get(`/masterdata/manage/${category}`),
+
+  // POST create new item
+  createItem: (category, itemName) => api.post(`/masterdata/${category}`, { itemName }),
+
+  // PUT update item
+  updateItem: (id, itemName) => api.put(`/masterdata/${id}`, { itemName }),
+
+  // DELETE item
+  deleteItem: (id) => api.delete(`/masterdata/${id}`),
+
+  // Reactivates an item
+  reactivateItem: (id) => api.put(`/masterdata/${id}/reactivate`)
 };
 
 export default api;
