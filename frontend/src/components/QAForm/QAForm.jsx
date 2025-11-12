@@ -1,496 +1,516 @@
-// src/components/QAForm.jsx
-/**
- * QAForm.jsx
- *
- * Add/Edit QA Intern.
- * EDIT MODE: Only Training End Date, QA Tools, and Projects are editable/submitted.
- * ADD MODE: All fields are editable/submitted.
- *
- * Tools UI: custom multi-select dropdown with checkboxes (no Ctrl/Cmd)
- * Projects UI: custom multi-select dropdown with checkboxes (fetched from /api/projects)
- */
-
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import {
-  FiX,
-  FiUser,
-  FiMail,
-  FiCalendar,
-  FiPhone,
-  FiTool,
-  FiFolderPlus,
-  FiTrash2,
-  FiChevronDown,
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { 
+  FiX, 
+  FiUser, 
+  FiMail, 
+  FiCalendar, 
+  FiPhone, 
+  FiTool,        // Changed from FiServer
+  FiFolderPlus,  // Changed from FiLayers
+  FiChevronDown 
 } from 'react-icons/fi';
-import styles from './QAForm.module.css';
-import { projectService } from '../../services/api';
-
-// Fixed QA tool options
-const QA_TOOL_OPTIONS = [
-  'Selenium',
-  'JMeter',
-  'Postman',
-  'Katalon Studio',
-  'Appium',
-  'Playwright',
-  'Cypress',
-  'Puppeteer',
-  'Ranorex',
-];
+import { projectService, masterDataService } from '../../services/api';
+import styles from './QAForm.module.css'; // This CSS file will need to be updated!
 
 const QAForm = ({
   isOpen,
   onClose,
   onSubmit,
-  intern,
   editingIntern = null,
-  isLoading = false,
+  isLoading = false
 }) => {
-  const current = useMemo(() => editingIntern ?? intern ?? null, [editingIntern, intern]);
-  const isEdit = !!current;
-
-  // ---------------- State ----------------
   const [formData, setFormData] = useState({
     internCode: '',
     name: '',
     email: '',
     mobileNumber: '',
     trainingEndDate: '',
+    skills: [], // Was 'skills' in DevOpsForm
+    projects: []
   });
 
-  // Tools multi-select
-  const [selectedTools, setSelectedTools] = useState(() => new Set());
-  const [toolsOpen, setToolsOpen] = useState(false);
-  const toolsRef = useRef(null);
-
-  // Projects multi-select (fetched)
-  const [projectCatalog, setProjectCatalog] = useState([]); // [{ id, projectName }]
-  const [selectedProjectIds, setSelectedProjectIds] = useState(() => new Set());
-  const [projectsOpen, setProjectsOpen] = useState(false);
-  const projectsRef = useRef(null);
-
-  // Errors
+  const [isToolsOpen, setIsToolsOpen] = useState(false); // Was 'isRTOpen'
+  const [isProjOpen, setIsProjOpen] = useState(false);
   const [errors, setErrors] = useState({});
+  
+  // Project state
+  const [projectOptions, setProjectOptions] = useState([]);
+  const [projLoading, setProjLoading] = useState(false);
+  const [projError, setProjError] = useState('');
 
-  // ---------------- Helpers ----------------
-  const splitCSV = (val) => val.split(',').map((s) => s.trim()).filter(Boolean);
+  // Tool state
+  const [toolOptions, setToolOptions] = useState([]); // Was 'resourceTypes'
+  const [toolsLoading, setToolsLoading] = useState(false); // Was 'rtLoading'
+  const [toolsError, setToolsError] = useState(''); // Was 'rtError'
 
-  const normalizeTools = (v) => {
-    let list = [];
-    if (Array.isArray(v)) list = v.map(String).map((s) => s.trim());
-    else if (typeof v === 'string') list = splitCSV(v);
-    const allowed = new Set(QA_TOOL_OPTIONS.map((t) => t.toLowerCase()));
-    return list.filter((t) => allowed.has(t.toLowerCase()));
-  };
+  // Check if we're in edit mode
+  const isEditMode = !!editingIntern;
 
-  const normalizeProjects = (v) => {
-    if (!v) return [];
-    if (typeof v === 'string') return splitCSV(v).map((name) => ({ name }));
-    if (Array.isArray(v)) {
-      return v
-        .map((x) => (typeof x === 'string' ? { name: x } : x))
-        .filter((p) => (p?.name || '').trim())
-        .map((p) => ({ name: p.name.trim() }));
-    }
-    return [];
-  };
-
-  // ---------------- Effects ----------------
-  // Fetch projects when modal opens
+  // Hydrate form on open/edit
   useEffect(() => {
-    if (!isOpen) return;
-    (async () => {
-      try {
-        const res = await projectService.getAllProjects();
-        const data = Array.isArray(res.data) ? res.data : [];
-        const normalized = data.map((p) => ({
-          id: p.id ?? p.projectId,
-          projectName: p.projectName ?? p.name ?? 'Unnamed Project',
-        }));
-        setProjectCatalog(normalized);
-      } catch (e) {
-        console.error('Failed to fetch projects', e);
-        setProjectCatalog([]);
-      }
-    })();
-  }, [isOpen]);
-
-  // Hydrate form
-  useEffect(() => {
-    if (current) {
+    if (editingIntern) {
+      // Helper to normalize incoming data to an array
+      const toList = (v) =>
+        Array.isArray(v) ? v
+        : (typeof v === 'string' && v.trim() ? v.split(',').map(s => s.trim()).filter(Boolean) : []);
+      
       setFormData({
-        internCode: current.internCode || '',
-        name: current.name || '',
-        email: current.email || '',
-        mobileNumber: current.mobileNumber || '',
-        trainingEndDate: current.trainingEndDate ? current.trainingEndDate.split('T')[0] : '',
+        internCode: editingIntern.internCode || '',
+        name: editingIntern.name || '',
+        email: editingIntern.email || '',
+        mobileNumber: editingIntern.mobileNumber || '',
+        trainingEndDate: editingIntern.trainingEndDate ? 
+          editingIntern.trainingEndDate.split('T')[0] : '',
+        // Use 'tools' or 'skills' from incoming data
+        skills: toList(editingIntern.skills),
+        projects: toList(editingIntern.projects)
       });
-      setSelectedTools(new Set(normalizeTools(current.tools ?? current.skills)));
-      setSelectedProjectIds(new Set()); // matched below once catalog is ready
     } else {
+      // Reset for "Add New"
       setFormData({
         internCode: '',
         name: '',
         email: '',
         mobileNumber: '',
         trainingEndDate: '',
+        skills: [],
+        projects: []
       });
-      setSelectedTools(new Set());
-      setSelectedProjectIds(new Set());
     }
     setErrors({});
-  }, [current, isOpen]);
+  }, [editingIntern, isOpen]);
 
-  // Match existing intern projects to catalog IDs
+  // --- Data Fetching ---
+
+  // Fetch QA Tools from Master Data
+  const fetchTools = async () => {
+    setToolsLoading(true);
+    setToolsError('');
+    try {
+      // *** IMPORTANT: Using "TOOLS" as the category. Match this to your backend! ***
+      const response = await masterDataService.getActiveItemNamesForCategory("QA");
+      setToolOptions(response.data);
+    } catch (err) {
+      console.error('Failed to load QA tools', err);
+      setToolsError('Failed to load tools');
+    } finally {
+      setToolsLoading(false);
+    }
+  };
+
+  // Fetch Projects (copied directly from DevOpsForm)
+  const fetchProjects = async () => {
+    setProjLoading(true);
+    setProjError('');
+    try {
+      const response = await projectService.getAllProjects();
+      const data = response.data;
+      const names = Array.from(new Set(
+        (data || []).map(p => p?.projectName?.trim()).filter(Boolean)
+      )).sort((a,b) => a.localeCompare(b));
+
+      setProjectOptions(names);
+    } catch (err) {
+      console.error('Failed to load projects', err);
+      setProjError(err.response?.data?.message || 'Failed to load projects.');
+    } finally {
+      setProjLoading(false);
+    }
+  };
+
+  // FETCH when the modal opens
   useEffect(() => {
-    if (!isOpen || !current || !projectCatalog.length) return;
-    const incoming = normalizeProjects(current.projects);
-    const namesWanted = new Set(incoming.map((p) => p.name.toLowerCase()));
-    const matched = new Set(
-      projectCatalog
-        .filter((p) => namesWanted.has((p.projectName || '').toLowerCase()))
-        .map((p) => p.id)
-    );
-    setSelectedProjectIds(matched);
-  }, [projectCatalog, current, isOpen]);
+    if (isOpen) {
+      fetchTools(); // Call the new fetchTools function
+      fetchProjects();
+    }
+  }, [isOpen]);
 
-  // Close Tools dropdown on outside click / Esc
-  useEffect(() => {
-    if (!toolsOpen) return;
-    const onDocClick = (e) => {
-      if (toolsRef.current && !toolsRef.current.contains(e.target)) setToolsOpen(false);
-    };
-    const onEsc = (e) => { if (e.key === 'Escape') setToolsOpen(false); };
-    document.addEventListener('mousedown', onDocClick);
-    document.addEventListener('keydown', onEsc);
-    return () => {
-      document.removeEventListener('mousedown', onDocClick);
-      document.removeEventListener('keydown', onEsc);
-    };
-  }, [toolsOpen]);
-
-  // Close Projects dropdown on outside click / Esc
-  useEffect(() => {
-    if (!projectsOpen) return;
-    const onDocClick = (e) => {
-      if (projectsRef.current && !projectsRef.current.contains(e.target)) setProjectsOpen(false);
-    };
-    const onEsc = (e) => { if (e.key === 'Escape') setProjectsOpen(false); };
-    document.addEventListener('mousedown', onDocClick);
-    document.addEventListener('keydown', onEsc);
-    return () => {
-      document.removeEventListener('mousedown', onDocClick);
-      document.removeEventListener('keydown', onEsc);
-    };
-  }, [projectsOpen]);
-
-  // ---------------- Validation ----------------
+  // --- Validation ---
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.internCode.trim()) newErrors.internCode = 'Trainee ID is required';
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    if (!formData.mobileNumber.trim()) newErrors.mobileNumber = 'Mobile number is required';
-    if (!formData.trainingEndDate) newErrors.trainingEndDate = 'End date is required';
+
+    if (!formData.internCode.trim()) {
+      newErrors.internCode = 'Intern code is required';
+    } else if (formData.internCode.length < 3) {
+      newErrors.internCode = 'Intern code must be at least 3 characters';
+    }
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    } else if (formData.name.length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (formData.mobileNumber.trim()) {
+      if (!/^(\+?\d{9,15}|0\d{9})$/.test(formData.mobileNumber.trim())) {
+        newErrors.mobileNumber = 'Enter a valid phone number';
+      }
+    }
+
+    if (!formData.trainingEndDate) {
+      newErrors.trainingEndDate = 'Training end date is required';
+    } else {
+      const endDate = new Date(formData.trainingEndDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (endDate < today && !isEditMode) { // Only check for past dates in ADD mode
+        newErrors.trainingEndDate = 'End date cannot be in the past';
+      }
+    }
+
+    // Updated for 'tools'
+    if (!Array.isArray(formData.skills) || formData.skills.length === 0) {
+      newErrors.skills = 'Select at least one tool';
+    }
+
     return newErrors;
   };
 
-  // ---------------- Handlers ----------------
+  // --- Handlers (copied from DevOpsForm) ---
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    const tools = Array.from(selectedTools);
-    const projects = Array.from(selectedProjectIds)
-      .map((id) => projectCatalog.find((p) => p.id === id))
-      .filter(Boolean)
-      .map((p) => ({ name: p.projectName }));
-
-    if (isEdit) {
-      onSubmit({
-        internCode: formData.internCode, // identifier (locked)
-        trainingEndDate: formData.trainingEndDate,
-        tools,
-        projects,
-      });
-      return;
-    }
-
+    // Submit the whole formData object, plus the internId for edits
     onSubmit({
-      internCode: formData.internCode.trim(),
-      name: formData.name.trim(),
-      email: formData.email.trim(),
-      mobileNumber: formData.mobileNumber.trim(),
-      trainingEndDate: formData.trainingEndDate,
-      tools,
-      projects,
+      ...formData,
+      internId: editingIntern?.internId ?? null,
     });
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
-  const handleClose = () => { if (!isLoading) onClose(); };
+  const handleClose = () => {
+    if (!isLoading) {
+      setIsToolsOpen(false); // Close tools dropdown
+      setIsProjOpen(false);
+      onClose();
+    }
+  };
 
-  const toggleProjectId = (id) => {
-    setSelectedProjectIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
+  // Generic helper for multi-select arrays in formData
+  const toggleMulti = (field, value) => {
+    setFormData(prev => {
+      const set = new Set(prev[field]);
+      set.has(value) ? set.delete(value) : set.add(value);
+      return { ...prev, [field]: Array.from(set) };
     });
+    // Clear errors for this field
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
-  const toggleTool = (tool) => {
-    setSelectedTools((prev) => {
-      const next = new Set(prev);
-      if (next.has(tool)) next.delete(tool); else next.add(tool);
-      return next;
-    });
-  };
-
-  // Lock helper: disable an input when editing
-  const lockIfEdit = (extra = {}) => (isEdit ? { disabled: true, ...extra } : extra);
-
-  // ---------------- Render ----------------
   if (!isOpen) return null;
 
-  const selectedToolsText =
-    selectedTools.size === 0 ? 'Select tools…' : Array.from(selectedTools).join(', ');
-
-  const selectedProjectsText =
-    selectedProjectIds.size === 0
-      ? 'Select projects…'
-      : Array.from(selectedProjectIds)
-          .map((id) => projectCatalog.find((p) => p.id === id)?.projectName)
-          .filter(Boolean)
-          .join(', ');
-
-  return (
+  return createPortal(
     <div className={styles.overlay} onClick={handleClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
+      <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2 className={styles.title}>{isEdit ? 'Edit QA Intern' : 'Add QA Intern'}</h2>
-          <button type="button" className={styles.closeButton} onClick={handleClose} disabled={isLoading}>
+          <h2 className={styles.title}>
+            {editingIntern ? 'Edit QA Intern' : 'Add QA Intern'}
+          </h2>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={handleClose}
+            disabled={isLoading}
+            aria-label="Close"
+          >
             <FiX />
           </button>
         </div>
 
-        {/* Form */}
-        <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.formGrid}>
-            {/* Trainee ID (LOCKED in edit) */}
+            
+            {/* --- Basic Info Fields (Copied from DevOpsForm) --- */}
+
+            {/* Intern Code */}
             <div className={styles.inputGroup}>
-              <label className={styles.label}><FiUser className={styles.labelIcon} />Trainee ID</label>
+              <label className={styles.label} htmlFor="internCode">
+                <FiUser className={styles.labelIcon} />
+                Intern Code
+              </label>
               <input
                 type="text"
+                id="internCode"
                 name="internCode"
                 value={formData.internCode}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.internCode ? styles.inputError : ''}`}
-                placeholder="e.g. QA001"
-                {...lockIfEdit()}
+                className={`${styles.input} ${errors.internCode ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
+                placeholder="e.g., QA001"
+                disabled={isLoading || isEditMode}
+                readOnly={isEditMode}
+                required
               />
+              {errors.internCode && (
+                <span className={styles.errorText}>{errors.internCode}</span>
+              )}
             </div>
 
-            {/* Full Name (LOCKED in edit) */}
+            {/* Name */}
             <div className={styles.inputGroup}>
-              <label className={styles.label}><FiUser className={styles.labelIcon} />Full Name</label>
+              <label className={styles.label} htmlFor="name">
+                <FiUser className={styles.labelIcon} />
+                Full Name
+              </label>
               <input
                 type="text"
+                id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.name ? styles.inputError : ''}`}
+                className={`${styles.input} ${errors.name ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
                 placeholder="Enter full name"
-                {...lockIfEdit()}
+                disabled={isLoading || isEditMode}
+                readOnly={isEditMode}
+                required
               />
+              {errors.name && (
+                <span className={styles.errorText}>{errors.name}</span>
+              )}
             </div>
 
-            {/* Email (LOCKED in edit) */}
+            {/* Email */}
             <div className={styles.inputGroup}>
-              <label className={styles.label}><FiMail className={styles.labelIcon} />Email</label>
+              <label className={styles.label} htmlFor="email">
+                <FiMail className={styles.labelIcon} />
+                Email Address
+              </label>
               <input
                 type="email"
+                id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
-                placeholder="Enter email"
-                {...lockIfEdit()}
+                className={`${styles.input} ${errors.email ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
+                placeholder="Enter email address"
+                disabled={isLoading || isEditMode}
+                readOnly={isEditMode}
+                required
               />
+              {errors.email && (
+                <span className={styles.errorText}>{errors.email}</span>
+              )}
             </div>
 
-            {/* Mobile (LOCKED in edit) */}
+            {/* Mobile Number */}
             <div className={styles.inputGroup}>
-              <label className={styles.label}><FiPhone className={styles.labelIcon} />Mobile</label>
+              <label className={styles.label} htmlFor="mobileNumber">
+                <FiPhone className={styles.labelIcon} />
+                Mobile Number
+              </label>
               <input
-                type="text"
+                type="tel"
+                id="mobileNumber"
                 name="mobileNumber"
                 value={formData.mobileNumber}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.mobileNumber ? styles.inputError : ''}`}
-                placeholder="07XXXXXXXX"
-                {...lockIfEdit()}
+                className={`${styles.input} ${errors.mobileNumber ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
+                placeholder="e.g., 0771234567"
+                pattern="^(\+?\d{9,15}|0\d{9})$"
+                title="Enter a valid phone number"
+                disabled={isLoading || isEditMode}
+                readOnly={isEditMode}
               />
+              {errors.mobileNumber && (
+                <span className={styles.errorText}>{errors.mobileNumber}</span>
+              )}
             </div>
 
-            {/* Training End Date (EDITABLE) */}
+            {/* Training End Date */}
             <div className={styles.inputGroup}>
-              <label className={styles.label}><FiCalendar className={styles.labelIcon} />Training End Date</label>
+              <label className={styles.label} htmlFor="trainingEndDate">
+                <FiCalendar className={styles.labelIcon} />
+                Training End Date
+              </label>
               <input
                 type="date"
+                id="trainingEndDate"
                 name="trainingEndDate"
                 value={formData.trainingEndDate}
                 onChange={handleInputChange}
-                className={`${styles.input} ${styles.dateInput}`}
+                className={`${styles.input} ${errors.trainingEndDate ? styles.inputError : ''}`}
                 disabled={isLoading}
                 required
               />
+              {errors.trainingEndDate && (
+                <span className={styles.errorText}>{errors.trainingEndDate}</span>
+              )}
             </div>
 
-            {/* QA Tools (EDITABLE) */}
-            <div className={styles.inputGroupFull} ref={toolsRef}>
-              <label className={styles.label}><FiTool className={styles.labelIcon} />QA Tools</label>
-              <button
-                type="button"
-                className={`${styles.input} ${styles.multiSelectControl}`}
-                onClick={() => setToolsOpen((o) => !o)}
-                aria-haspopup="listbox"
-                aria-expanded={toolsOpen}
-                disabled={isLoading}
+            {/* --- QA Tools (Adapted from Resource Type) --- */}
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>
+                <FiTool className={styles.labelIcon} />
+                QA Tools
+              </label>
+              <div
+                className={`${styles.multiSelect} ${errors.tools ? styles.inputError : ''}`}
+                onClick={() => !isLoading && !toolsLoading && setIsToolsOpen(v => !v)}
+                role="button"
+                aria-expanded={isToolsOpen}
               >
-                <span className={selectedTools.size ? styles.multiSelectValue : styles.multiSelectPlaceholder}>
-                  {selectedToolsText}
-                </span>
-                <FiChevronDown className={`${styles.multiSelectChevron} ${toolsOpen ? styles.chevronOpen : ''}`} />
-              </button>
+                <div className={styles.multiControl}>
+                  <div className={styles.multiValue}>
+                    {formData.skills.length
+                      ? formData.skills.join(', ')
+                      : (toolsLoading ? 'Loading…' : 'Select one or more…')}
+                  </div>
+                  <FiChevronDown className={styles.caret} />
+                </div>
+                {isToolsOpen && (
+                  <div
+                    className={styles.multiMenu}
+                    onClick={(e) => e.stopPropagation()}
+                    role="listbox"
+                  >
+                    {toolsLoading && (
+                      <div className={styles.optionRow}><span>Loading tools…</span></div>
+                    )}
+                    {!toolsLoading && toolsError && (
+                      <div className={styles.optionRow}><span>{toolsError}</span></div>
+                    )}
+                    {!toolsLoading && !toolsError && toolOptions.length === 0 && (
+                      <div className={styles.optionRow}><span>No tools found</span></div>
+                    )}
 
-              {toolsOpen && (
-                <div className={styles.multiSelectMenu} role="listbox" aria-multiselectable="true">
-                  {QA_TOOL_OPTIONS.map((tool) => {
-                    const checked = selectedTools.has(tool);
-                    return (
-                      <label key={tool} className={`${styles.multiSelectOption} ${checked ? styles.optionChecked : ''}`}>
+                    {!toolsLoading && !toolsError && toolOptions.map(opt => (
+                      <label key={opt} className={styles.optionRow}>
                         <input
                           type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleTool(tool)}
+                          checked={formData.skills.includes(opt)}
+                          onChange={() => toggleMulti('skills', opt)}
                           disabled={isLoading}
                         />
-                        <span>{tool}</span>
+                        <span>{opt}</span>
                       </label>
-                    );
-                  })}
-                </div>
-              )}
-
-              {selectedTools.size > 0 && (
-                <div className={styles.tagsWrap}>
-                  {Array.from(selectedTools).map((t) => (
-                    <span key={t} className={styles.tag}>
-                      {t}
-                      <button
-                        type="button"
-                        className={styles.tagRemove}
-                        onClick={() => toggleTool(t)}
-                        aria-label={`Remove ${t}`}
-                        disabled={isLoading}
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </span>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {errors.skills && (
+                <span className={styles.errorText}>{errors.skills}</span>
               )}
             </div>
 
-            {/* Projects (EDITABLE, same dropdown UX as Tools) */}
-            <div className={styles.inputGroupFull} ref={projectsRef}>
-              <label className={styles.label}><FiFolderPlus className={styles.labelIcon} />Projects</label>
-              <button
-                type="button"
-                className={`${styles.input} ${styles.multiSelectControl}`}
-                onClick={() => setProjectsOpen((o) => !o)}
-                aria-haspopup="listbox"
-                aria-expanded={projectsOpen}
-                disabled={isLoading}
+            {/* --- Projects (Copied directly from DevOpsForm) --- */}
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>
+                <FiFolderPlus className={styles.labelIcon} />
+                Projects
+              </label>
+              <div
+                className={`${styles.multiSelect} ${projError ? styles.inputError : ''}`}
+                onClick={() => !isLoading && setIsProjOpen(v => !v)}
+                role="button"
+                aria-expanded={isProjOpen}
               >
-                <span className={selectedProjectIds.size ? styles.multiSelectValue : styles.multiSelectPlaceholder}>
-                  {selectedProjectsText}
-                </span>
-                <FiChevronDown className={`${styles.multiSelectChevron} ${projectsOpen ? styles.chevronOpen : ''}`} />
-              </button>
-
-              {projectsOpen && (
-                <div className={styles.multiSelectMenu} role="listbox" aria-multiselectable="true">
-                  {projectCatalog.length === 0 ? (
-                    <div className={styles.multiSelectEmpty}>No projects available</div>
-                  ) : (
-                    projectCatalog.map((p) => {
-                      const checked = selectedProjectIds.has(p.id);
-                      return (
-                        <label
-                          key={p.id}
-                          className={`${styles.multiSelectOption} ${checked ? styles.optionChecked : ''}`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => toggleProjectId(p.id)}
-                            disabled={isLoading}
-                          />
-                          <span>{p.projectName}</span>
-                        </label>
-                      );
-                    })
-                  )}
+                <div className={styles.multiControl}>
+                  <div className={styles.multiValue}>
+                    {formData.projects.length
+                      ? formData.projects.join(', ')
+                      : (projLoading ? 'Loading…' : 'Select one or more…')}
+                  </div>
+                  <FiChevronDown className={styles.caret} />
                 </div>
-              )}
-
-              {selectedProjectIds.size > 0 && (
-                <div className={styles.tagsWrap}>
-                  {Array.from(selectedProjectIds).map((id) => {
-                    const name = projectCatalog.find((p) => p.id === id)?.projectName || 'Project';
-                    return (
-                      <span key={id} className={styles.tag}>
-                        {name}
-                        <button
-                          type="button"
-                          className={styles.tagRemove}
-                          onClick={() => toggleProjectId(id)}
-                          aria-label={`Remove ${name}`}
+                {isProjOpen && (
+                  <div
+                    className={styles.multiMenu}
+                    onClick={(e) => e.stopPropagation()}
+                    role="listbox"
+                  >
+                    {projLoading && (
+                      <div className={styles.optionRow}>
+                        <span>Loading projects…</span>
+                      </div>
+                    )}
+                    {!projLoading && projError && (
+                      <div className={styles.optionRow}>
+                        <span>{projError}</span>
+                      </div>
+                    )}
+                    {!projLoading && !projError && projectOptions.length === 0 && (
+                      <div className={styles.optionRow}>
+                        <span>No projects found</span>
+                      </div>
+                    )}
+                    {!projLoading && !projError && projectOptions.map(opt => (
+                      <label key={opt} className={styles.optionRow}>
+                        <input
+                          type="checkbox"
+                          checked={formData.projects.includes(opt)}
+                          onChange={() => toggleMulti('projects', opt)}
                           disabled={isLoading}
-                        >
-                          <FiTrash2 />
-                        </button>
-                      </span>
-                    );
-                  })}
-                </div>
-              )}
+                        />
+                        <span>{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+            
           </div>
 
-          {/* Actions */}
+          {/* --- Actions (Copied from DevOpsForm) --- */}
           <div className={styles.formActions}>
-            <button type="button" className={styles.cancelButton} onClick={handleClose} disabled={isLoading}>
+            <button
+              type="button"
+              className={styles.cancelButton}
+              onClick={handleClose}
+              disabled={isLoading}
+            >
               Cancel
             </button>
-            <button type="submit" className={styles.submitButton} disabled={isLoading}>
-              {isEdit ? 'Update Intern' : 'Add Intern'}
+            <button
+              type="submit"
+              className={styles.submitButton}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <div className={styles.spinner}></div>
+                  {editingIntern ? 'Updating...' : 'Adding...'}
+                </>
+              ) : (
+                editingIntern ? 'Update Intern' : 'Add Intern'
+              )}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

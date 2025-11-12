@@ -9,10 +9,10 @@
   overflow-x: auto;
 }
 
-.table { 
-  width: 100%; 
-  border-collapse: collapse; 
-  font-size: 0.875rem; 
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
 }
 
 .thead {
@@ -48,11 +48,15 @@
   border-bottom: none;
 }
 
-.td { 
-  padding: 0.85rem 1rem; 
-  color: #495057; 
-  font-size: 0.875rem; 
-  vertical-align: middle; 
+.trInteractive {
+  cursor: pointer;
+}
+
+.td {
+  padding: 0.85rem 1rem;
+  color: #495057;
+  font-size: 0.875rem;
+  vertical-align: middle;
 }
 
 .internCode {
@@ -64,10 +68,10 @@
   font-size: 0.85rem;
 }
 
-.nameCell { 
-  display: flex; 
-  align-items: center; 
-  gap: 8px; 
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .name {
@@ -83,7 +87,7 @@
   white-space: nowrap;
 }
 
-/* End Date Styles with Color Coding */
+/* === QATable Specific: End Date Styles === */
 .endDate {
   font-weight: 500;
   transition: all 0.2s ease;
@@ -93,38 +97,52 @@
 }
 
 /* Normal end date (more than 1 month away) */
+/* Normal end date (more than 1 month away) */
 .endDateNormal {
-  color: #28a745; /* green-600 */
-  background-color: #f0fdf4; /* green-50 */
-  border: 1px solid #bbf7d0; /* green-200 */
+  color: #28a745; /* green text only */
+  background: none;
+  border: none;
 }
 
 /* Warning end date (within 1 month) */
 .endDateWarning {
-  color: #dc3545; /* red-600 */
-  background-color: #fef2f2; /* red-50 */
-  border: 1px solid #fecaca; /* red-200 */
+  color: #dc3545; /* red text only */
+  background: none;
+  border: none;
   font-weight: 600;
 }
 
-/* Enhanced hover effect for warning dates */
 .endDateWarning:hover {
-  background-color: #fee2e2; /* red-100 */
-  transform: translateY(-1px);
+  background: none;
+  transform: none;
+}
+
+/* === End QATable Specific === */
+
+
+.projects {
+  color: #6c757d;
 }
 
 .skills {
   color: #495057;
 }
 
-.muted { 
-  color: #6b7280; 
+.muted {
+  color: #6b7280;
 }
 
-.actionsCell { 
-  position: relative; 
-  width: 50px; 
-  text-align: center; 
+.actionsCell {
+  position: relative;
+  width: 50px;
+  text-align: center;
+}
+
+.cellPills {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .menuButton {
@@ -145,9 +163,9 @@
   color: #2c3e50;
 }
 
-.menu { 
-  position: absolute; 
-  top: 28px; 
+.menu {
+  position: absolute;
+  top: 28px;
   right: 0;
   background: white;
   border: 1px solid #e9ecef;
@@ -208,7 +226,7 @@
   padding: 3rem;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* <-- fixed */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border: 2px dashed #e9ecef;
 }
 
@@ -231,19 +249,34 @@
   text-align: center;
 }
 
-/* ===== OLD LIST (kept for safety if used elsewhere) ===== */
-.list,
-.toolsList,
-.projectsList {
-  display: grid;
-  grid-auto-flow: row;
-  gap: 6px;
+/* === QATable Specific: Pill Expansion Logic === */
+.inlineListWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.listBase {
   margin: 0;
   padding: 0;
   list-style: none;
+  min-width: 0;
 }
 
-/* Compact pill badges (used by new list too) */
+.listOneLine {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.listWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .listItemTool,
 .listItemProject {
   display: inline-flex;
@@ -259,40 +292,6 @@
   white-space: nowrap;
 }
 
-/* ===== NEW LIST + CHEVRON (GLOBAL) ===== */
-
-/* Keep UL + chevron on a single line while collapsed */
-.inlineListWrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: nowrap;   /* important: same line */
-  min-width: 0;
-}
-
-/* Reset UL */
-.listBase {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  min-width: 0;
-}
-
-/* Collapsed: show items in one row (we only render 1 item in JSX) */
-.listOneLine {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 6px;
-}
-
-/* Expanded: allow wrapping */
-.listWrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-/* Generic pill used by ArrowExpandableList (plus you add listItemTool/Project) */
 .listItem {
   white-space: nowrap;
   background: #f1f3f5;
@@ -304,7 +303,6 @@
   line-height: 1.2;
 }
 
-/* Chevron button */
 .chevronBtn {
   display: inline-flex;
   align-items: center;
@@ -322,12 +320,33 @@
 .chevronRotated {
   transform: rotate(180deg);
 }
+/* === End QATable Specific === */
 
-/* ===== Responsive ===== */
+.leadBadge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: #ffd700; /* Gold color */
+  color: #333;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* Responsive Design */
 @media (max-width: 1024px) {
-  .th, .td { padding: 0.75rem 0.5rem; }
-  .th { font-size: 0.8rem; }
-  .td { font-size: 0.9rem; }
+  .th,
+  .td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .th {
+    font-size: 0.8rem;
+  }
+  
+  .td {
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -335,65 +354,43 @@
     overflow-x: scroll;
     -webkit-overflow-scrolling: touch;
   }
-  .table { min-width: 800px; }
-  .th, .td { padding: 0.5rem; }
-  .th { font-size: 0.75rem; }
-  .td { font-size: 0.85rem; }
-  .menuButton { font-size: 1.1rem; }
+  
+  .table {
+    min-width: 800px;
+  }
+  
+  .th,
+  .td {
+    padding: 0.5rem;
+  }
+  
+  .th {
+    font-size: 0.75rem;
+  }
+  
+  .td {
+    font-size: 0.85rem;
+  }
+  
+  .menuButton {
+    font-size: 1.1rem;
+  }
 }
 
 @media (max-width: 480px) {
-  .table { min-width: 700px; }
-  .emptyState { padding: 2rem 1rem; }
-  .emptyIcon { font-size: 2.5rem; }
-  .emptyTitle { font-size: 1.1rem; }
+  .table {
+    min-width: 700px;
+  }
+  
+  .emptyState {
+    padding: 2rem 1rem;
+  }
+  
+  .emptyIcon {
+    font-size: 2.5rem;
+  }
+  
+  .emptyTitle {
+    font-size: 1.1rem;
+  }
 }
-/* Keep the first item + chevron on ONE line */
-.inlineListWrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: nowrap;   /* never wrap to next line */
-  min-width: 0;        /* allow children to shrink if tight */
-}
-
-/* The UL should shrink-to-content and stay inline */
-.inlineListWrap > ul {
-  display: inline-flex; /* make UL a row */
-  flex-wrap: nowrap;    /* keep items in one line */
-  flex: 0 0 auto;       /* don't grow to 100% width */
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  min-width: 0;
-}
-
-/* Pills shouldn't force wrapping */
-.listItem,
-.listItemTool,
-.listItemProject {
-  white-space: nowrap;
-}
-
-/* Chevron should not wrap or grow either */
-.chevronBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;       /* keep button beside the UL */
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  padding: 2px;
-  line-height: 1;
-  transition: transform 0.18s ease;
-  font-size: 18px;
-  color: inherit;
-}
-
-/* (unchanged) rotate when expanded */
-.chevronRotated { transform: rotate(180deg); }
-
-/* If you had these earlier, make sure they DO NOT override to wrapping */
-.listOneLine { display: inline-flex; flex-wrap: nowrap; gap: 6px; }
-.listWrap    { display: flex;        flex-wrap: wrap;   gap: 6px; }
