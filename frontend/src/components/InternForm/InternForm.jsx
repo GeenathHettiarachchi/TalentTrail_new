@@ -313,6 +313,28 @@ const InstitutePopup = ({
           </button>
         </div>
 
+        {/* Progress Indicator */}
+        <ProgressIndicator currentStep={getCurrentStepNumber()} />
+
+        {/* Search Bar - Only show for university and faculty selection */}
+        {(step === "university" || step === "faculty") && (
+          <div className={styles.searchContainer}>
+            <div className={styles.searchInputWrapper}>
+              <FiSearch className={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder={
+                  step === "university" 
+                    ? "Search universities..." 
+                    : "Search faculties..."
+                }
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={styles.searchInput}
+              />
+            </div>
+          </div>
+        )}
 
 const InternForm = ({
   isOpen,
