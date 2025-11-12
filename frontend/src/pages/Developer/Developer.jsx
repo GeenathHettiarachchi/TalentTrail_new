@@ -305,7 +305,7 @@ const Developer = () => {
       <MasterDataModal
         isOpen={isManageModalOpen}
         onClose={() => setIsManageModalOpen(false)}
-        category="Web Developer"
+        category="WEB_DEVELOPER"
         title="Manage Languages and Frameworks"
       />
     </div>

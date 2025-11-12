@@ -68,7 +68,7 @@ const DeveloperForm = ({
     setLtLoading(true);
     setLtError('');
     try {
-      const response = await masterDataService.getActiveItemNamesForCategory("Web Developer");
+      const response = await masterDataService.getActiveItemNamesForCategory("WEB_DEVELOPER");
       setLanguageTypes(response.data);
     } catch (err) {
       console.error('Failed to load Languages and frameworks types', err);
