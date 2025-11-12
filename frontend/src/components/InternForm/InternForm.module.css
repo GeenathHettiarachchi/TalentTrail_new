@@ -353,6 +353,362 @@ select.input {
   }
 }
 
+/* ========== Institute Popup Styles ========== */
+.institutePopup {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.3s ease-out;
+}
+
+.popupHeader {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  margin-right: 0.5rem;
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+}
+
+.backButton:hover {
+  background-color: #f8f9fa;
+  color: #495057;
+}
+
+.popupTitleSection {
+  flex: 1;
+  text-align: center;
+}
+
+.popupTitle {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.popupSubtitle {
+  margin: 0.25rem 0 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+/* Progress Indicator */
+.progressIndicator {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.progressSteps {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.progressStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stepNumber {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 2px solid var(--border-color);
+  background: white;
+}
+
+.stepNumber.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.stepLabel {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stepLabel.active {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.progressConnector {
+  width: 40px;
+  height: 2px;
+  background: var(--border-color);
+  margin: 0 -1rem;
+}
+
+.progressConnector.active {
+  background: var(--primary-color);
+}
+
+/* Search Container */
+.searchContainer {
+  padding: 1rem 1.5rem 0;
+}
+
+.searchInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 1rem;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: var(--transition);
+  outline: none;
+}
+
+.searchInput:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Popup Content */
+.popupContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.5rem;
+}
+
+.listContainer {
+  height: 100%;
+}
+
+.selectedSection {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid var(--primary-color);
+}
+
+.selectedLabel {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.selectedValue {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.selectedRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.selectedRow:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.sectionTitleIcon {
+  margin-right: 0.5rem;
+  color: var(--primary-color);
+}
+
+.sectionDescription {
+  margin: 0 0 1.5rem 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Lists */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.degreeList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border: 2px solid transparent;
+  background: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+  width: 100%;
+}
+
+.listItem:hover {
+  background-color: #f8f9fa;
+  border-color: var(--border-color);
+}
+
+.listItem.selected {
+  background-color: #e3f2fd;
+  border-color: var(--primary-color);
+}
+
+.degreeItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+  width: 100%;
+}
+
+.degreeItem:hover {
+  border-color: var(--primary-color);
+  background-color: #f8f9fa;
+}
+
+.degreeItem.selected {
+  border-color: var(--primary-color);
+  background-color: #e3f2fd;
+}
+
+.universityInfo,
+.facultyInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.degreeInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.itemText {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.degreeName {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.itemDescription {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.degreeType {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  background: #e9ecef;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+}
+
+.checkIcon {
+  color: var(--primary-color);
+  font-size: 1.1rem;
+  margin-left: 0.5rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-secondary);
+}
+
+.emptyState p {
+  margin: 0 0 1rem 0;
+}
+
+.customDegreeButton {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.customDegreeButton:hover {
+  background: var(--primary-hover);
+}
+
+/* Popup Footer */
+.popupFooter {
+  display: flex;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  gap: 1rem;
+}
+
 /* ========== Responsive ========== */
 @media (max-width: 768px) {
   .overlay {
