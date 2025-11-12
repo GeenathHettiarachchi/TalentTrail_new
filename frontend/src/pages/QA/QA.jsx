@@ -3,7 +3,7 @@ import { QAForm, QATable } from '../../components';
 import { internService, categoryService } from '../../services/api';
 import styles from './QA.module.css';
 import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
-import MasterDataModal from '../../components/MasterDataModal/MasterDataModal';
+import MasterDataModal from '../../components/MasterDataModal/MasterDataModal'; // Added this import
 
 const QA = () => {
   const [qaInterns, setQAInterns] = useState([]);
@@ -16,23 +16,31 @@ const QA = () => {
   const [error, setError] = useState('');
   const [sortOption, setSortOption] = useState('internCode:asc');
   const [currentLeadId, setCurrentLeadId] = useState(null);
-  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
-  const QA_CATEGORY_ID = 2;
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false); // Added this state
+  const QA_CATEGORY_ID = 2; // Make sure this ID is correct for your backend
 
+
+  // Load initial data (This was already correct)
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       setError('');
+      
       try {
+        // Step 1: Fetch all interns for the QA category
         const internsResponse = await internService.getInternsByCategoryId(QA_CATEGORY_ID);
         setQAInterns(internsResponse.data);
+
+        // Step 2: Fetch the current lead from the backend
         const categoryResponse = await categoryService.getCategoryById(QA_CATEGORY_ID);
         if (categoryResponse.data && categoryResponse.data.leadInternId) {
           setCurrentLeadId(categoryResponse.data.leadInternId);
         }
+
       } catch (err) {
         console.error("Error loading initial data:", err);
         setError("Could not load lead information from the server.");
+
       } finally {
         setIsLoading(false);
       }
@@ -40,23 +48,28 @@ const QA = () => {
     loadData();
   }, [QA_CATEGORY_ID]);
 
+  // Helper function from DevOps.jsx
   const asText = (v) => Array.isArray(v) ? v.join(', ') : (v ?? '');
 
+  // Filter/Sort logic from DevOps.jsx
   useEffect(() => {
     const term = searchTerm.toLowerCase().trim();
     let list = !term ? [...qaInterns] : qaInterns.filter(intern => {
       const name = (intern.name || '').toLowerCase();
       const code = (intern.internCode || '').toLowerCase();
+      // Updated to search 'tools' or 'skills'
       const tools = asText(intern.tools ?? intern.skills).toLowerCase();
       const proj = asText(intern.projects).toLowerCase();
       const mobile = (intern.mobileNumber || '').toLowerCase();
       return name.includes(term) || code.includes(term) || tools.includes(term) || proj.includes(term) || mobile.includes(term);
     });
 
+    // Sorting
     const [sortField, sortOrder] = (sortOption || 'none').split(':');
     if (sortField && sortOrder && sortField !== 'none') {
       list.sort((a, b) => {
         let aVal, bVal;
+        
         switch (sortField) {
           case 'internCode':
             aVal = a.internCode;
@@ -66,7 +79,7 @@ const QA = () => {
             aVal = a.trainingEndDate;
             bVal = b.trainingEndDate;
             break;
-          case 'tools':
+          case 'tools': // Changed from 'resourceType'
             aVal = asText(a.tools ?? a.skills);
             bVal = asText(b.tools ?? b.skills);
             break;
@@ -88,12 +101,14 @@ const QA = () => {
         } else {
           cmp = (aVal || '').localeCompare(bVal || '', undefined, { numeric: true, sensitivity: 'base' });
         }
+        
         return sortOrder === 'asc' ? cmp : -cmp;
       });
     }
     setFilteredInterns(list);
   }, [qaInterns, searchTerm, sortOption]);
 
+  // Assign new lead (This was already correct)
   const handleAssignLead = async (internId) => {
     try {
       setError('');
@@ -106,6 +121,7 @@ const QA = () => {
     }
   };
 
+
   const handleAddIntern = () => {
     setSelectedIntern(null);
     setIsFormOpen(true);
@@ -116,6 +132,7 @@ const QA = () => {
     setIsFormOpen(true);
   };
 
+  // REPLACED: Updated to call internService.deleteIntern
   const handleDeleteIntern = async (internId) => {
     const internName = qaInterns.find(i => i.internId === internId)?.name || 'this intern';
     if (!window.confirm(`Are you sure you want to delete ${internName}?`)) {
@@ -125,6 +142,7 @@ const QA = () => {
     try {
       setError('');
       await internService.deleteIntern(internId);
+      // Update state *after* successful API call
       setQAInterns(prev => prev.filter(intern => intern.internId !== internId));
     } catch (err) {
       console.error('Error deleting QA intern:', err);
@@ -133,24 +151,33 @@ const QA = () => {
     }
   };
 
+  // REPLACED: Updated to call internService.create/update
   const handleFormSubmit = async (payload) => {
     setIsSubmitting(true);
     setError('');
+      
     try {
       if (payload.internId) {
+        // --- EDIT MODE ---
         const response = await internService.updateIntern(payload.internId, payload);
+        // Update the list with the fresh data from the server
         setQAInterns(prev =>
           prev.map(intern =>
             intern.internId === payload.internId ? response.data : intern
           )
         );
       } else {
+        // --- ADD NEW MODE ---
+        // **IMPORTANT**: We must add the categoryId to the payload for new interns
         const finalPayload = { ...payload, categoryId: QA_CATEGORY_ID };
         const response = await internService.createIntern(finalPayload);
+        // Add the new intern (from the server) to our list
         setQAInterns(prev => [...prev, response.data]);
       }
+
       setIsFormOpen(false);
       setSelectedIntern(null);
+
     } catch (err) {
       console.error('Error saving intern:', err);
       const errorMsg = err.response?.data?.message || `Failed to save intern.`;
@@ -196,6 +223,7 @@ const QA = () => {
           </div>
         )}
 
+        {/* REPLACED: This whole section is updated to match DevOps.jsx layout */}
         <div className={styles.actionSection}>
           <div className={styles.buttonGroup}>
             <button 
@@ -204,6 +232,8 @@ const QA = () => {
             >
               + Add New Intern
             </button>
+            
+            {/* Added this button */}
             <button 
               className={styles.secondaryBtn}
               onClick={() => setIsManageModalOpen(true)}
@@ -216,6 +246,7 @@ const QA = () => {
             <form onSubmit={handleSearch} className={styles.searchSection}>
               <input 
                 type="text" 
+                // Updated placeholder text
                 placeholder="Search by name, code, tools, projects, or mobile..." 
                 className={styles.searchInput}
                 value={searchTerm}
@@ -229,6 +260,7 @@ const QA = () => {
                 onChange={(e) => setSortOption(e.target.value)}
                 title="Sort by"
               >
+                {/* Updated sort options to match new logic */}
                 <option value="none">None</option>
                 <option value="internCode:asc">Intern Code (Ascending)</option>
                 <option value="internCode:desc">Intern Code (Descending)</option>
@@ -242,6 +274,7 @@ const QA = () => {
             </div>
           </div>
         </div>
+        {/* End of replaced section */}
 
         <div className={styles.tableSection}>
           <div className={styles.tableHeader}>
@@ -276,14 +309,16 @@ const QA = () => {
         isOpen={isFormOpen}
         onClose={handleCloseForm}
         onSubmit={handleFormSubmit}
+        // REPLACED: Changed prop 'intern' to 'editingIntern'
         editingIntern={selectedIntern} 
         isLoading={isSubmitting}
       />
 
+      {/* Added this component */}
       <MasterDataModal
         isOpen={isManageModalOpen}
         onClose={() => setIsManageModalOpen(false)}
-        category="QA"
+        category="QA" // Set to "TOOLS" or your backend category for QA tools
         title="Manage QA Tools"
       />
     </div>
