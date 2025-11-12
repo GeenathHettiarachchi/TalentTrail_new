@@ -148,6 +148,36 @@
   cursor: not-allowed;
   border-color: #e5e7eb;
 }
+/* Institute Selector */
+.instituteSelector {
+  position: relative;
+  display: flex;
+}
+
+.instituteSelector .input {
+  padding-right: 100px;
+  cursor: pointer;
+}
+
+.changeButton {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  bottom: 4px;
+  padding: 0 1rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.changeButton:hover {
+  background: var(--primary-hover);
+}
 
 /* ========== Multi-select Dropdowns ========== */
 .multiSelect {
