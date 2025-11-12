@@ -1,29 +1,10 @@
-:root {
-  /* Page tokens (shared across pages) */
-  --page-max: 1200px;           /* max readable width */
-  --page-pad-y: 2rem;
-  --page-pad-x: 1rem;
-  --header-h: 72px;             /* if your top bar is fixed, this offsets content */
-  --brand: #3b82f6;
-  --brand-hover: #2563eb;
-  --title: #2c3e50;
-  --subtitle: #6c757d;
-  --muted: #6c757d;
-  --border: #e9ecef;
-}
-
 .container {
-  /* was: min-height: calc(100vh - 140px); min/max/min-width fixed */
-  min-height: calc(100vh - var(--header-h));
-  padding: var(--page-pad-y) var(--page-pad-x);
-  max-width: var(--page-max);
-  width: 100%;
+  min-height: calc(100vh - 140px);
+  padding: 2rem 1rem;
+  max-width: 1440px;
+  min-width: 1440px;
   margin: 0 auto;
 }
-
-/* If your top bar is NOT fixed, and you don't want an offset, comment this out:
-.container { min-height: 100vh; }
-*/
 
 .header {
   text-align: center;
@@ -31,22 +12,21 @@
 }
 
 .title {
-  color: var(--title);
+  color: #2c3e50;
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
 }
 
 .subtitle {
-  color: var(--subtitle);
+  color: #6c757d;
   font-size: 1.1rem;
   margin: 0;
   line-height: 1.6;
 }
 
 .content {
-  /* was: min-width calc(1440px - 2rem) */
-  width: 100%;
+  min-width: calc(1440px - 2rem);
   margin: 0 auto;
 }
 
@@ -56,11 +36,10 @@
   align-items: center;
   margin-bottom: 2rem;
   gap: 1rem;
-  flex-wrap: wrap; /* allows clean wrapping on smaller widths */
 }
 
 .primaryBtn {
-  background-color: var(--brand);
+  background-color: #3b82f6;
   color: white;
   border: none;
   padding: 0.625rem 1.5rem;
@@ -71,21 +50,53 @@
   transition: background-color 0.3s ease;
 }
 
-.primaryBtn:hover { background-color: var(--brand-hover); }
+.primaryBtn:hover {
+  background-color: #2563eb;
+}
+
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.secondaryBtn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.625rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.secondaryBtn:hover {
+  background-color: #2563eb;
+}
 
 .filterSection {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  flex-wrap: wrap;
 }
 
-.searchSection { display: flex; align-items: center; gap: 0.5rem; }
-.sortSection { display: flex; align-items: center; gap: 0.75rem; }
+.searchSection {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sortSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
 
 .filterSelect {
   padding: 0.625rem 1.5rem;
-  border: 2px solid var(--border);
+  border: 2px solid #e9ecef;
   border-radius: 8px;
   font-size: 0.875rem;
   background: #fff;
@@ -94,19 +105,23 @@
   min-width: 220px;
 }
 
-.filterSelect:focus { border-color: #3498db; }
+.filterSelect:focus {
+  border-color: #3498db;
+}
 
 .searchInput {
   padding: 0.685rem 1rem;
-  border: 2px solid var(--border);
+  border: 2px solid #e9ecef;
   border-radius: 8px;
   font-size: 0.875rem;
-  min-width: 280px;
+  min-width: 250px;
   outline: none;
   transition: border-color 0.3s ease;
 }
 
-.searchInput:focus { border-color: #3498db; }
+.searchInput:focus {
+  border-color: #3498db;
+}
 
 .errorAlert {
   background-color: #fff5f5;
@@ -121,8 +136,14 @@
   gap: 0.75rem;
 }
 
-.errorIcon { font-size: 1.2rem; }
-.errorText { flex: 1; font-weight: 500; }
+.errorIcon {
+  font-size: 1.2rem;
+}
+
+.errorText {
+  flex: 1;
+  font-weight: 500;
+}
 
 .errorClose {
   background: none;
@@ -140,9 +161,13 @@
   transition: background-color 0.2s ease;
 }
 
-.errorClose:hover { background-color: #fed7d7; }
+.errorClose:hover {
+  background-color: #fed7d7;
+}
 
-.tableSection { margin-top: 1rem; }
+.tableSection {
+  margin-top: 1rem;
+}
 
 .tableHeader {
   display: flex;
@@ -154,7 +179,7 @@
 }
 
 .tableTitle {
-  color: var(--title);
+  color: #2c3e50;
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0;
@@ -164,7 +189,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--muted);
+  color: #6c757d;
   font-size: 0.9rem;
   margin: 0;
 }
@@ -178,16 +203,21 @@
   font-size: 0.9rem;
 }
 
-.clearSearch:hover { color: #2980b9; }
+.clearSearch:hover {
+  color: #2980b9;
+}
 
-/* ---------- Responsive ---------- */
 @media (max-width: 1024px) {
   .container {
-    padding: 1.5rem 1rem;
+    min-width: auto;
     max-width: 100%;
+    padding: 1.5rem 1rem;
   }
 
-  .content { width: 100%; }
+  .content {
+    min-width: auto;
+    width: 100%;
+  }
 
   .actionSection {
     flex-direction: column;
@@ -195,7 +225,9 @@
     gap: 1rem;
   }
 
-  .sortSection { justify-content: center; }
+  .sortSection {
+    justify-content: center;
+  }
 
   .filterSelect {
     min-width: auto;
@@ -204,28 +236,72 @@
 }
 
 @media (max-width: 768px) {
-  .container { padding: 1.5rem 0.5rem; }
-  .content { width: 100%; }
+  .container {
+    min-width: auto;
+    max-width: 100%;
+    padding: 1.5rem 0.5rem;
+  }
 
-  .title { font-size: 2rem; }
-  .subtitle { font-size: 1rem; }
+  .content {
+    min-width: auto;
+    width: 100%;
+  }
 
-  .actionSection { flex-direction: column; align-items: stretch; }
-  .searchSection { justify-content: center; }
+  .title {
+    font-size: 2rem;
+  }
 
-  .searchInput { min-width: 200px; flex: 1; }
+  .subtitle {
+    font-size: 1rem;
+  }
 
-  .tableHeader { flex-direction: column; align-items: flex-start; }
+  .actionSection {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchSection {
+    justify-content: center;
+  }
+
+  .searchInput {
+    min-width: 200px;
+    flex: 1;
+  }
+
+  .tableHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 480px) {
-  .container { padding: 1rem 0.5rem; }
-  .content { width: 100%; }
+  .container {
+    min-width: auto;
+    max-width: 100%;
+    padding: 1rem 0.5rem;
+  }
 
-  .title { font-size: 1.75rem; }
+  .content {
+    min-width: auto;
+    width: 100%;
+  }
 
-  .searchSection { flex-direction: column; }
-  .searchInput { min-width: auto; width: 100%; }
+  .title {
+    font-size: 1.75rem;
+  }
 
-  .filterSelect { width: 100%; min-width: auto; }
+  .searchSection {
+    flex-direction: column;
+  }
+
+  .searchInput {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .filterSelect {
+    width: 100%;
+    min-width: auto;
+  }
 }
