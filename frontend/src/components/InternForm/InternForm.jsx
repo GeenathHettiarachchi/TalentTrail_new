@@ -152,7 +152,7 @@ const InstitutePopup = ({
   const [filteredFaculties, setFilteredFaculties] = useState([]);
   const [filteredDegrees, setFilteredDegrees] = useState([]);
 
-   // Initialize with current values
+  // Initialize with current values
   useEffect(() => {
     if (currentInstitute && isOpen) {
       setSelectedUniversity(currentInstitute.university || null);
@@ -336,7 +336,6 @@ const InstitutePopup = ({
           </div>
         )}
 
-        
         {/* Content */}
         <div className={styles.popupContent}>
           {step === "university" ? (
@@ -467,7 +466,8 @@ const InstitutePopup = ({
             </div>
           )}
         </div>
-{/* Footer Actions */}
+
+        {/* Footer Actions */}
         <div className={styles.popupFooter}>
           <button 
             className={styles.cancelButton} 
@@ -492,7 +492,6 @@ const InstitutePopup = ({
     </div>
   );
 };
-
 
 // Academic Details Form Component
 const AcademicDetailsForm = ({
@@ -917,6 +916,7 @@ const AcademicDetailsList = () => {
   );
 };
 
+// Main InternForm Component
 const InternForm = ({
   isOpen,
   onClose,
@@ -925,7 +925,6 @@ const InternForm = ({
   isLoading = false,
   internOnly = false,
 }) => {
-  // Helpers to coerce incoming values
   const toList = (v) =>
     Array.isArray(v)
       ? v
@@ -938,10 +937,13 @@ const InternForm = ({
     name: "",
     email: "",
     institute: "",
+    degree: "",
     trainingStartDate: "",
     trainingEndDate: "",
     role: "",
-    // New dev sections
+    fieldOfSpecialization: "",
+    skills: [],
+    workingBranch: "",
     languagesAndFrameworks: [],
     projects: [],
   });
@@ -949,31 +951,22 @@ const InternForm = ({
   const [errors, setErrors] = useState({});
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isProjOpen, setIsProjOpen] = useState(false);
+  const [isSkillsOpen, setIsSkillsOpen] = useState(false);
+  const [isInstitutePopupOpen, setIsInstitutePopupOpen] = useState(false);
 
-  // Options (adjust to your needs)
+  // Data for dropdowns
   const languagesList = [
-    "Java",
-    "Python",
-    "C#",
-    "MERN",
-    "Laravel",
-    "Spring Boot",
-    ".NET",
-    "PHP",
-    "React",
-    "Angular",
-    "Vue.js",
+    "Java", "Python", "C#", "MERN", "Laravel", "Spring Boot", ".NET", "PHP", "React", "Angular", "Vue.js"
   ];
 
   const projectsList = [
-    "Portfolio Website",
-    "Task Tracker",
-    "E-Commerce Platform",
-    "Admin Dashboard",
-    "Inventory Manager",
-    "CRM Application",
-    "HR Portal",
+    "Portfolio Website", "Task Tracker", "E-Commerce Platform", "Admin Dashboard", 
+    "Inventory Manager", "CRM Application", "HR Portal"
   ];
+
+  const skillsList = ["JAVA", "MERN", "UI UX", "Python", "BA", "QA", "PM", "AI", "Flutter", "Devops"];
+
+  const workingBranches = ["HQ SLT", "Moratuwa"];
 
   useEffect(() => {
     if (intern) {
@@ -982,9 +975,13 @@ const InternForm = ({
         name: intern.name || "",
         email: intern.email || "",
         institute: intern.institute || "",
+        degree: intern.degree || "",
         trainingStartDate: intern.trainingStartDate || "",
         trainingEndDate: intern.trainingEndDate || "",
         role: intern.role || "",
+        fieldOfSpecialization: intern.fieldOfSpecialization || "",
+        skills: toList(intern.skills),
+        workingBranch: intern.workingBranch || "",
         languagesAndFrameworks: toList(intern.languagesAndFrameworks),
         projects: toList(intern.projects),
       });
@@ -994,9 +991,13 @@ const InternForm = ({
         name: "",
         email: "",
         institute: "",
+        degree: "",
         trainingStartDate: "",
         trainingEndDate: "",
         role: "",
+        fieldOfSpecialization: "",
+        skills: [],
+        workingBranch: "",
         languagesAndFrameworks: [],
         projects: [],
       });
@@ -1004,11 +1005,11 @@ const InternForm = ({
     setErrors({});
     setIsLangOpen(false);
     setIsProjOpen(false);
+    setIsSkillsOpen(false);
   }, [intern, isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -1030,10 +1031,20 @@ const InternForm = ({
     }
   };
 
+  const handleInstituteSelect = (institute) => {
+    setFormData(prev => ({
+      ...prev,
+      institute: `${institute.university} - ${institute.faculty}`,
+      degree: institute.degree
+    }));
+    if (errors.institute) {
+      setErrors(prev => ({ ...prev, institute: "" }));
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
-    // In internOnly mode:End Date validation
     if (internOnly) {
       if (!formData.trainingEndDate) {
         newErrors.trainingEndDate = "Training end date is required";
@@ -1041,7 +1052,6 @@ const InternForm = ({
       return newErrors;
     }
 
-    // Admin/full edit validations
     if (!formData.internCode.trim()) newErrors.internCode = "Intern code is required";
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.email.trim()) {
@@ -1052,13 +1062,16 @@ const InternForm = ({
     if (!formData.institute.trim()) newErrors.institute = "Institute is required";
     if (!formData.trainingStartDate) newErrors.trainingStartDate = "Start date is required";
     if (!formData.trainingEndDate) newErrors.trainingEndDate = "End date is required";
+    
+    if (!formData.fieldOfSpecialization) newErrors.fieldOfSpecialization = "Field of specialization is required";
+    if (!formData.skills || formData.skills.length === 0) newErrors.skills = "At least one skill is required";
+    if (!formData.workingBranch) newErrors.workingBranch = "Working branch is required";
+    
     if (formData.trainingStartDate && formData.trainingEndDate) {
       if (new Date(formData.trainingStartDate) >= new Date(formData.trainingEndDate)) {
         newErrors.trainingEndDate = "End date must be after start date";
       }
     }
-
-    
 
     return newErrors;
   };
@@ -1072,9 +1085,11 @@ const InternForm = ({
       return;
     }
 
-    // Prepare payload
     const submitData = {
       ...formData,
+      fieldOfSpecialization: formData.fieldOfSpecialization || "",
+      skills: formData.skills || [],
+      workingBranch: formData.workingBranch || "",
       languagesAndFrameworks: formData.languagesAndFrameworks || [],
       projects: formData.projects || [],
     };
@@ -1097,7 +1112,6 @@ const InternForm = ({
   return (
     <div className={styles.overlay} onClick={handleOverlayClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         <div className={styles.header}>
           <h2 className={styles.title}>
             {internOnly ? "Request End Date Update" : (intern ? "Edit Intern" : "Add New Intern")}
@@ -1112,9 +1126,7 @@ const InternForm = ({
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className={styles.form}>
-          {/* Intern-only: End Date only */}
           {internOnly ? (
             <div className={styles.formGrid}>
               <div className={styles.inputGroup}>
@@ -1138,7 +1150,6 @@ const InternForm = ({
             </div>
           ) : (
             <>
-              {/* Admin/full edit grid */}
               <div className={styles.formGrid}>
                 <div className={styles.inputGroup}>
                   <label htmlFor="internCode" className={styles.label}>Intern Code </label>
@@ -1186,18 +1197,29 @@ const InternForm = ({
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label htmlFor="institute" className={styles.label}>Institute </label>
-                  <input
-                    type="text"
-                    id="institute"
-                    name="institute"
-                    value={formData.institute}
-                    onChange={handleChange}
-                    className={`${styles.input} ${errors.institute ? styles.inputError : ""}`}
-                    placeholder="Enter institute name"
-                    disabled
-                  />
-                  {errors.institute && <span className={styles.errorText}>{errors.institute}</span>}
+                  <label htmlFor="institute" className={styles.label}>Institute *</label>
+                  <div className={styles.instituteSelector}>
+                    <input
+                      type="text"
+                      id="institute"
+                      name="institute"
+                      value={formData.institute ? `${formData.institute} - ${formData.degree}` : ''}
+                      readOnly
+                      className={`${styles.input} ${errors.institute ? styles.inputError : ""}`}
+                      placeholder="Select your university and degree"
+                      onClick={() => setIsInstitutePopupOpen(true)}
+                    />
+                    <button
+                      type="button"
+                      className={styles.changeButton}
+                      onClick={() => setIsInstitutePopupOpen(true)}
+                    >
+                      {formData.institute ? "Change" : "Select"}
+                    </button>
+                  </div>
+                  {errors.institute && (
+                    <span className={styles.errorText}>{errors.institute}</span>
+                  )}
                 </div>
 
                 <div className={styles.inputGroup}>
@@ -1243,11 +1265,101 @@ const InternForm = ({
                     placeholder="e.g., Full Stack Developer"
                   />
                 </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="fieldOfSpecialization" className={styles.label}>
+                    Field of Specialization *
+                  </label>
+                  <select
+                    id="fieldOfSpecialization"
+                    name="fieldOfSpecialization"
+                    value={formData.fieldOfSpecialization || ""}
+                    onChange={handleChange}
+                    className={`${styles.input} ${errors.fieldOfSpecialization ? styles.inputError : ""}`}
+                  >
+                    <option value="">Select Field of Specialization</option>
+                    {skillsList.map((skill) => (
+                      <option key={skill} value={skill}>
+                        {skill}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.fieldOfSpecialization && (
+                    <span className={styles.errorText}>{errors.fieldOfSpecialization}</span>
+                  )}
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="workingBranch" className={styles.label}>
+                    Working Branch *
+                  </label>
+                  <select
+                    id="workingBranch"
+                    name="workingBranch"
+                    value={formData.workingBranch || ""}
+                    onChange={handleChange}
+                    className={`${styles.input} ${errors.workingBranch ? styles.inputError : ""}`}
+                  >
+                    <option value="">Select Working Branch</option>
+                    {workingBranches.map((branch) => (
+                      <option key={branch} value={branch}>
+                        {branch}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.workingBranch && (
+                    <span className={styles.errorText}>{errors.workingBranch}</span>
+                  )}
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>
+                    Skills *
+                  </label>
+                  <div
+                    className={`${styles.multiSelect} ${
+                      errors.skills ? styles.inputError : ""
+                    }`}
+                    onClick={() => !isLoading && setIsSkillsOpen((v) => !v)}
+                    role="button"
+                    aria-expanded={isSkillsOpen}
+                  >
+                    <div className={styles.multiControl}>
+                      <div className={styles.multiValue}>
+                        {formData.skills?.length
+                          ? formData.skills.join(", ")
+                          : "Select one or more skills…"}
+                      </div>
+                      <FiChevronDown className={styles.caret} />
+                    </div>
+
+                    {isSkillsOpen && (
+                      <div
+                        className={styles.multiMenu}
+                        onClick={(e) => e.stopPropagation()}
+                        role="listbox"
+                      >
+                        {skillsList.map((skill) => (
+                          <label key={skill} className={styles.optionRow}>
+                            <input
+                              type="checkbox"
+                              checked={formData.skills?.includes(skill) || false}
+                              onChange={() => toggleMulti("skills", skill)}
+                              disabled={isLoading}
+                            />
+                            <span>{skill}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {errors.skills && (
+                    <span className={styles.errorText}>{errors.skills}</span>
+                  )}
+                </div>
               </div>
 
-              {/* Developer sections */}
               <div className={styles.formGrid}>
-                {/* Languages & Frameworks */}
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>
                     <FiServer className={styles.labelIcon} />
@@ -1299,7 +1411,6 @@ const InternForm = ({
                   )}
                 </div>
 
-                {/* Projects */}
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>
                     <FiLayers className={styles.labelIcon} />
@@ -1352,7 +1463,6 @@ const InternForm = ({
             </>
           )}
 
-          {/* Actions */}
           <div className={styles.formActions}>
             <button
               type="button"
@@ -1383,8 +1493,21 @@ const InternForm = ({
           </div>
         </form>
       </div>
+
+      {/* Institute Selection Popup */}
+      <InstitutePopup
+        isOpen={isInstitutePopupOpen}
+        onClose={() => setIsInstitutePopupOpen(false)}
+        onInstituteSelect={handleInstituteSelect}
+        currentInstitute={formData.institute ? {
+          university: formData.institute.split(' - ')[0],
+          faculty: formData.institute.split(' - ')[1],
+          degree: formData.degree
+        } : null}
+      />
     </div>
   );
 };
 
+export { AcademicDetailsList };
 export default InternForm;
