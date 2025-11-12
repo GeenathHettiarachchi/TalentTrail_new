@@ -3,27 +3,35 @@
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
 .tableWrapper {
   overflow-x: auto;
+  width: 100%;
 }
 
-.table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
 
 .thead {
   background: linear-gradient(90deg, #08025f 0%, #02644c 75%);
 }
 
 .th {
-  padding: 1rem;
+  padding: 0.75rem 0.5rem;
   text-align: left;
   font-weight: 600;
   color: white;
   border-bottom: 2px solid #e9ecef;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .tbody {
@@ -44,22 +52,159 @@
   border-bottom: none;
 }
 
-.td { padding: 0.85rem 1rem; color: #495057; font-size: 0.875rem; vertical-align: middle; }
+.td {
+  padding: 0.75rem 0.5rem;
+  color: #495057;
+  font-size: 0.8rem;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+/* Code cell with expand button */
+.codeCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expandButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.expandButton:hover {
+  background-color: #f1f3f5;
+  color: #3498db;
+}
 
 .internCode {
   font-weight: 600;
   color: #3498db;
   background-color: #e3f2fd;
-  padding: 0.25rem 0.5rem;
+  padding: 0.2rem 0.4rem;
   border-radius: 6px;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
 }
 
-.nameCell { display: flex; align-items: center; gap: 8px; }
+/* Specialization styling */
+.specialization {
+  font-weight: 500;
+  color: #8e44ad;
+  background-color: #f4ecf7;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  border: 1px solid #e8daef;
+}
+
+/* Expanded row styles */
+.expandedRow {
+  background-color: #fafbfc;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.expandedCell {
+  padding: 0 !important;
+  border-top: 1px solid #e9ecef;
+}
+
+.expandedContent {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(to right, #f8f9fa, #ffffff);
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.detailSection {
+  padding: 0.5rem 0;
+}
+
+.detailTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detailText {
+  font-size: 0.9rem;
+  color: #495057;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.skillsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.skillTag {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 0.3rem 0.7rem;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid #bbdefb;
+}
+
+/* No skills state */
+.noSkills {
+  color: #6c757d;
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+/* Working Branch and Degree specific styling */
+.workingBranch {
+  font-weight: 500;
+  color: #d35400;
+  background-color: #fdebd0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  border: 1px solid #fad7a0;
+}
+
+.degree {
+  font-weight: 500;
+  color: #16a085;
+  background-color: #d1f2eb;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  border: 1px solid #a3e4d7;
+}
+
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 .name {
   font-weight: 600;
   color: #2c3e50;
+  font-size: 0.85rem;
 }
 
 .email {
@@ -70,23 +215,21 @@
   color: #495057;
 }
 
-/* date range replaced by two columns */
-
 .startDate {
   color: #28a745;
   font-weight: 500;
 }
-
-/* separator removed */
 
 .endDate {
   color: #dc3545;
   font-weight: 500;
 }
 
-/* row actions now use a menu */
-.actionsCell { position: relative; width: 50px; text-align: center; }
-.inlineActions { margin-left: 8px; display: inline-flex; }
+.actionsCell {
+  position: relative;
+  width: 50px;
+  text-align: center;
+}
 
 .menuButton {
   border: none;
@@ -94,7 +237,7 @@
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 6px;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   color: #6c757d;
   display: inline-flex;
   align-items: center;
@@ -106,12 +249,15 @@
   color: #2c3e50;
 }
 
-.menu { position: absolute; top: 28px; right: 0;
+.menu {
+  position: absolute;
+  top: 28px;
+  right: 0;
   background: white;
   border: 1px solid #e9ecef;
   border-radius: 8px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  min-width: 140px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  min-width: 120px;
   z-index: 2;
   padding: 6px;
 }
@@ -123,7 +269,7 @@
   text-align: left;
   padding: 8px 10px;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: #374151;
   cursor: pointer;
 }
@@ -132,8 +278,158 @@
   background: #f8fafc;
 }
 
-/* old edit/delete button styles removed */
+/* Mobile Card Styles */
+.mobileContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
 
+.mobileCard {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobileCard:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.cardHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.mobileName {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.mobileCode {
+  background: #e3f2fd;
+  color: #3498db;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.cardRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.cardRow span:first-child {
+  font-weight: 500;
+  color: #6c757d;
+  min-width: 80px;
+}
+
+.cardRow span:last-child {
+  color: #495057;
+  text-align: right;
+  flex: 1;
+  margin-left: 1rem;
+}
+
+/* Mobile specialization styling */
+.mobileCard .specialization {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+}
+
+/* Mobile expanded content */
+.mobileCard .expandedContent {
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-top: 1px solid #f1f3f4;
+  margin-top: 1rem;
+}
+
+.mobileCard .detailSection {
+  padding: 0;
+}
+
+.mobileCard .skillsContainer {
+  gap: 0.4rem;
+}
+
+.mobileCard .skillTag {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.6rem;
+}
+
+.mobileCard .noSkills {
+  font-size: 0.75rem;
+}
+
+/* Mobile specific styles for new fields */
+.mobileCard .workingBranch,
+.mobileCard .degree {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+}
+
+.cardActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f3f4;
+}
+
+.cardButton {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.cardButton:hover {
+  background: #f8f9fa;
+  border-color: #3498db;
+}
+
+.deleteButton:hover {
+  background: #f8f9fa;
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+/* Loading States */
 .loadingContainer {
   display: flex;
   flex-direction: column;
@@ -195,64 +491,100 @@
 @media (max-width: 1024px) {
   .th,
   .td {
-    padding: 0.75rem 0.5rem;
+    padding: 0.6rem 0.4rem;
+    font-size: 0.75rem;
+    max-width: 120px;
   }
   
-  .th {
-    font-size: 0.8rem;
+  .expandedContent {
+    padding: 1rem;
   }
   
-  .td {
-    font-size: 0.9rem;
+  .detailsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .specialization {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
+  }
+  
+  .workingBranch,
+  .degree {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
   }
 }
 
 @media (max-width: 768px) {
   .tableWrapper {
-    overflow-x: scroll;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .table {
-    min-width: 800px;
+    overflow-x: auto;
   }
   
   .th,
   .td {
-    padding: 0.5rem;
+    padding: 0.5rem 0.3rem;
+    font-size: 0.7rem;
   }
   
-  .th {
-    font-size: 0.75rem;
-  }
-  
-  .td {
-    font-size: 0.85rem;
-  }
-  
-  .dateRange {
-    font-size: 0.8rem;
-  }
-  /* responsive adjustments for menu */
   .menuButton {
-    font-size: 1.1rem;
+    font-size: 1rem;
+  }
+  
+  .expandedContent {
+    padding: 0.75rem;
+  }
+  
+  .specialization {
+    font-size: 0.65rem;
+  }
+  
+  .workingBranch,
+  .degree {
+    font-size: 0.65rem;
   }
 }
 
 @media (max-width: 480px) {
-  .table {
-    min-width: 700px;
+  .mobileContainer {
+    padding: 0.5rem;
   }
   
-  .emptyState {
-    padding: 2rem 1rem;
+  .mobileCard {
+    padding: 0.75rem;
   }
   
-  .emptyIcon {
-    font-size: 2.5rem;
+  .cardRow {
+    font-size: 0.8rem;
   }
   
-  .emptyTitle {
-    font-size: 1.1rem;
+  .cardActions {
+    flex-direction: column;
+  }
+  
+  .cardButton {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+  }
+  
+  .skillsContainer {
+    gap: 0.3rem;
+  }
+  
+  .skillTag {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+  
+  .specialization {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.3rem;
+  }
+  
+  .workingBranch,
+  .degree {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.3rem;
   }
 }
