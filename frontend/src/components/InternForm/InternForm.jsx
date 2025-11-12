@@ -51,6 +51,107 @@ const ProgressIndicator = ({ currentStep }) => {
   );
 };
 
+// Institute Popup Component
+const InstitutePopup = ({
+  isOpen,
+  onClose,
+  onInstituteSelect,
+  currentInstitute = null
+}) => {
+  const [step, setStep] = useState("university");
+  const [selectedUniversity, setSelectedUniversity] = useState(null);
+  const [selectedFaculty, setSelectedFaculty] = useState(null);
+  const [selectedDegree, setSelectedDegree] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  
+  // Data
+  const universities = [
+    { id: 1, name: "University of Moratuwa" },
+    { id: 2, name: "University of Colombo" },
+    { id: 3, name: "University of Peradeniya" },
+    { id: 4, name: "University of Kelaniya" },
+    { id: 5, name: "University of Sri Jayewardenepura" },
+    { id: 6, name: "Open University of Sri Lanka" },
+    { id: 7, name: "Sri Lanka Institute of Information Technology (SLIIT)" },
+    { id: 8, name: "Informatics Institute of Technology (IIT)" }
+  ];
+
+  const faculties = [
+    { id: 1, name: "Faculty of Information Technology" },
+    { id: 2, name: "Faculty of Engineering" },
+    { id: 3, name: "Faculty of Science" },
+    { id: 4, name: "Faculty of Management" },
+    { id: 5, name: "Faculty of Arts" },
+    { id: 6, name: "Faculty of Medicine" },
+    { id: 7, name: "Faculty of Law" },
+    { id: 8, name: "Faculty of Architecture" },
+    { id: 9, name: "Faculty of Computing" },
+    { id: 10, name: "Faculty of Business" }
+  ];
+
+  const universityDegrees = {
+    "University of Moratuwa": [
+      "BSc in Computer Science & Engineering",
+      "BSc in Electrical Engineering", 
+      "BSc in Civil Engineering",
+      "BSc in Mechanical Engineering",
+      "BSc in Electronics & Telecommunication Engineering"
+    ],
+    "University of Colombo": [
+      "BSc in Computer Science",
+      "BSc in Information Systems",
+      "BSc in Statistics & Computer Science",
+      "BSc in Physical Science",
+      "BSc in Biological Science"
+    ],
+    "University of Peradeniya": [
+      "BSc in Engineering",
+      "BSc in Science",
+      "BSc in Medicine",
+      "BSc in Dental Surgery",
+      "BSc in Veterinary Science"
+    ],
+    "University of Kelaniya": [
+      "BSc in Management & Information Technology",
+      "BSc in Industrial Management",
+      "BSc in Science",
+      "BSc in Commerce",
+      "BSc in Social Sciences"
+    ],
+    "University of Sri Jayewardenepura": [
+      "BSc in Computer Science",
+      "BSc in Information Technology",
+      "BSc in Business Management",
+      "BSc in Finance",
+      "BSc in Marketing"
+    ],
+    "Open University of Sri Lanka": [
+      "BSc in Computer Science",
+      "BSc in Information Technology",
+      "BSc in Engineering",
+      "BSc in Business Management",
+      "BSc in Social Sciences"
+    ],
+    "Sri Lanka Institute of Information Technology (SLIIT)": [
+      "BSc in Computer Science",
+      "BSc in Information Technology",
+      "BSc in Software Engineering",
+      "BSc in Cyber Security",
+      "BSc in Data Science"
+    ],
+    "Informatics Institute of Technology (IIT)": [
+      "BSc in Computer Science",
+      "BSc in Software Engineering",
+      "BSc in Cyber Security",
+      "BSc in Business Information Systems",
+      "BSc in Data Science"
+    ]
+  };
+
+  const [filteredUniversities, setFilteredUniversities] = useState([]);
+  const [filteredFaculties, setFilteredFaculties] = useState([]);
+  const [filteredDegrees, setFilteredDegrees] = useState([]);
+
 const InternForm = ({
   isOpen,
   onClose,
