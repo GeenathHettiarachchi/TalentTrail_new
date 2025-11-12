@@ -188,7 +188,132 @@ const InstitutePopup = ({
     }
   }, [selectedUniversity, faculties]);
 
-  
+  // Get degrees for selected university
+  useEffect(() => {
+    if (selectedUniversity && selectedFaculty) {
+      const universityName = selectedUniversity.name;
+      const availableDegrees = universityDegrees[universityName] || [
+        "BSc in Computer Science",
+        "BSc in Information Technology", 
+        "BSc in Software Engineering",
+        "BSc in Information Systems",
+        "Bachelor of Business Administration"
+      ];
+      setFilteredDegrees(availableDegrees);
+    } else {
+      setFilteredDegrees([]);
+    }
+  }, [selectedUniversity, selectedFaculty]);
+
+  const handleUniversitySelect = (university) => {
+    setSelectedUniversity(university);
+    setStep("faculty");
+    setSearchTerm("");
+  };
+
+  const handleFacultySelect = (faculty) => {
+    setSelectedFaculty(faculty);
+    setStep("degree");
+    setSearchTerm("");
+  };
+
+  const handleDegreeSelect = (degree) => {
+    setSelectedDegree(degree);
+  };
+
+  const handleBack = () => {
+    if (step === "degree") {
+      setStep("faculty");
+      setSelectedDegree(null);
+    } else if (step === "faculty") {
+      setStep("university");
+      setSelectedFaculty(null);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (selectedUniversity && selectedFaculty && selectedDegree) {
+      onInstituteSelect({
+        university: selectedUniversity.name,
+        faculty: selectedFaculty.name,
+        degree: selectedDegree,
+        universityId: selectedUniversity.id,
+        facultyId: selectedFaculty.id
+      });
+      onClose();
+    }
+  };
+
+  const handleClose = () => {
+    setStep("university");
+    setSelectedUniversity(null);
+    setSelectedFaculty(null);
+    setSelectedDegree(null);
+    setSearchTerm("");
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  const getStepTitle = () => {
+    switch (step) {
+      case "university":
+        return "Select University";
+      case "faculty":
+        return "Select Faculty";
+      case "degree":
+        return "Select Degree";
+      default:
+        return "Select Institute";
+    }
+  };
+
+  const getStepSubtitle = () => {
+    switch (step) {
+      case "faculty":
+        return `University: ${selectedUniversity?.name}`;
+      case "degree":
+        return `University: ${selectedUniversity?.name} • Faculty: ${selectedFaculty?.name}`;
+      default:
+        return "Choose your educational institution";
+    }
+  };
+
+  const getCurrentStepNumber = () => {
+    switch (step) {
+      case "university": return 1;
+      case "faculty": return 2;
+      case "degree": return 3;
+      default: return 1;
+    }
+  };
+
+  return (
+    <div className={styles.overlay} onClick={handleClose}>
+      <div className={styles.institutePopup} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className={styles.popupHeader}>
+          {step !== "university" && (
+            <button 
+              className={styles.backButton} 
+              onClick={handleBack}
+            >
+              <FiChevronLeft />
+            </button>
+          )}
+          <div className={styles.popupTitleSection}>
+            <h2 className={styles.popupTitle}>{getStepTitle()}</h2>
+            <p className={styles.popupSubtitle}>{getStepSubtitle()}</p>
+          </div>
+          <button 
+            className={styles.closeButton} 
+            onClick={handleClose}
+          >
+            <FiX />
+          </button>
+        </div>
+
+
 const InternForm = ({
   isOpen,
   onClose,
