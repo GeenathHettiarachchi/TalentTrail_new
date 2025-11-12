@@ -8,8 +8,8 @@ const DeveloperTable = React.memo(({
   interns, 
   onEdit, 
   onDelete, 
-  onAssignLead, 
-  currentLeadId, 
+  onAssignLead,     // NEW PROP: Function to call when assigning a lead
+  currentLeadId,    // NEW PROP: The ID of the current lead intern
   isLoading = false 
 }) => {
   const navigate = useNavigate();
@@ -24,12 +24,14 @@ const DeveloperTable = React.memo(({
         setOpenMenuId(null);
       }
     };
+    
     if (openMenuId !== null) {
       document.addEventListener('mousedown', handleClickOutside);
     }
+    
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openMenuId]);
-
+  
   const formatDate = useCallback((dateString) => {
     if (!dateString) return '-';
     try {
@@ -43,6 +45,7 @@ const DeveloperTable = React.memo(({
     }
   }, []);
 
+  // Check if date is within 30 days from today
   const isDueSoon = useCallback((dateString) => {
     if (!dateString) return false;
     const end = new Date(dateString);
@@ -73,6 +76,7 @@ const DeveloperTable = React.memo(({
   }, []);
 
   const handleRowClick = useCallback((intern, e) => {
+    // Don't trigger if edit or delete button was clicked
     if (
       e.target.closest(`.${styles.menuButton}`) ||
       e.target.closest(`.${styles.menu}`) ||
@@ -81,9 +85,9 @@ const DeveloperTable = React.memo(({
     ) {
       return;
     }
-    const langs = toList(intern.languagesAndFrameworks || intern.skills);
-    const projects = toList(intern.projects);
-    if (langs.length > 2 || projects.length > 2) {
+    const rts = toList(intern.skills);
+    const pjs = toList(intern.projects);
+    if (rts.length > 2 || pjs.length > 2) {
       toggleExpand(intern.internId);
     }
   }, [toList, toggleExpand]);
@@ -100,7 +104,7 @@ const DeveloperTable = React.memo(({
   if (interns.length === 0) {
     return (
       <div className={styles.emptyState}>
-        <div className={styles.emptyIcon}>👨‍💻</div>
+        <div className={styles.emptyIcon}>⚙️</div>
         <h3 className={styles.emptyTitle}>No Developer Interns Found</h3>
         <p className={styles.emptyText}>
           Start by adding your first Developer intern to the system.
@@ -121,170 +125,186 @@ const DeveloperTable = React.memo(({
               <th className={styles.th}>Email</th>
               <th className={styles.th}>Mobile Number</th>
               <th className={styles.th}>End Date</th>
-              <th className={styles.th}>Languages & Frameworks</th>
+              <th className={styles.th}>Languages & Frameworks Type</th>
               <th className={styles.th}>Projects</th>
-              {isAdmin && <th className={styles.th}></th>}
+              {isAdmin && <th className={styles.th} style={{ width: '50px' }}></th>}
             </tr>
           </thead>
           <tbody className={styles.tbody}>
             {interns.map((intern) => {
-              const langs = toList(intern.languagesAndFrameworks || intern.skills);
+              const resourceTypes = toList(intern.skills);
               const projects = toList(intern.projects);
               const isExpanded = expanded.has(intern.internId);
-              const langHidden = Math.max(0, langs.length - 2);
-              const projHidden = Math.max(0, projects.length - 2);
-              const canExpand = langHidden > 0 || projHidden > 0;
+              const rtHidden = Math.max(0, resourceTypes.length - 2);
+              const pjHidden = Math.max(0, projects.length - 2);
+              const canExpand = rtHidden > 0 || pjHidden > 0;
 
               return (
                 <React.Fragment key={intern.internId}>
-                  <tr
-                    className={`${styles.tr} ${canExpand ? styles.trInteractive : ''}`}
-                    onClick={(e) => handleRowClick(intern, e)}
-                    aria-expanded={isExpanded}
-                    role={canExpand ? 'button' : undefined}
-                  >
-                    <td className={`${styles.td} ${styles.expanderCell}`}>
-                      {canExpand ? (
-                        <button
-                          type="button"
-                          className={`${styles.expanderBtn} ${isExpanded ? styles.expanderBtnOpen : ''}`}
-                          onClick={(e) => { e.stopPropagation(); toggleExpand(intern.internId); }}
-                          title={isExpanded ? 'Collapse' : 'Expand'}
-                        >
-                          <FiChevronRight />
-                        </button>
-                      ) : (
-                        <span className={styles.expanderSpacer} />
+                <tr
+                  className={`${styles.tr} ${canExpand ? styles.trInteractive : ''}`}
+                  onClick={(e) => handleRowClick(intern, e)}
+                  aria-expanded={isExpanded}
+                  role={canExpand ? 'button' : undefined}
+                  title="Developer intern details"
+                >
+                  <td className={`${styles.td} ${styles.expanderCell}`}>
+                    {canExpand ? (
+                      <button
+                        type="button"
+                        className={`${styles.expanderBtn} ${isExpanded ? styles.expanderBtnOpen : ''}`}
+                        onClick={(e) => { e.stopPropagation(); toggleExpand(intern.internId); }}
+                        aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
+                        aria-expanded={isExpanded}
+                        title={isExpanded ? 'Collapse' : 'Expand'}
+                      >
+                        <FiChevronRight />
+                      </button>
+                    ) : (
+                      <span className={styles.expanderSpacer} />
+                    )}
+                  </td>
+                  <td className={styles.td}>
+                    <span className={styles.internCode}>{intern.internCode}</span>
+                  </td>
+                  <td className={styles.td}>
+                    <div className={styles.nameCell}>
+                      <span className={styles.name}>{intern.name}</span>
+                      {/* NEW: Add a visual indicator if this intern is the lead */}
+                      {intern.internId === currentLeadId && (
+                        <span className={styles.leadBadge}>⭐ Lead</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className={styles.td}>
+                    <span className={styles.email}>{intern.email}</span>
+                  </td>
+                  <td className={styles.td}>                     
+                    <span className={styles.mobile}>         
+                      {intern.mobileNumber}          
+                    </span>  
+                  </td>
+                  <td className={styles.td}>
+                    <span
+                      className={`${styles.endDate} ${
+                        isDueSoon(intern.trainingEndDate)
+                          ? styles.endDateSoon
+                          : styles.endDateSafe
+                      }`}
+                    >
+                      {formatDate(intern.trainingEndDate)}
+                    </span>
+                  </td>
+                  <td className={styles.td}>
+                    {resourceTypes.length === 0 ? (
+                      <span className={styles.resourceType}>-</span>
+                    ) : (
+                      <div className={styles.cellPills} aria-label="Languages & Frameworks Types">
+                        {resourceTypes.slice(0, 2).map((rt, idx) => (
+                          <span key={idx} className={styles.projectBadge}>{rt}</span>
+                        ))}
+                      </div>
+                    )}
+                  </td>
+                  <td className={styles.td}>
+                    {projects.length === 0 ? (
+                      <span className={styles.projects}>-</span>
+                    ) : (
+                      <div className={styles.cellPills} aria-label="Projects">
+                        {projects.slice(0, 2).map((p, idx) => (
+                          <span key={idx} className={styles.projectBadge}>{p}</span>
+                        ))}
+                      </div>
+                    )}
+                  </td>
+                  {isAdmin && (
+                    <td className={styles.actionsCell}>
+                      <button
+                        className={styles.menuButton}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId((prev) => (prev === intern.internId ? null : intern.internId));
+                        }}
+                        aria-haspopup="menu"
+                        aria-expanded={openMenuId === intern.internId}
+                        title="Actions"
+                      >
+                        <FiMoreVertical />
+                      </button>
+                      {openMenuId === intern.internId && (
+                        <div className={styles.menu} role="menu">
+                          <button
+                            className={styles.menuItem}
+                            role="menuitem"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              onEdit(intern);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          {intern.internId !== currentLeadId && (
+                            <button
+                              className={styles.menuItem}
+                              role="menuitem"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(null);
+                                onAssignLead(intern.internId);
+                              }}
+                            >
+                              Assign as Lead
+                            </button>
+                          )}
+                          <button
+                            className={styles.menuItem}
+                            role="menuitem"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              if (window.confirm(`Are you sure you want to delete ${intern.name}?`)) {
+                                onDelete(intern.internId);
+                              }
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       )}
                     </td>
-                    <td className={styles.td}>{intern.internCode}</td>
-                    <td className={styles.td}>
-                      <div className={styles.nameCell}>
-                        <span className={styles.name}>{intern.name}</span>
-                        {intern.internId === currentLeadId && (
-                          <span className={styles.leadBadge}>⭐ Lead</span>
+                  )}
+                </tr>
+                {isExpanded && (
+                  <tr className={styles.expandedRow}>
+                    <td className={styles.expandedCell} colSpan={isAdmin ? 9 : 8}>
+                      <div className={styles.expandedContent}>
+                        {resourceTypes.length > 2 && (
+                          <div className={styles.expandedSection}>
+                            <div className={styles.sectionTitle}>All Resource Types</div>
+                            <div className={styles.projectsList}>
+                              {resourceTypes.map((rt, i) => (
+                                <span key={i} className={styles.projectBadge}>{rt}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {projects.length > 2 && (
+                          <div className={styles.expandedSection}>
+                            <div className={styles.sectionTitle}>All Projects</div>
+                            <div className={styles.projectsList}>
+                              {projects.map((p, i) => (
+                                <span key={i} className={styles.projectBadge}>{p}</span>
+                              ))}
+                            </div>
+                          </div>
                         )}
                       </div>
                     </td>
-                    <td className={styles.td}>{intern.email}</td>
-                    <td className={styles.td}>{intern.mobileNumber}</td>
-                    <td className={styles.td}>
-                      <span
-                        className={`${styles.endDate} ${
-                          isDueSoon(intern.trainingEndDate)
-                            ? styles.endDateSoon
-                            : styles.endDateSafe
-                        }`}
-                      >
-                        {formatDate(intern.trainingEndDate)}
-                      </span>
-                    </td>
-                    <td className={styles.td}>
-                      {langs.length === 0 ? (
-                        <span>-</span>
-                      ) : (
-                        <div className={styles.cellPills}>
-                          {langs.slice(0, 2).map((lang, i) => (
-                            <span key={i} className={styles.projectBadge}>{lang}</span>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-                    <td className={styles.td}>
-                      {projects.length === 0 ? (
-                        <span>-</span>
-                      ) : (
-                        <div className={styles.cellPills}>
-                          {projects.slice(0, 2).map((p, i) => (
-                            <span key={i} className={styles.projectBadge}>{p}</span>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-                    {isAdmin && (
-                      <td className={styles.actionsCell}>
-                        <button
-                          className={styles.menuButton}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenMenuId((prev) =>
-                              prev === intern.internId ? null : intern.internId
-                            );
-                          }}
-                        >
-                          <FiMoreVertical />
-                        </button>
-                        {openMenuId === intern.internId && (
-                          <div className={styles.menu}>
-                            <button
-                              className={styles.menuItem}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit(intern);
-                                setOpenMenuId(null);
-                              }}
-                            >
-                              Edit
-                            </button>
-                            {intern.internId !== currentLeadId && onAssignLead && (
-                              <button
-                                className={styles.menuItem}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onAssignLead(intern.internId);
-                                  setOpenMenuId(null);
-                                }}
-                              >
-                                Assign as Lead
-                              </button>
-                            )}
-                            <button
-                              className={styles.menuItem}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (window.confirm(`Are you sure you want to delete ${intern.name}?`)) {
-                                  onDelete(intern.internId);
-                                }
-                                setOpenMenuId(null);
-                              }}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    )}
                   </tr>
-                  {isExpanded && (
-                    <tr className={styles.expandedRow}>
-                      <td className={styles.expandedCell} colSpan={isAdmin ? 9 : 8}>
-                        <div className={styles.expandedContent}>
-                          {langs.length > 2 && (
-                            <div className={styles.expandedSection}>
-                              <div className={styles.sectionTitle}>All Languages & Frameworks</div>
-                              <div className={styles.projectsList}>
-                                {langs.map((l, i) => (
-                                  <span key={i} className={styles.projectBadge}>{l}</span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          {projects.length > 2 && (
-                            <div className={styles.expandedSection}>
-                              <div className={styles.sectionTitle}>All Projects</div>
-                              <div className={styles.projectsList}>
-                                {projects.map((p, i) => (
-                                  <span key={i} className={styles.projectBadge}>{p}</span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )}
+                )}
                 </React.Fragment>
-              );
+              );                      
             })}
           </tbody>
         </table>
@@ -294,4 +314,3 @@ const DeveloperTable = React.memo(({
 });
 
 export default DeveloperTable;
-
