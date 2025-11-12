@@ -260,6 +260,10 @@ public class InternService {
             return internCategoryRepository.findByCategoryName("Web Developer").orElse(null);
         }
 
+        if (specLower.contains("ai")) {
+            return internCategoryRepository.findByCategoryName("AI").orElse(null);
+        }
+
         // If no match is found, you can return null or a "General" category
         return null;
     }
