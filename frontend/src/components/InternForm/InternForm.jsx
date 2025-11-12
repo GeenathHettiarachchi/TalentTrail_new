@@ -493,6 +493,277 @@ const InstitutePopup = ({
   );
 };
 
+
+// Academic Details Form Component
+const AcademicDetailsForm = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  academicDetails = null,
+  isLoading = false
+}) => {
+  const [formData, setFormData] = useState({
+    university: "",
+    faculty: "",
+    degree: "",
+    yearOfCompletion: "",
+    isCurrent: false
+  });
+
+  const [errors, setErrors] = useState({});
+
+  const universities = [
+    { id: 1, name: "University of Moratuwa" },
+    { id: 2, name: "University of Colombo" },
+    { id: 3, name: "University of Peradeniya" },
+    { id: 4, name: "University of Kelaniya" },
+    { id: 5, name: "University of Sri Jayewardenepura" }
+  ];
+
+  const faculties = [
+    { id: 1, name: "Faculty of Information Technology" },
+    { id: 2, name: "Faculty of Engineering" },
+    { id: 3, name: "Faculty of Science" },
+    { id: 4, name: "Faculty of Management" }
+  ];
+
+  useEffect(() => {
+    if (academicDetails) {
+      setFormData({
+        university: academicDetails.university || "",
+        faculty: academicDetails.faculty || "",
+        degree: academicDetails.degree || "",
+        yearOfCompletion: academicDetails.yearOfCompletion || "",
+        isCurrent: academicDetails.isCurrent || false
+      });
+    } else {
+      setFormData({
+        university: "",
+        faculty: "",
+        degree: "",
+        yearOfCompletion: "",
+        isCurrent: false
+      });
+    }
+    setErrors({});
+  }, [academicDetails, isOpen]);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value
+    }));
+
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.university.trim()) {
+      newErrors.university = "University is required";
+    }
+    if (!formData.faculty.trim()) {
+      newErrors.faculty = "Faculty is required";
+    }
+    if (!formData.degree.trim()) {
+      newErrors.degree = "Degree is required";
+    }
+    if (!formData.isCurrent && !formData.yearOfCompletion) {
+      newErrors.yearOfCompletion = "Year of completion is required";
+    }
+
+    if (formData.yearOfCompletion) {
+      const currentYear = new Date().getFullYear();
+      const year = parseInt(formData.yearOfCompletion);
+      if (year < 1900 || year > currentYear + 5) {
+        newErrors.yearOfCompletion = "Please enter a valid year";
+      }
+    }
+
+    return newErrors;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    onSubmit(formData);
+  };
+
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget && !isLoading) {
+      onClose();
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className={styles.overlay} onClick={handleOverlayClick}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.header}>
+          <h2 className={styles.title}>
+            {academicDetails ? "Edit Academic Details" : "Add Academic Details"}
+          </h2>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={onClose}
+            disabled={isLoading}
+          >
+            <FiX />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.formGrid}>
+            <div className={styles.inputGroup}>
+              <label htmlFor="university" className={styles.label}>
+                University *
+              </label>
+              <select
+                id="university"
+                name="university"
+                value={formData.university}
+                onChange={handleChange}
+                className={`${styles.input} ${errors.university ? styles.inputError : ""}`}
+                disabled={isLoading}
+              >
+                <option value="">Select University</option>
+                {universities.map((uni) => (
+                  <option key={uni.id} value={uni.name}>
+                    {uni.name}
+                  </option>
+                ))}
+              </select>
+              {errors.university && (
+                <span className={styles.errorText}>{errors.university}</span>
+              )}
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label htmlFor="faculty" className={styles.label}>
+                Faculty *
+              </label>
+              <select
+                id="faculty"
+                name="faculty"
+                value={formData.faculty}
+                onChange={handleChange}
+                className={`${styles.input} ${errors.faculty ? styles.inputError : ""}`}
+                disabled={isLoading}
+              >
+                <option value="">Select Faculty</option>
+                {faculties.map((faculty) => (
+                  <option key={faculty.id} value={faculty.name}>
+                    {faculty.name}
+                  </option>
+                ))}
+              </select>
+              {errors.faculty && (
+                <span className={styles.errorText}>{errors.faculty}</span>
+              )}
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label htmlFor="degree" className={styles.label}>
+                Degree *
+              </label>
+              <input
+                type="text"
+                id="degree"
+                name="degree"
+                value={formData.degree}
+                onChange={handleChange}
+                className={`${styles.input} ${errors.degree ? styles.inputError : ""}`}
+                placeholder="e.g., BSc in Computer Science"
+                disabled={isLoading}
+              />
+              {errors.degree && (
+                <span className={styles.errorText}>{errors.degree}</span>
+              )}
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label htmlFor="yearOfCompletion" className={styles.label}>
+                Year of Completion *
+              </label>
+              <input
+                type="number"
+                id="yearOfCompletion"
+                name="yearOfCompletion"
+                value={formData.yearOfCompletion}
+                onChange={handleChange}
+                min="1900"
+                max="2030"
+                disabled={formData.isCurrent || isLoading}
+                className={`${styles.input} ${errors.yearOfCompletion ? styles.inputError : ""}`}
+                placeholder="e.g., 2024"
+              />
+              {errors.yearOfCompletion && (
+                <span className={styles.errorText}>{errors.yearOfCompletion}</span>
+              )}
+            </div>
+
+            <div className={`${styles.inputGroup} ${styles.academicCheckboxContainer}`}>
+              <label className={styles.academicCheckboxLabel}>
+                <input
+                  type="checkbox"
+                  name="isCurrent"
+                  checked={formData.isCurrent}
+                  onChange={handleChange}
+                  className={styles.academicCheckbox}
+                  disabled={isLoading}
+                />
+                <span className={styles.academicCheckboxText}>Currently studying</span>
+              </label>
+              <p className={styles.academicCheckboxHelp}>
+                Check this if you are currently studying. Year of completion will be disabled.
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.formActions}>
+            <button
+              type="button"
+              onClick={onClose}
+              className={styles.cancelButton}
+              disabled={isLoading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className={styles.submitButton}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <div className={styles.spinner} />
+                  {academicDetails ? "Updating..." : "Adding..."}
+                </>
+              ) : academicDetails ? (
+                "Update Details"
+              ) : (
+                "Add Details"
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const InternForm = ({
   isOpen,
   onClose,
