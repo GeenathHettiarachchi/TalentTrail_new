@@ -2,6 +2,7 @@ package com.internsystem.internmanagement.dto;
 
 import lombok.Data;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class InternDTO {
@@ -12,4 +13,13 @@ public class InternDTO {
     private String institute;
     private LocalDate trainingStartDate;
     private LocalDate trainingEndDate;
+    
+    // NEW FIELDS
+    private String fieldOfSpecialization;
+    private List<String> skills;
+    private String workingBranch;
+    private String degree;
+    private String role;
+    private List<String> languagesAndFrameworks;
+    private List<String> projects;
 }
