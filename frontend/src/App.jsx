@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Navigation, Sidebar, Footer, Login, ProtectedRoute } from './components';
-import { Home, Interns, InternProfile, Teams, TeamProfile, Projects, ProjectProfile, QA, AddBulkData } from './pages';
+import { Home, Interns, InternProfile, Teams, TeamProfile, Projects, ProjectProfile, QA, AddBulkData, DevOps, Developer, AI } from './pages';
 import './App.css';
-import DevOps from './pages/DevOps/DevOps';
-import Developer from './pages/Developer/Developer';
 
 const AppContent = () => {
   const { isAuthenticated, isAdmin, isIntern, loading } = useAuth();
@@ -79,6 +77,12 @@ const AppContent = () => {
           <Route path="/qa" element={
             <ProtectedRoute adminOnly={true}>
               <QA />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/ai" element={
+            <ProtectedRoute adminOnly={true}>
+              <AI />
             </ProtectedRoute>
           } />
           
