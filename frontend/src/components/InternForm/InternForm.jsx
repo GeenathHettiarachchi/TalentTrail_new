@@ -3,20 +3,54 @@ import {
   FiX,
   FiServer,
   FiLayers,
-  FiChevronDown
+  FiChevronDown,
+  FiPlus,
+  FiEdit2,
+  FiTrash2,
+  FiBook,
+  FiSearch,
+  FiChevronLeft,
+  FiCheck
 } from "react-icons/fi";
 import styles from "./InternForm.module.css";
-import { FiSearch } from "react-icons/fi";
 
-/**
- * Props
- * - isOpen
- * - onClose
- * - onSubmit
- * - intern (object or null)
- * - isLoading (bool)
- * - internOnly (bool) -> when true, show ONLY End Date (for interns)
- */
+// Progress Indicator Component
+const ProgressIndicator = ({ currentStep }) => {
+  const steps = [
+    { number: 1, label: "University" },
+    { number: 2, label: "Faculty" },
+    { number: 3, label: "Degree" }
+  ];
+
+  return (
+    <div className={styles.progressIndicator}>
+      <div className={styles.progressSteps}>
+        {steps.map((step, index) => (
+          <React.Fragment key={step.number}>
+            <div className={styles.progressStep}>
+              <div className={`${styles.stepNumber} ${
+                step.number <= currentStep ? styles.active : ''
+              }`}>
+                {step.number}
+              </div>
+              <span className={`${styles.stepLabel} ${
+                step.number <= currentStep ? styles.active : ''
+              }`}>
+                {step.label}
+              </span>
+            </div>
+            {index < steps.length - 1 && (
+              <div className={`${styles.progressConnector} ${
+                step.number < currentStep ? styles.active : ''
+              }`} />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const InternForm = ({
   isOpen,
   onClose,
