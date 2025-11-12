@@ -140,6 +140,13 @@
             <artifactId>spring-dotenv</artifactId>
             <version>4.0.0</version>
         </dependency>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-resolver-dns-native-macos</artifactId>
+          <version>4.1.110.Final</version> <!-- You can use latest if needed -->
+          <scope>runtime</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
