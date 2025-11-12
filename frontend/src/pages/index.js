@@ -7,4 +7,6 @@ export { default as Projects } from './Projects/Projects';
 export { default as ProjectProfile } from './ProjectProfile/ProjectProfile';
 export { default as DevOps } from './DevOps/DevOps';
 export { default as QA } from './QA/QA';
+export { default as Developer } from './Developer/Developer';
+export { default as AI } from './AI/AI';
 export { default as AddBulkData } from './AddBulkData/AddBulkData';
