@@ -85,7 +85,7 @@ const DevOpsTable = React.memo(({
     ) {
       return;
     }
-    const rts = toList(intern.resourceType);
+    const rts = toList(intern.skills);
     const pjs = toList(intern.projects);
     if (rts.length > 2 || pjs.length > 2) {
       toggleExpand(intern.internId);
@@ -132,7 +132,7 @@ const DevOpsTable = React.memo(({
           </thead>
           <tbody className={styles.tbody}>
             {interns.map((intern) => {
-              const resourceTypes = toList(intern.resourceType);
+              const resourceTypes = toList(intern.skills);
               const projects = toList(intern.projects);
               const isExpanded = expanded.has(intern.internId);
               const rtHidden = Math.max(0, resourceTypes.length - 2);

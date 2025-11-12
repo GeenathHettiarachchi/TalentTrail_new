@@ -2,12 +2,15 @@ package com.internsystem.internmanagement.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.internsystem.internmanagement.dto.InternProjectView;
 import com.internsystem.internmanagement.entity.Intern;
 import com.internsystem.internmanagement.entity.InternCategory;
 import com.internsystem.internmanagement.exception.ExistingResourceException;
 import com.internsystem.internmanagement.exception.ResourceNotFoundException;
 import com.internsystem.internmanagement.repository.InternCategoryRepository;
 import com.internsystem.internmanagement.repository.InternRepository;
+import com.internsystem.internmanagement.repository.ProjectRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -17,8 +20,12 @@ import org.springframework.web.client.RestTemplate;
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class InternService {
@@ -34,6 +41,9 @@ public class InternService {
     
     @Autowired
     private StatsService statsService;
+
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @Value("${trainee.api.secret}")
     private String secretKey;
@@ -68,7 +78,34 @@ public class InternService {
     }
 
     public List<Intern> getInternsByCategoryId(Integer categoryId) {
-        return internRepository.findByCategory_CategoryId(categoryId);
+        List<Intern> interns = internRepository.findByCategory_CategoryId(categoryId);
+
+        if (interns.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // Get all their IDs
+        List<Long> internIds = interns.stream()
+                                      .map(Intern::getInternId)
+                                      .collect(Collectors.toList());
+
+        // Make ONE call to get all projects for these interns
+        List<InternProjectView> projectLinks = projectRepository.findProjectsForInterns(internIds);
+
+        // Group the projects by internId for fast lookup
+        Map<Long, List<String>> projectMap = projectLinks.stream()
+            .collect(Collectors.groupingBy(
+                InternProjectView::getInternId,
+                Collectors.mapping(InternProjectView::getProjectName, Collectors.toList())
+            ));
+
+        // Attach the project lists to each intern
+        for (Intern intern : interns) {
+            List<String> projects = projectMap.getOrDefault(intern.getInternId(), new ArrayList<>());
+            intern.setProjects(projects);
+        }
+
+        return interns;
     }
 
     public Intern updateIntern(Long id, Intern updatedIntern) {
@@ -91,6 +128,9 @@ public class InternService {
         intern.setTrainingStartDate(updatedIntern.getTrainingStartDate());
         intern.setTrainingEndDate(updatedIntern.getTrainingEndDate());
         intern.setInstitute(updatedIntern.getInstitute());
+        intern.setMobileNumber(updatedIntern.getMobileNumber());
+        intern.setSkills(updatedIntern.getSkills());
+        intern.setProjects(updatedIntern.getProjects());
 
         return internRepository.save(intern);
     }

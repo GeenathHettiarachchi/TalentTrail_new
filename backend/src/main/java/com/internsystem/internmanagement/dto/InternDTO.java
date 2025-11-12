@@ -2,6 +2,7 @@ package com.internsystem.internmanagement.dto;
 
 import lombok.Data;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class InternDTO {
@@ -12,4 +13,7 @@ public class InternDTO {
     private String institute;
     private LocalDate trainingStartDate;
     private LocalDate trainingEndDate;
+    private String mobileNumber;
+    private List<String> skills;   // This will catch "tools" or "resourceType"
+    private List<String> projects;
 }
