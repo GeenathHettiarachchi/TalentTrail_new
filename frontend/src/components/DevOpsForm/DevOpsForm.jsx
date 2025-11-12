@@ -46,7 +46,7 @@ const DevOpsForm = ({
         mobileNumber: editingIntern.mobileNumber || '',
         trainingEndDate: editingIntern.trainingEndDate ? 
           editingIntern.trainingEndDate.split('T')[0] : '',
-        resourceType: toList(editingIntern.resourceType),
+        skills: toList(editingIntern.skills),
         projects: toList(editingIntern.projects)
       });
     } else {
@@ -56,7 +56,7 @@ const DevOpsForm = ({
         email: '',
         mobileNumber: '',
         trainingEndDate: '',
-        resourceType: [],
+        skills: [],
         projects: []
       });
     }
@@ -151,8 +151,8 @@ const DevOpsForm = ({
       }
     }
 
-    if (!Array.isArray(formData.resourceType) || formData.resourceType.length === 0) {
-      newErrors.resourceType = 'Select at least one resource type';
+    if (!Array.isArray(formData.skills) || formData.skills.length === 0) {
+      newErrors.skills = 'Select at least one resource type';
     }
 
     return newErrors;
@@ -351,15 +351,15 @@ const DevOpsForm = ({
                 Resource Type
               </label>
               <div
-                className={`${styles.multiSelect} ${errors.resourceType ? styles.inputError : ''}`}
+                className={`${styles.multiSelect} ${errors.skills ? styles.inputError : ''}`}
                 onClick={() => !isLoading && !rtLoading && setIsRTOpen(v => !v)}
                 role="button"
                 aria-expanded={isRTOpen}
               >
                 <div className={styles.multiControl}>
                   <div className={styles.multiValue}>
-                    {formData.resourceType.length
-                      ? formData.resourceType.join(', ')
+                    {formData.skills.length
+                      ? formData.skills.join(', ')
                       : (rtLoading ? 'Loading…' : 'Select one or more…')}
                   </div>
                   <FiChevronDown className={styles.caret} />
@@ -384,8 +384,8 @@ const DevOpsForm = ({
                       <label key={opt} className={styles.optionRow}>
                         <input
                           type="checkbox"
-                          checked={formData.resourceType.includes(opt)}
-                          onChange={() => toggleMulti('resourceType', opt)}
+                          checked={formData.skills.includes(opt)}
+                          onChange={() => toggleMulti('skills', opt)}
                           disabled={isLoading}
                         />
                         <span>{opt}</span>
@@ -394,8 +394,8 @@ const DevOpsForm = ({
                   </div>
                 )}
               </div>
-              {errors.resourceType && (
-                <span className={styles.errorText}>{errors.resourceType}</span>
+              {errors.skills && (
+                <span className={styles.errorText}>{errors.skills}</span>
               )}
             </div>
 
