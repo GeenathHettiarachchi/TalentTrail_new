@@ -46,6 +46,17 @@ export const internService = {
   
   // DELETE intern
   deleteIntern: (id) => api.delete(`/interns/${id}`),
+
+  // GET interns by category ID
+  getInternsByCategoryId: (categoryId) => api.get(`/interns/category/${categoryId}`),
+};
+
+export const categoryService = {
+  // GET category by ID (to find the current lead)
+  getCategoryById: (id) => api.get(`/categories/${id}`),
+
+  // PUT assign new lead
+  assignLead: (categoryId, internId) => api.put(`/categories/${categoryId}/assign-lead/${internId}`),
 };
 
 export const teamService = {
@@ -280,6 +291,26 @@ export const projectDocService = {
   downloadDocument: (projectId, documentId) => api.get(`/projects/${projectId}/documents/download/${documentId}`, {
     responseType: 'blob',
   }),
+};
+
+export const masterDataService = {
+  // GET active item names for a category
+  getActiveItemNamesForCategory: (category) => api.get(`/masterdata/active/${category}`),
+
+  // GET all items by category
+  getAllItemsByCategory: (category) => api.get(`/masterdata/manage/${category}`),
+
+  // POST create new item
+  createItem: (category, itemName) => api.post(`/masterdata/${category}`, { itemName }),
+
+  // PUT update item
+  updateItem: (id, itemName) => api.put(`/masterdata/${id}`, { itemName }),
+
+  // DELETE item
+  deleteItem: (id) => api.delete(`/masterdata/${id}`),
+
+  // Reactivates an item
+  reactivateItem: (id) => api.put(`/masterdata/${id}/reactivate`)
 };
 
 export default api;

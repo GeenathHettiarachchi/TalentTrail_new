@@ -2,10 +2,15 @@ package com.internsystem.internmanagement.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.internsystem.internmanagement.dto.InternProjectView;
 import com.internsystem.internmanagement.entity.Intern;
+import com.internsystem.internmanagement.entity.InternCategory;
 import com.internsystem.internmanagement.exception.ExistingResourceException;
 import com.internsystem.internmanagement.exception.ResourceNotFoundException;
+import com.internsystem.internmanagement.repository.InternCategoryRepository;
 import com.internsystem.internmanagement.repository.InternRepository;
+import com.internsystem.internmanagement.repository.ProjectRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -15,8 +20,12 @@ import org.springframework.web.client.RestTemplate;
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class InternService {
@@ -25,10 +34,16 @@ public class InternService {
     private InternRepository internRepository;
 
     @Autowired
+    private InternCategoryRepository internCategoryRepository;
+
+    @Autowired
     private AuthRoleService authRoleService;
     
     @Autowired
     private StatsService statsService;
+
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @Value("${trainee.api.secret}")
     private String secretKey;
@@ -62,6 +77,37 @@ public class InternService {
         return internRepository.findByInternCode(internCode);
     }
 
+    public List<Intern> getInternsByCategoryId(Integer categoryId) {
+        List<Intern> interns = internRepository.findByCategory_CategoryId(categoryId);
+
+        if (interns.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // Get all their IDs
+        List<Long> internIds = interns.stream()
+                                      .map(Intern::getInternId)
+                                      .collect(Collectors.toList());
+
+        // Make ONE call to get all projects for these interns
+        List<InternProjectView> projectLinks = projectRepository.findProjectsForInterns(internIds);
+
+        // Group the projects by internId for fast lookup
+        Map<Long, List<String>> projectMap = projectLinks.stream()
+            .collect(Collectors.groupingBy(
+                InternProjectView::getInternId,
+                Collectors.mapping(InternProjectView::getProjectName, Collectors.toList())
+            ));
+
+        // Attach the project lists to each intern
+        for (Intern intern : interns) {
+            List<String> projects = projectMap.getOrDefault(intern.getInternId(), new ArrayList<>());
+            intern.setProjects(projects);
+        }
+
+        return interns;
+    }
+
     public Intern updateIntern(Long id, Intern updatedIntern) {
         Intern intern = internRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Intern not found with ID: " + id));
@@ -78,9 +124,13 @@ public class InternService {
         intern.setInternCode(updatedIntern.getInternCode());
         intern.setName(updatedIntern.getName());
         intern.setEmail(updatedIntern.getEmail());
+        intern.setSpecialization(updatedIntern.getSpecialization());
         intern.setTrainingStartDate(updatedIntern.getTrainingStartDate());
         intern.setTrainingEndDate(updatedIntern.getTrainingEndDate());
         intern.setInstitute(updatedIntern.getInstitute());
+        intern.setMobileNumber(updatedIntern.getMobileNumber());
+        intern.setSkills(updatedIntern.getSkills());
+        intern.setProjects(updatedIntern.getProjects());
 
         return internRepository.save(intern);
     }
@@ -142,6 +192,7 @@ public class InternService {
                         String traineeName = extractField(trainee, "name", "Trainee_Name");
                         String traineeInstitute = extractField(trainee, "institute", "Institute");
                         String traineeEmail = extractField(trainee, "email", "Trainee_Email");
+                        String traineeSpecialization = extractField(trainee, "specialization", "field_of_spec_name");
                         
                         LocalDate startDate = parseTrainingDate(trainee, "trainingStartDate", "Training_StartDate", isoFormatter, oldFormatter);
                         LocalDate endDate = parseTrainingDate(trainee, "trainingEndDate", "Training_EndDate", isoFormatter, oldFormatter);
@@ -155,6 +206,9 @@ public class InternService {
                         intern.setName(traineeName);
                         intern.setInstitute(traineeInstitute);
                         intern.setEmail(traineeEmail);
+                        intern.setSpecialization(traineeSpecialization);
+                        InternCategory category = findCategoryBySpecialization(traineeSpecialization);
+                        intern.setCategory(category);
                         intern.setTrainingStartDate(startDate);
                         intern.setTrainingEndDate(endDate);
 
@@ -178,6 +232,36 @@ public class InternService {
             e.printStackTrace();
             statsService.setActiveInternsFromApi(0);
         }
+    }
+
+    /**
+     * Determine InternCategory based on specialization keywords
+     */
+    private InternCategory findCategoryBySpecialization(String specialization) {
+        String specLower = specialization.toLowerCase();
+
+        if (specLower.contains("devops") || specLower.contains("cloud") || specLower.contains("cicd")) {
+            return internCategoryRepository.findByCategoryName("DevOps").orElse(null);
+        }
+
+        if (specLower.contains("qa") || specLower.contains("quality assurance")) {
+            return internCategoryRepository.findByCategoryName("QA").orElse(null);
+        }
+        
+        if (specLower.contains("fullstack") || 
+            specLower.contains("mern") ||
+            specLower.contains("c#") || 
+            specLower.contains("java") || 
+            specLower.contains("python") ||
+            specLower.contains("flutter") ||
+            specLower.contains("reactjs") ||
+            specLower.contains("php")) {
+                
+            return internCategoryRepository.findByCategoryName("Web Developer").orElse(null);
+        }
+
+        // If no match is found, you can return null or a "General" category
+        return null;
     }
     
     /**

@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { FiMoreVertical, FiChevronRight } from 'react-icons/fi';
-import styles from './DevOpsTable.module.css';
+import styles from './DeveloperTable.module.css';
 
-const DevOpsTable = React.memo(({ 
+const DeveloperTable = React.memo(({ 
   interns, 
   onEdit, 
   onDelete, 
@@ -96,7 +96,7 @@ const DevOpsTable = React.memo(({
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.spinner}></div>
-        <p>Loading DevOps interns...</p>
+        <p>Loading Developer interns...</p>
       </div>
     );
   }
@@ -105,9 +105,9 @@ const DevOpsTable = React.memo(({
     return (
       <div className={styles.emptyState}>
         <div className={styles.emptyIcon}>⚙️</div>
-        <h3 className={styles.emptyTitle}>No DevOps Interns Found</h3>
+        <h3 className={styles.emptyTitle}>No Developer Interns Found</h3>
         <p className={styles.emptyText}>
-          Start by adding your first DevOps intern to the system.
+          Start by adding your first Developer intern to the system.
         </p>
       </div>
     );
@@ -125,19 +125,19 @@ const DevOpsTable = React.memo(({
               <th className={styles.th}>Email</th>
               <th className={styles.th}>Mobile Number</th>
               <th className={styles.th}>End Date</th>
-              <th className={styles.th}>Resource Type</th>
+              <th className={styles.th}>Language Type</th>
               <th className={styles.th}>Projects</th>
               {isAdmin && <th className={styles.th} style={{ width: '50px' }}></th>}
             </tr>
           </thead>
           <tbody className={styles.tbody}>
             {interns.map((intern) => {
-              const resourceTypes = toList(intern.skills);
+              const LanguageTypes = toList(intern.skills);
               const projects = toList(intern.projects);
               const isExpanded = expanded.has(intern.internId);
-              const rtHidden = Math.max(0, resourceTypes.length - 2);
+              const ltHidden = Math.max(0, LanguageTypes.length - 2);
               const pjHidden = Math.max(0, projects.length - 2);
-              const canExpand = rtHidden > 0 || pjHidden > 0;
+              const canExpand = ltHidden > 0 || pjHidden > 0;
 
               return (
                 <React.Fragment key={intern.internId}>
@@ -146,7 +146,7 @@ const DevOpsTable = React.memo(({
                   onClick={(e) => handleRowClick(intern, e)}
                   aria-expanded={isExpanded}
                   role={canExpand ? 'button' : undefined}
-                  title="DevOps intern details"
+                  title="Developer intern details"
                 >
                   <td className={`${styles.td} ${styles.expanderCell}`}>
                     {canExpand ? (
@@ -196,11 +196,11 @@ const DevOpsTable = React.memo(({
                     </span>
                   </td>
                   <td className={styles.td}>
-                    {resourceTypes.length === 0 ? (
-                      <span className={styles.resourceType}>-</span>
+                    {LanguageTypes.length === 0 ? (
+                      <span className={styles.LanguageType}>-</span>
                     ) : (
-                      <div className={styles.cellPills} aria-label="Resource Types">
-                        {resourceTypes.slice(0, 2).map((rt, idx) => (
+                      <div className={styles.cellPills} aria-label="Language Types">
+                        {LanguageTypes.slice(0, 2).map((rt, idx) => (
                           <span key={idx} className={styles.projectBadge}>{rt}</span>
                         ))}
                       </div>
@@ -279,12 +279,12 @@ const DevOpsTable = React.memo(({
                   <tr className={styles.expandedRow}>
                     <td className={styles.expandedCell} colSpan={isAdmin ? 9 : 8}>
                       <div className={styles.expandedContent}>
-                        {resourceTypes.length > 2 && (
+                        {LanguageTypes.length > 2 && (
                           <div className={styles.expandedSection}>
-                            <div className={styles.sectionTitle}>All Resource Types</div>
+                            <div className={styles.sectionTitle}>All Language Types</div>
                             <div className={styles.projectsList}>
-                              {resourceTypes.map((rt, i) => (
-                                <span key={i} className={styles.projectBadge}>{rt}</span>
+                              {LanguageTypes.map((lt, i) => (
+                                <span key={i} className={styles.projectBadge}>{lt}</span>
                               ))}
                             </div>
                           </div>
@@ -313,4 +313,4 @@ const DevOpsTable = React.memo(({
   );
 });
 
-export default DevOpsTable;
+export default DeveloperTable;

@@ -1,19 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { 
-  FiX, 
-  FiUser, 
-  FiMail, 
-  FiCalendar, 
-  FiPhone, 
-  FiTool,        // Changed from FiServer
-  FiFolderPlus,  // Changed from FiLayers
-  FiChevronDown 
-} from 'react-icons/fi';
+import { FiX, FiUser, FiMail, FiCalendar, FiServer, FiPhone, FiLayers, FiChevronDown } from 'react-icons/fi';
 import { projectService, masterDataService } from '../../services/api';
-import styles from './QAForm.module.css'; // This CSS file will need to be updated!
+import styles from './DeveloperForm.module.css';
 
-const QAForm = ({
+const DeveloperForm = ({
   isOpen,
   onClose,
   onSubmit,
@@ -26,35 +17,28 @@ const QAForm = ({
     email: '',
     mobileNumber: '',
     trainingEndDate: '',
-    skills: [], // Was 'skills' in DevOpsForm
+    skills: [],
     projects: []
   });
 
-  const [isToolsOpen, setIsToolsOpen] = useState(false); // Was 'isRTOpen'
+  const [isLTOpen, setIsLTOpen] = useState(false);
   const [isProjOpen, setIsProjOpen] = useState(false);
   const [errors, setErrors] = useState({});
-  
-  // Project state
   const [projectOptions, setProjectOptions] = useState([]);
   const [projLoading, setProjLoading] = useState(false);
   const [projError, setProjError] = useState('');
-
-  // Tool state
-  const [toolOptions, setToolOptions] = useState([]); // Was 'resourceTypes'
-  const [toolsLoading, setToolsLoading] = useState(false); // Was 'rtLoading'
-  const [toolsError, setToolsError] = useState(''); // Was 'rtError'
+  const [languageTypes, setLanguageTypes] = useState([]);
+  const [ltLoading, setLtLoading] = useState(false);
+  const [ltError, setLtError] = useState('');
 
   // Check if we're in edit mode
   const isEditMode = !!editingIntern;
 
-  // Hydrate form on open/edit
   useEffect(() => {
     if (editingIntern) {
-      // Helper to normalize incoming data to an array
       const toList = (v) =>
         Array.isArray(v) ? v
         : (typeof v === 'string' && v.trim() ? v.split(',').map(s => s.trim()).filter(Boolean) : []);
-      
       setFormData({
         internCode: editingIntern.internCode || '',
         name: editingIntern.name || '',
@@ -62,12 +46,10 @@ const QAForm = ({
         mobileNumber: editingIntern.mobileNumber || '',
         trainingEndDate: editingIntern.trainingEndDate ? 
           editingIntern.trainingEndDate.split('T')[0] : '',
-        // Use 'tools' or 'skills' from incoming data
         skills: toList(editingIntern.skills),
         projects: toList(editingIntern.projects)
       });
     } else {
-      // Reset for "Add New"
       setFormData({
         internCode: '',
         name: '',
@@ -81,25 +63,21 @@ const QAForm = ({
     setErrors({});
   }, [editingIntern, isOpen]);
 
-  // --- Data Fetching ---
-
-  // Fetch QA Tools from Master Data
-  const fetchTools = async () => {
-    setToolsLoading(true);
-    setToolsError('');
+  // Fetch language types from Excel
+  const fetchLanguageTypes = async () => {
+    setLtLoading(true);
+    setLtError('');
     try {
-      // *** IMPORTANT: Using "TOOLS" as the category. Match this to your backend! ***
-      const response = await masterDataService.getActiveItemNamesForCategory("QA");
-      setToolOptions(response.data);
+      const response = await masterDataService.getActiveItemNamesForCategory("WEB_DEVELOPER");
+      setLanguageTypes(response.data);
     } catch (err) {
-      console.error('Failed to load QA tools', err);
-      setToolsError('Failed to load tools');
+      console.error('Failed to load Languages and frameworks types', err);
+      setLtError('Failed to load types');
     } finally {
-      setToolsLoading(false);
+      setLtLoading(false);
     }
   };
 
-  // Fetch Projects (copied directly from DevOpsForm)
   const fetchProjects = async () => {
     setProjLoading(true);
     setProjError('');
@@ -122,12 +100,11 @@ const QAForm = ({
   // FETCH when the modal opens
   useEffect(() => {
     if (isOpen) {
-      fetchTools(); // Call the new fetchTools function
+      fetchLanguageTypes();
       fetchProjects();
     }
   }, [isOpen]);
 
-  // --- Validation ---
   const validateForm = () => {
     const newErrors = {};
 
@@ -149,6 +126,13 @@ const QAForm = ({
       newErrors.email = 'Please enter a valid email address';
     }
 
+    // if (!formData.mobileNumber.trim()) {
+    //   newErrors.mobileNumber = 'Mobile number is required';
+    // } else 
+    //   if (!/^(\+?\d{9,15}|0\d{9})$/.test(formData.mobileNumber.trim())) {
+    //   newErrors.mobileNumber = 'Enter a valid phone number';
+    // }
+
     if (formData.mobileNumber.trim()) {
       if (!/^(\+?\d{9,15}|0\d{9})$/.test(formData.mobileNumber.trim())) {
         newErrors.mobileNumber = 'Enter a valid phone number';
@@ -162,20 +146,17 @@ const QAForm = ({
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      if (endDate < today && !isEditMode) { // Only check for past dates in ADD mode
+      if (endDate < today) {
         newErrors.trainingEndDate = 'End date cannot be in the past';
       }
     }
 
-    // Updated for 'tools'
     if (!Array.isArray(formData.skills) || formData.skills.length === 0) {
-      newErrors.skills = 'Select at least one tool';
+      newErrors.skills = 'Select at least one language or framework type';
     }
 
     return newErrors;
   };
-
-  // --- Handlers (copied from DevOpsForm) ---
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -186,7 +167,6 @@ const QAForm = ({
       return;
     }
 
-    // Submit the whole formData object, plus the internId for edits
     onSubmit({
       ...formData,
       internId: editingIntern?.internId ?? null,
@@ -210,33 +190,31 @@ const QAForm = ({
 
   const handleClose = () => {
     if (!isLoading) {
-      setIsToolsOpen(false); // Close tools dropdown
+      setIsLTOpen(false);
       setIsProjOpen(false);
       onClose();
     }
   };
 
-  // Generic helper for multi-select arrays in formData
+  if (!isOpen) return null;
+
   const toggleMulti = (field, value) => {
     setFormData(prev => {
       const set = new Set(prev[field]);
       set.has(value) ? set.delete(value) : set.add(value);
       return { ...prev, [field]: Array.from(set) };
     });
-    // Clear errors for this field
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
-
-  if (!isOpen) return null;
 
   return createPortal(
     <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.header}>
           <h2 className={styles.title}>
-            {editingIntern ? 'Edit QA Intern' : 'Add QA Intern'}
+            {editingIntern ? 'Edit Developer Intern' : 'Add Developer Intern'}
           </h2>
           <button
             type="button"
@@ -251,9 +229,6 @@ const QAForm = ({
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.formGrid}>
-            
-            {/* --- Basic Info Fields (Copied from DevOpsForm) --- */}
-
             {/* Intern Code */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="internCode">
@@ -267,7 +242,7 @@ const QAForm = ({
                 value={formData.internCode}
                 onChange={handleInputChange}
                 className={`${styles.input} ${errors.internCode ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
-                placeholder="e.g., QA001"
+                placeholder="e.g., T0001"
                 disabled={isLoading || isEditMode}
                 readOnly={isEditMode}
                 required
@@ -341,6 +316,7 @@ const QAForm = ({
                 title="Enter a valid phone number"
                 disabled={isLoading || isEditMode}
                 readOnly={isEditMode}
+                // required
               />
               {errors.mobileNumber && (
                 <span className={styles.errorText}>{errors.mobileNumber}</span>
@@ -368,43 +344,43 @@ const QAForm = ({
               )}
             </div>
 
-            {/* --- QA Tools (Adapted from Resource Type) --- */}
+            {/* Language and framework Type */}
             <div className={styles.inputGroup}>
               <label className={styles.label}>
-                <FiTool className={styles.labelIcon} />
-                QA Tools
+                <FiServer className={styles.labelIcon} />
+                Language and Framework Type
               </label>
               <div
-                className={`${styles.multiSelect} ${errors.tools ? styles.inputError : ''}`}
-                onClick={() => !isLoading && !toolsLoading && setIsToolsOpen(v => !v)}
+                className={`${styles.multiSelect} ${errors.skills ? styles.inputError : ''}`}
+                onClick={() => !isLoading && !ltLoading && setIsLTOpen(v => !v)}
                 role="button"
-                aria-expanded={isToolsOpen}
+                aria-expanded={isLTOpen}
               >
                 <div className={styles.multiControl}>
                   <div className={styles.multiValue}>
                     {formData.skills.length
                       ? formData.skills.join(', ')
-                      : (toolsLoading ? 'Loading…' : 'Select one or more…')}
+                      : (ltLoading ? 'Loading…' : 'Select one or more…')}
                   </div>
                   <FiChevronDown className={styles.caret} />
                 </div>
-                {isToolsOpen && (
+                {isLTOpen && (
                   <div
                     className={styles.multiMenu}
                     onClick={(e) => e.stopPropagation()}
                     role="listbox"
                   >
-                    {toolsLoading && (
-                      <div className={styles.optionRow}><span>Loading tools…</span></div>
+                    {ltLoading && (
+                      <div className={styles.optionRow}><span>Loading types…</span></div>
                     )}
-                    {!toolsLoading && toolsError && (
-                      <div className={styles.optionRow}><span>{toolsError}</span></div>
+                    {!ltLoading && ltError && (
+                      <div className={styles.optionRow}><span>{ltError}</span></div>
                     )}
-                    {!toolsLoading && !toolsError && toolOptions.length === 0 && (
-                      <div className={styles.optionRow}><span>No tools found</span></div>
+                    {!ltLoading && !ltError && languageTypes.length === 0 && (
+                      <div className={styles.optionRow}><span>No types found</span></div>
                     )}
 
-                    {!toolsLoading && !toolsError && toolOptions.map(opt => (
+                    {!ltLoading && !ltError && languageTypes.map(opt => (
                       <label key={opt} className={styles.optionRow}>
                         <input
                           type="checkbox"
@@ -423,12 +399,13 @@ const QAForm = ({
               )}
             </div>
 
-            {/* --- Projects (Copied directly from DevOpsForm) --- */}
+            {/* Projects */}
             <div className={styles.inputGroup}>
               <label className={styles.label}>
-                <FiFolderPlus className={styles.labelIcon} />
+                <FiLayers className={styles.labelIcon} />
                 Projects
               </label>
+
               <div
                 className={`${styles.multiSelect} ${projError ? styles.inputError : ''}`}
                 onClick={() => !isLoading && setIsProjOpen(v => !v)}
@@ -443,6 +420,7 @@ const QAForm = ({
                   </div>
                   <FiChevronDown className={styles.caret} />
                 </div>
+
                 {isProjOpen && (
                   <div
                     className={styles.multiMenu}
@@ -454,16 +432,19 @@ const QAForm = ({
                         <span>Loading projects…</span>
                       </div>
                     )}
+
                     {!projLoading && projError && (
                       <div className={styles.optionRow}>
                         <span>{projError}</span>
                       </div>
                     )}
+
                     {!projLoading && !projError && projectOptions.length === 0 && (
                       <div className={styles.optionRow}>
                         <span>No projects found</span>
                       </div>
                     )}
+
                     {!projLoading && !projError && projectOptions.map(opt => (
                       <label key={opt} className={styles.optionRow}>
                         <input
@@ -479,10 +460,8 @@ const QAForm = ({
                 )}
               </div>
             </div>
-            
           </div>
 
-          {/* --- Actions (Copied from DevOpsForm) --- */}
           <div className={styles.formActions}>
             <button
               type="button"
@@ -514,4 +493,4 @@ const QAForm = ({
   );
 };
 
-export default QAForm;
+export default DeveloperForm;

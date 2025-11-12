@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { DevOpsForm, DevOpsTable } from '../../components';
+import { DeveloperForm, DeveloperTable } from '../../components';
 import { internService, categoryService } from '../../services/api';
-import styles from './DevOps.module.css';
+import styles from './Developer.module.css';
 import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
 import MasterDataModal from '../../components/MasterDataModal/MasterDataModal';
 
-const DevOps = () => {
-  const [devOpsInterns, setDevOpsInterns] = useState([]);
+const Developer = () => {
+  const [developerInterns, setDeveloperInterns] = useState([]);
   const [filteredInterns, setFilteredInterns] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -17,7 +17,7 @@ const DevOps = () => {
   const [sortOption, setSortOption] = useState('internCode:asc');
   const [currentLeadId, setCurrentLeadId] = useState(null);
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
-  const DEVOPS_CATEGORY_ID = 3;
+  const DEVELOPER_CATEGORY_ID = 1;
 
 
   // Simulate loading data
@@ -27,12 +27,12 @@ const DevOps = () => {
       setError('');
       
       try {
-        // Step 1: Fetch all interns for the DevOps category
-        const internsResponse = await internService.getInternsByCategoryId(DEVOPS_CATEGORY_ID);
-        setDevOpsInterns(internsResponse.data);
+        // Step 1: Fetch all interns for the Developer category
+        const internsResponse = await internService.getInternsByCategoryId(DEVELOPER_CATEGORY_ID);
+        setDeveloperInterns(internsResponse.data);
 
         // Step 2: Fetch the current lead from the backend
-        const categoryResponse = await categoryService.getCategoryById(DEVOPS_CATEGORY_ID);
+        const categoryResponse = await categoryService.getCategoryById(DEVELOPER_CATEGORY_ID);
         if (categoryResponse.data && categoryResponse.data.leadInternId) {
           setCurrentLeadId(categoryResponse.data.leadInternId);
         }
@@ -46,20 +46,20 @@ const DevOps = () => {
       }
     };
     loadData();
-  }, [DEVOPS_CATEGORY_ID]);
+  }, [DEVELOPER_CATEGORY_ID]);
 
   const asText = (v) => Array.isArray(v) ? v.join(', ') : (v ?? '');
 
   // Filter interns based on search term
   useEffect(() => {
     const term = searchTerm.toLowerCase().trim();
-    let list = !term ? [...devOpsInterns] : devOpsInterns.filter(intern => {
+    let list = !term ? [...developerInterns] : developerInterns.filter(intern => {
       const name = (intern.name || '').toLowerCase();
       const code = (intern.internCode || '').toLowerCase();
-      const resType = asText(intern.skills).toLowerCase();
+      const langType = asText(intern.skills).toLowerCase();
       const proj = asText(intern.projects).toLowerCase();
       const mobile = (intern.mobileNumber || '').toLowerCase();
-      return name.includes(term) || code.includes(term) || resType.includes(term) || proj.includes(term) || mobile.includes(term);
+      return name.includes(term) || code.includes(term) || langType.includes(term) || proj.includes(term) || mobile.includes(term);
     });
 
     // Sorting
@@ -77,7 +77,7 @@ const DevOps = () => {
             aVal = a.trainingEndDate;
             bVal = b.trainingEndDate;
             break;
-          case 'resourceType':
+          case 'languageType':
             aVal = asText(a.skills);
             bVal = asText(b.skills);
             break;
@@ -104,16 +104,16 @@ const DevOps = () => {
       });
     }
     setFilteredInterns(list);
-  }, [devOpsInterns, searchTerm, sortOption]);
+  }, [developerInterns, searchTerm, sortOption]);
 
   // Assign new lead
   const handleAssignLead = async (internId) => {
     try {
       setError('');
-      await categoryService.assignLead(DEVOPS_CATEGORY_ID, internId);
+      await categoryService.assignLead(DEVELOPER_CATEGORY_ID, internId);
 
       setCurrentLeadId(internId);
-      alert('New DevOps lead has been assigned successfully!');
+      alert('New Developer lead has been assigned successfully!');
 
     } catch (err) {
       console.error('Error assigning lead:', err);
@@ -133,7 +133,7 @@ const DevOps = () => {
   };
 
   const handleDeleteIntern = async (internId) => {
-    const internName = devOpsInterns.find(i => i.internId === internId)?.name || 'this intern';
+    const internName = developerInterns.find(i => i.internId === internId)?.name || 'this intern';
     if (!window.confirm(`Are you sure you want to delete ${internName}?`)) {
       return;
     }
@@ -142,9 +142,9 @@ const DevOps = () => {
       setError('');
       await internService.deleteIntern(internId);
       // Update state *after* successful API call
-      setDevOpsInterns(prev => prev.filter(intern => intern.internId !== internId));
+      setDeveloperInterns(prev => prev.filter(intern => intern.internId !== internId));
     } catch (err) {
-      console.error('Error deleting DevOps intern:', err);
+      console.error('Error deleting Developer intern:', err);
       const errorMsg = err.response?.data?.message || 'Failed to delete intern.';
       setError(errorMsg);
     }
@@ -159,7 +159,7 @@ const DevOps = () => {
         // --- EDIT MODE ---
         const response = await internService.updateIntern(payload.internId, payload);
         // Update the list with the fresh data from the server
-        setDevOpsInterns(prev =>
+        setDeveloperInterns(prev =>
           prev.map(intern =>
             intern.internId === payload.internId ? response.data : intern
           )
@@ -168,7 +168,7 @@ const DevOps = () => {
         // --- ADD NEW MODE ---
         const response = await internService.createIntern(payload);
         // Add the new intern (from the server) to our list
-        setDevOpsInterns(prev => [...prev, response.data]);
+        setDeveloperInterns(prev => [...prev, response.data]);
       }
 
       setIsFormOpen(false);
@@ -199,9 +199,9 @@ const DevOps = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>DevOps Interns Management</h1>
+        <h1 className={styles.title}>Developer Interns Management</h1>
         <p className={styles.subtitle}>
-          Manage DevOps interns, infrastructure resources, and deployment tracking
+          Manage Developer interns, skills, and project assignments
         </p>
       </div>
 
@@ -232,15 +232,15 @@ const DevOps = () => {
               className={styles.secondaryBtn}
               onClick={() => setIsManageModalOpen(true)}
             >
-              Manage Resource Types
+              Manage Languages and Frameworks
             </button>
           </div>
           <div className={styles.filterSection}>
-            <CategoryDropdown current="devops" />
+            <CategoryDropdown current="developers" />
             <form onSubmit={handleSearch} className={styles.searchSection}>
               <input 
                 type="text" 
-                placeholder="Search by name, code, resource type, projects, or mobile..." 
+                placeholder="Search by name, code, language type, projects, or mobile..." 
                 className={styles.searchInput}
                 value={searchTerm}
                 onChange={handleSearchChange}
@@ -258,8 +258,8 @@ const DevOps = () => {
                 <option value="internCode:desc">Intern Code (Descending)</option>
                 <option value="endDate:asc">End Date (Ascending)</option>
                 <option value="endDate:desc">End Date (Descending)</option>
-                <option value="resourceType:asc">Resource Type (Ascending)</option>
-                <option value="resourceType:desc">Resource Type (Descending)</option>
+                <option value="languageType:asc">Language Type (Ascending)</option>
+                <option value="languageType:desc">Language Type (Descending)</option>
               </select>
             </div>
           </div>
@@ -268,7 +268,7 @@ const DevOps = () => {
         <div className={styles.tableSection}>
           <div className={styles.tableHeader}>
             <h3 className={styles.tableTitle}>
-              All DevOps Interns ({filteredInterns.length})
+              All Developer Interns ({filteredInterns.length})
             </h3>
             {searchTerm && (
               <p className={styles.searchInfo}>
@@ -282,8 +282,8 @@ const DevOps = () => {
               </p>
             )}
           </div>
-          
-          <DevOpsTable
+
+          <DeveloperTable
             interns={filteredInterns}
             onEdit={handleEditIntern}
             onDelete={handleDeleteIntern}
@@ -294,7 +294,7 @@ const DevOps = () => {
         </div>
       </div>
 
-      <DevOpsForm
+      <DeveloperForm
         isOpen={isFormOpen}
         onClose={handleCloseForm}
         onSubmit={handleFormSubmit}
@@ -305,11 +305,11 @@ const DevOps = () => {
       <MasterDataModal
         isOpen={isManageModalOpen}
         onClose={() => setIsManageModalOpen(false)}
-        category="DEVOPS"
-        title="Manage DevOps Resources"
+        category="WEB_DEVELOPER"
+        title="Manage Languages and Frameworks"
       />
     </div>
   );
 };
 
-export default DevOps;
+export default Developer;

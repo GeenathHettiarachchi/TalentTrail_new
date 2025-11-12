@@ -51,6 +51,15 @@ public class InternController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<InternDTO>> getInternsByCategoryId(@PathVariable Integer categoryId) {
+        List<Intern> interns = internService.getInternsByCategoryId(categoryId);
+        List<InternDTO> internDTOs = interns.stream()
+                .map(internMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(internDTOs);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<InternDTO> update(@PathVariable Long id, @RequestBody InternDTO internDTO) {
         Intern intern = internMapper.toEntity(internDTO);

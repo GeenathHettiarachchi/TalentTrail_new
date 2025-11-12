@@ -1,0 +1,302 @@
+/*
+ * Attractive CSS for the MasterDataModal component
+ */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Darker overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background: white;
+  border-radius: 12px; /* Softer radius */
+  padding: 0; /* Remove padding, we'll control it internally */
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.3s cubic-bezier(0.25, 0, 0.3, 1);
+  overflow: hidden; /* Important for rounded corners */
+  z-index: 1001;
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px) scale(0.98);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem; /* More padding */
+  border-bottom: 1px solid #e9ecef;
+}
+
+.title {
+  font-size: 1.15rem; /* Slightly smaller, more modern */
+  font-weight: 600;
+  color: #212529;
+  margin: 0;
+}
+
+.closeButton {
+  background: #f1f3f5;
+  border: none;
+  font-size: 1.1rem;
+  color: #495057;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: #e9ecef;
+  color: #000;
+  transform: rotate(90deg);
+}
+
+.errorAlert {
+  background-color: #fff5f5;
+  border-bottom: 1px solid #fed7d7;
+  color: #c53030;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* --- Add New Item Form --- */
+.addForm {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.input,
+.editInput {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input:focus,
+.editInput:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.addButton {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0 1rem;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.addButton:hover {
+  background-color: #2563eb;
+}
+
+/* --- List of Items --- */
+.itemList {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem 0.75rem 1.5rem; /* More left padding */
+  border-bottom: 1px solid #f1f3f5;
+  transition: all 0.2s ease;
+}
+
+.itemRow:last-child {
+  border-bottom: none;
+}
+
+/* This adds a subtle hover effect */
+.itemRow:not(:has(input)):hover {
+  background-color: #f8f9fa;
+}
+
+/* Style for optimistic updates */
+.itemRow.itemOptimistic {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.itemName {
+  flex: 1;
+  font-size: 0.95rem;
+  color: #212529;
+  padding-right: 1rem;
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem; /* Tighter gap */
+}
+
+/* New button style for icons */
+.actionButton {
+  background: transparent;
+  border: none;
+  padding: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #868e96;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  transition: all 0.2s ease;
+}
+
+.editButton:hover {
+  color: #3b82f6;
+  background-color: #e7f1ff;
+}
+.deleteButton:hover {
+  color: #e53e3e;
+  background-color: #fff5f5;
+}
+.saveButton {
+  color: #28a745;
+}
+.saveButton:hover {
+  color: #28a745;
+  background-color: #eafbee;
+}
+.cancelButton {
+  color: #dc3545;
+}
+.cancelButton:hover {
+  color: #dc3545;
+  background-color: #fff5f5;
+}
+
+/* --- In-line Edit Form --- */
+.editForm {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.editInput {
+  padding: 0.5rem 0.75rem; /* Smaller padding for in-line */
+  font-size: 0.95rem;
+}
+
+
+/* --- Archived (Soft Delete) Styles --- */
+
+.itemArchived {
+  background-color: #f8f9fa;
+  color: #adb5bd;
+}
+
+.itemArchived .itemName {
+  text-decoration: line-through;
+  color: #adb5bd;
+}
+
+.archivedBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6c757d;
+  background-color: #e9ecef;
+  padding: 3px 8px;
+  border-radius: 12px; /* Pill shape */
+  margin-left: auto;
+  margin-right: 1rem;
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+
+.actionButton:disabled {
+  color: #ced4da;
+  cursor: not-allowed;
+  background-color: transparent;
+}
+.actionButton:disabled:hover {
+  color: #ced4da;
+  background-color: transparent;
+}
+
+.reactivateButton {
+  color: #28a745; /* Green */
+}
+.reactivateButton:hover {
+  color: #218838; /* Darker Green */
+  background-color: #eafbee;
+}
+
+/* --- Loading / Empty States --- */
+.loadingState,
+.emptyState {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #e9ecef;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

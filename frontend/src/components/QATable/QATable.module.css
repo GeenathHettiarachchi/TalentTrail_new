@@ -9,10 +9,10 @@
   overflow-x: auto;
 }
 
-.table { 
-  width: 100%; 
-  border-collapse: collapse; 
-  font-size: 0.875rem; 
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
 }
 
 .thead {
@@ -48,11 +48,15 @@
   border-bottom: none;
 }
 
-.td { 
-  padding: 0.85rem 1rem; 
-  color: #495057; 
-  font-size: 0.875rem; 
-  vertical-align: middle; 
+.trInteractive {
+  cursor: pointer;
+}
+
+.td {
+  padding: 0.85rem 1rem;
+  color: #495057;
+  font-size: 0.875rem;
+  vertical-align: middle;
 }
 
 .internCode {
@@ -64,10 +68,10 @@
   font-size: 0.85rem;
 }
 
-.nameCell { 
-  display: flex; 
-  align-items: center; 
-  gap: 8px; 
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .name {
@@ -79,19 +83,66 @@
   color: #6c757d;
 }
 
+.mobile {
+  white-space: nowrap;
+}
+
+/* === QATable Specific: End Date Styles === */
 .endDate {
-  color: #dc3545;
   font-weight: 500;
+  transition: all 0.2s ease;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* Normal end date (more than 1 month away) */
+/* Normal end date (more than 1 month away) */
+.endDateNormal {
+  color: #28a745; /* green text only */
+  background: none;
+  border: none;
+}
+
+/* Warning end date (within 1 month) */
+.endDateWarning {
+  color: #dc3545; /* red text only */
+  background: none;
+  border: none;
+  font-weight: 600;
+}
+
+.endDateWarning:hover {
+  background: none;
+  transform: none;
+}
+
+/* === End QATable Specific === */
+
+
+.projects {
+  color: #6c757d;
 }
 
 .skills {
   color: #495057;
 }
 
-.actionsCell { 
-  position: relative; 
-  width: 50px; 
-  text-align: center; 
+.muted {
+  color: #6b7280;
+}
+
+.actionsCell {
+  position: relative;
+  width: 50px;
+  text-align: center;
+}
+
+.cellPills {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .menuButton {
@@ -112,9 +163,9 @@
   color: #2c3e50;
 }
 
-.menu { 
-  position: absolute; 
-  top: 28px; 
+.menu {
+  position: absolute;
+  top: 28px;
   right: 0;
   background: white;
   border: 1px solid #e9ecef;
@@ -196,6 +247,90 @@
   color: #6c757d;
   margin: 0;
   text-align: center;
+}
+
+/* === QATable Specific: Pill Expansion Logic === */
+.inlineListWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.listBase {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+
+.listOneLine {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.listWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.listItemTool,
+.listItemProject {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f1f3f5;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.listItem {
+  white-space: nowrap;
+  background: #f1f3f5;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.chevronBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px;
+  line-height: 1;
+  transition: transform 0.18s ease;
+  font-size: 18px; /* icon size */
+  color: inherit;
+}
+
+.chevronRotated {
+  transform: rotate(180deg);
+}
+/* === End QATable Specific === */
+
+.leadBadge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: #ffd700; /* Gold color */
+  color: #333;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
 }
 
 /* Responsive Design */
