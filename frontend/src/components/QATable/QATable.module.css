@@ -87,6 +87,7 @@
   white-space: nowrap;
 }
 
+/* === QATable Specific: End Date Styles === */
 .endDate {
   font-weight: 500;
   transition: all 0.2s ease;
@@ -95,14 +96,17 @@
   display: inline-block;
 }
 
+/* Normal end date (more than 1 month away) */
+/* Normal end date (more than 1 month away) */
 .endDateNormal {
-  color: #28a745;
+  color: #28a745; /* green text only */
   background: none;
   border: none;
 }
 
+/* Warning end date (within 1 month) */
 .endDateWarning {
-  color: #dc3545;
+  color: #dc3545; /* red text only */
   background: none;
   border: none;
   font-weight: 600;
@@ -112,6 +116,9 @@
   background: none;
   transform: none;
 }
+
+/* === End QATable Specific === */
+
 
 .projects {
   color: #6c757d;
@@ -242,6 +249,7 @@
   text-align: center;
 }
 
+/* === QATable Specific: Pill Expansion Logic === */
 .inlineListWrap {
   display: flex;
   align-items: center;
@@ -305,25 +313,27 @@
   padding: 2px;
   line-height: 1;
   transition: transform 0.18s ease;
-  font-size: 18px;
+  font-size: 18px; /* icon size */
   color: inherit;
 }
 
 .chevronRotated {
   transform: rotate(180deg);
 }
+/* === End QATable Specific === */
 
 .leadBadge {
   margin-left: 8px;
   padding: 2px 8px;
   border-radius: 12px;
-  background-color: #ffd700;
+  background-color: #ffd700; /* Gold color */
   color: #333;
   font-size: 0.75rem;
   font-weight: 600;
   vertical-align: middle;
 }
 
+/* Responsive Design */
 @media (max-width: 1024px) {
   .th,
   .td {
