@@ -467,7 +467,31 @@ const InstitutePopup = ({
             </div>
           )}
         </div>
-
+{/* Footer Actions */}
+        <div className={styles.popupFooter}>
+          <button 
+            className={styles.cancelButton} 
+            onClick={handleClose}
+          >
+            Close
+          </button>
+          
+          {step === "degree" && (
+            <button 
+              className={`${styles.submitButton} ${
+                !selectedDegree ? styles.disabled : ""
+              }`}
+              onClick={handleSubmit}
+              disabled={!selectedDegree}
+            >
+              {currentInstitute ? "Update Institute" : "Select Institute"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const InternForm = ({
   isOpen,
