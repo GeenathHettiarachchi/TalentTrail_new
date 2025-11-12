@@ -764,6 +764,159 @@ const AcademicDetailsForm = ({
   );
 };
 
+// Academic Details List Component
+const AcademicDetailsList = () => {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingDetail, setEditingDetail] = useState(null);
+  const [academicDetails, setAcademicDetails] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const savedDetails = localStorage.getItem('academicDetails');
+    if (savedDetails) {
+      setAcademicDetails(JSON.parse(savedDetails));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('academicDetails', JSON.stringify(academicDetails));
+  }, [academicDetails]);
+
+  const handleAddNew = () => {
+    setEditingDetail(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEdit = (detail) => {
+    setEditingDetail(detail);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete this academic detail?")) {
+      setAcademicDetails(prev => prev.filter(detail => detail.id !== id));
+    }
+  };
+
+  const handleSubmit = async (formData) => {
+    setIsLoading(true);
+    
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    if (editingDetail) {
+      setAcademicDetails(prev =>
+        prev.map(detail =>
+          detail.id === editingDetail.id
+            ? { ...formData, id: editingDetail.id }
+            : detail
+        )
+      );
+    } else {
+      const newDetail = {
+        ...formData,
+        id: Date.now()
+      };
+      setAcademicDetails(prev => [...prev, newDetail]);
+    }
+    
+    setIsLoading(false);
+    setIsFormOpen(false);
+    setEditingDetail(null);
+  };
+
+  const getStatusBadge = (isCurrent) => {
+    return isCurrent ? (
+      <span className={styles.academicCurrentBadge}>Current</span>
+    ) : (
+      <span className={styles.academicCompletedBadge}>Completed</span>
+    );
+  };
+
+  return (
+    <div className={styles.academicContainer}>
+      <div className={styles.academicHeader}>
+        <div className={styles.academicTitleSection}>
+          <FiBook className={styles.academicTitleIcon} />
+          <h2 className={styles.academicTitle}>Academic Details (Sri Lanka · Undergraduate)</h2>
+        </div>
+        <button
+          type="button"
+          className={styles.academicAddButton}
+          onClick={handleAddNew}
+        >
+          <FiPlus className={styles.academicAddIcon} />
+          Add Academic Details
+        </button>
+      </div>
+
+      <div className={styles.academicDetailsList}>
+        {academicDetails.length === 0 ? (
+          <div className={styles.academicEmptyState}>
+            <FiBook className={styles.academicEmptyIcon} />
+            <h3>No Academic Details Added</h3>
+            <p>Click "Add Academic Details" to add your educational background.</p>
+          </div>
+        ) : (
+          academicDetails.map((detail) => (
+            <div key={detail.id} className={styles.academicDetailCard}>
+              <div className={styles.academicDetailInfo}>
+                <div className={styles.academicDetailHeader}>
+                  <h3 className={styles.academicDegree}>{detail.degree}</h3>
+                  {getStatusBadge(detail.isCurrent)}
+                </div>
+                <div className={styles.academicDetailMeta}>
+                  <p className={styles.academicUniversity}>
+                    <strong>University:</strong> {detail.university}
+                  </p>
+                  <p className={styles.academicFaculty}>
+                    <strong>Faculty:</strong> {detail.faculty}
+                  </p>
+                  <p className={styles.academicYear}>
+                    <strong>Status:</strong>{" "}
+                    {detail.isCurrent 
+                      ? "Currently studying" 
+                      : `Completed in ${detail.yearOfCompletion}`
+                    }
+                  </p>
+                </div>
+              </div>
+              <div className={styles.academicActions}>
+                <button
+                  type="button"
+                  className={styles.academicEditButton}
+                  onClick={() => handleEdit(detail)}
+                  title="Edit details"
+                >
+                  <FiEdit2 />
+                </button>
+                <button
+                  type="button"
+                  className={styles.academicDeleteButton}
+                  onClick={() => handleDelete(detail.id)}
+                  title="Delete details"
+                >
+                  <FiTrash2 />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <AcademicDetailsForm
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditingDetail(null);
+        }}
+        onSubmit={handleSubmit}
+        academicDetails={editingDetail}
+        isLoading={isLoading}
+      />
+    </div>
+  );
+};
+
 const InternForm = ({
   isOpen,
   onClose,
