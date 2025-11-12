@@ -30,7 +30,7 @@
 .modal {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow);
   max-width: 650px;
   width: 100%;
   max-height: 90vh;
@@ -55,12 +55,12 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .title {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.5rem;
   font-weight: 600;
 }
@@ -69,7 +69,7 @@
   background: none;
   border: none;
   font-size: 1.8rem;
-  color: #6c757d;
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 0;
   width: 30px;
@@ -78,7 +78,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  transition: all 0.2s ease;
+  transition: var(--transition);
 }
 
 .closeButton:hover {
@@ -105,7 +105,7 @@
 
 .label {
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
   display: flex;
@@ -114,40 +114,40 @@
 }
 
 .labelIcon {
-  color: #3498db;
+  color: var(--primary-color);
 }
 
 /* ========== Inputs ========== */
 .input {
   padding: 0.75rem 1rem;
-  border: 2px solid #e9ecef;
-  border-radius: 6px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
   font-size: 1rem;
-  transition: border-color 0.3s ease, background-color 0.3s ease;
+  transition: var(--transition);
   outline: none;
 }
 
 .input:focus {
-  border-color: #3498db;
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 .inputError {
-  border-color: #e74c3c;
+  border-color: var(--error-color);
 }
 
 .inputError:focus {
-  border-color: #e74c3c;
+  border-color: var(--error-color);
   box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
 }
 
-/* Disabled Fields */
 .input:disabled {
   background-color: #f5f6f7;
   color: #7a7a7a;
   cursor: not-allowed;
   border-color: #e5e7eb;
 }
+
 /* Institute Selector */
 .instituteSelector {
   position: relative;
@@ -276,10 +276,18 @@ select.input {
 
 /* ========== Error Text ========== */
 .errorText {
-  color: #e74c3c;
+  color: var(--error-color);
   font-size: 0.8rem;
   margin-top: 0.25rem;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.errorText::before {
+  content: "⚠";
+  font-size: 14px;
 }
 
 /* ========== Actions ========== */
@@ -288,23 +296,23 @@ select.input {
   justify-content: flex-end;
   gap: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid var(--border-color);
 }
 
 .cancelButton {
   padding: 0.75rem 1.5rem;
-  border: 2px solid #6c757d;
+  border: 2px solid var(--text-secondary);
   background: transparent;
-  color: #6c757d;
-  border-radius: 6px;
+  color: var(--text-secondary);
+  border-radius: var(--border-radius);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .cancelButton:hover:not(:disabled) {
-  background-color: #6c757d;
+  background-color: var(--text-secondary);
   color: white;
 }
 
@@ -316,22 +324,31 @@ select.input {
 .submitButton {
   padding: 0.75rem 1.5rem;
   border: none;
-  background-color: #3498db;
+  background-color: var(--primary-color);
   color: white;
-  border-radius: 6px;
+  border-radius: var(--border-radius);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .submitButton:hover:not(:disabled) {
-  background-color: #2980b9;
+  background-color: var(--primary-hover);
 }
 
 .submitButton:disabled {
   background-color: #bdc3c7;
   cursor: not-allowed;
+}
+
+.submitButton.disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* ========== Spinner ========== */
@@ -951,5 +968,78 @@ select.input {
   .cancelButton,
   .submitButton {
     width: 100%;
+  }
+
+  .academicHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .academicDetailCard {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .academicActions {
+    align-self: flex-end;
+  }
+
+  .popupFooter {
+    flex-direction: column;
+  }
+
+  .institutePopup {
+    max-width: 90%;
+  }
+
+  .progressSteps {
+    gap: 1rem;
+  }
+
+  .progressConnector {
+    width: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .overlay {
+    padding: 0;
+  }
+  
+  .modal {
+    border-radius: 0;
+    max-height: 100vh;
+    height: 100vh;
+  }
+  
+  .header {
+    padding: 1rem;
+  }
+  
+  .form {
+    padding: 1rem;
+  }
+  
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .academicContainer {
+    padding: 1rem;
+  }
+
+  .institutePopup {
+    border-radius: 0;
+    max-height: 100vh;
+    height: 100vh;
+  }
+
+  .popupHeader {
+    padding: 1rem;
+  }
+
+  .popupContent {
+    padding: 1rem;
   }
 }
