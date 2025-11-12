@@ -45,6 +45,28 @@
   background-color: #2563eb;
 }
 
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* This will create the space between your two buttons */
+}
+
+.secondaryBtn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.625rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.secondaryBtn:hover {
+  background-color: #2563eb;
+}
+
 .filterSection {
   display: flex;
   align-items: center;

@@ -48,6 +48,10 @@
   border-bottom: none;
 }
 
+.trInteractive { 
+  cursor: pointer;
+}
+
 .td { 
   padding: 0.85rem 1rem; 
   color: #495057; 
@@ -90,7 +94,7 @@
 
 /* >30 days remains for end date */
 .endDateSafe {
-  color: #00c821;
+  color: #28a745;
 }
 
 .mobile {
@@ -254,6 +258,56 @@
   background: #eef2f7;
 }
 
+.expanderTh {
+  width: 32px;
+  min-width: 32px;
+  padding-left: 0.5rem;
+  padding-right: 0.25rem;
+}
+
+.expanderCell {
+  width: 32px;
+  min-width: 32px;
+  text-align: left;
+  padding-left: 0.5rem;
+  padding-right: 0.25rem;
+}
+
+.expanderBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+
+.expanderBtn:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.expanderBtn svg {
+  transition: transform .2s ease;
+  transform: rotate(0deg);
+}
+
+.expanderBtnOpen svg {
+  transform: rotate(90deg);
+}
+
+.expanderSpacer {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  visibility: hidden;
+}
+
 .expandedRow {
   background: #fafcff;
 }
@@ -274,6 +328,17 @@
   color: #475569;
   font-weight: 600;
   margin-bottom: 6px;
+}
+
+.leadBadge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: #ffd700; /* Gold color */
+  color: #333;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
 }
 
 /* Responsive Design */
@@ -340,65 +405,4 @@
   .emptyTitle {
     font-size: 1.1rem;
   }
-}
-.cellPills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  transition: all 0.3s ease-in-out;
-}
-
-.projectBadge {
-  background-color: #e9eefc;
-  color: #2c3e50;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 13px;
-  transition: transform 0.2s ease;
-}
-
-.projectBadge:hover {
-  transform: scale(1.05);
-}
-
-.moreBtn {
-  background: none;
-  border: none;
-  color: #007bff;
-  cursor: pointer;
-  font-size: 13px;
-  margin-left: 6px;
-  transition: color 0.2s ease;
-}
-
-.moreBtn:hover {
-  color: #0056b3;
-}
-
-/* === End Date Styling === */
-.endDate {
-  font-weight: 500;
-  padding: 4px 8px;
-  border-radius: 6px;
-  display: inline-block;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Red text / light red background for due soon */
-.endDateSoon {
-  background-color: #ffe6e6;
-  color: #d8000c;
-}
-
-/* Green text / light green background for safe */
-.endDateSafe {
-  background-color: #e6ffea;
-  color: #0003cf;
-}
-.endDateSoon:hover {
-  background-color: #ffcccc;
-}
-
-.endDateSafe:hover {
-  background-color: #cce0ff;
 }
