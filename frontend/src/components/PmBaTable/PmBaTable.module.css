@@ -1,0 +1,408 @@
+.tableContainer {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  font-size: 0.875rem; 
+}
+
+.thead {
+  background: linear-gradient(90deg, #08025f 0%, #02644c 75%);
+}
+
+.th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: white;
+  border-bottom: 2px solid #e9ecef;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tbody {
+  background: white;
+}
+
+.tr {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.tr:hover {
+  background-color: #f8f9fa;
+}
+
+.tr:last-child {
+  border-bottom: none;
+}
+
+.trInteractive { 
+  cursor: pointer;
+}
+
+.td { 
+  padding: 0.85rem 1rem; 
+  color: #495057; 
+  font-size: 0.875rem; 
+  vertical-align: middle; 
+}
+
+.internCode {
+  font-weight: 600;
+  color: #3498db;
+  background-color: #e3f2fd;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.nameCell { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+}
+
+.name {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.email {
+  color: #6c757d;
+}
+
+.endDate {
+  font-weight: 500;
+}
+
+/* <30 days remains for end date */
+.endDateSoon {
+  color: #dc3545;
+}
+
+/* >30 days remains for end date */
+.endDateSafe {
+  color: #28a745;
+}
+
+.mobile {
+  white-space: nowrap;
+}
+
+.projectsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.projectBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #374151;
+  font-size: 12px;
+  line-height: 18px;
+  border: 1px solid #e5e7eb;
+}
+
+.projects {
+  color: #6c757d;
+}
+
+.resourceType {
+  color: #495057;
+}
+
+.actionsCell { 
+  position: relative; 
+  width: 50px; 
+  text-align: center; 
+}
+
+.cellPills {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.menuButton {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 6px;
+  font-size: 1.25rem;
+  color: #6c757d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menuButton:hover {
+  background-color: #f1f3f5;
+  color: #2c3e50;
+}
+
+.menu { 
+  position: absolute; 
+  top: 28px; 
+  right: 0;
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  min-width: 140px;
+  z-index: 2;
+  padding: 6px;
+}
+
+.menuItem {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #374151;
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: #f8fafc;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 2px dashed #e9ecef;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.emptyTitle {
+  color: #2c3e50;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.emptyText {
+  color: #6c757d;
+  margin: 0;
+  text-align: center;
+}
+
+.moreBtn {
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
+}
+
+.moreBtn:hover {
+  background: #eef2f7;
+}
+
+.expanderTh {
+  width: 32px;
+  min-width: 32px;
+  padding-left: 0.5rem;
+  padding-right: 0.25rem;
+}
+
+.expanderCell {
+  width: 32px;
+  min-width: 32px;
+  text-align: left;
+  padding-left: 0.5rem;
+  padding-right: 0.25rem;
+}
+
+.expanderBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+
+.expanderBtn:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.expanderBtn svg {
+  transition: transform .2s ease;
+  transform: rotate(0deg);
+}
+
+.expanderBtnOpen svg {
+  transform: rotate(90deg);
+}
+
+.expanderSpacer {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  visibility: hidden;
+}
+
+.expandedRow {
+  background: #fafcff;
+}
+
+.expandedCell {
+  padding: 0.85rem 1rem 1rem 1rem;
+  border-top: 1px solid #eef2f7;
+}
+
+.expandedContent {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+}
+
+.sectionTitle {
+  font-size: 0.8rem;
+  color: #475569;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.leadBadge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: #ffd700; /* Gold color */
+  color: #333;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .th,
+  .td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .th {
+    font-size: 0.8rem;
+  }
+  
+  .td {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .tableWrapper {
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .table {
+    min-width: 800px;
+  }
+  
+  .th,
+  .td {
+    padding: 0.5rem;
+  }
+  
+  .th {
+    font-size: 0.75rem;
+  }
+  
+  .td {
+    font-size: 0.85rem;
+  }
+  
+  .menuButton {
+    font-size: 1.1rem;
+  }
+
+  .expandedContent {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .table {
+    min-width: 700px;
+  }
+  
+  .emptyState {
+    padding: 2rem 1rem;
+  }
+  
+  .emptyIcon {
+    font-size: 2.5rem;
+  }
+  
+  .emptyTitle {
+    font-size: 1.1rem;
+  }
+}
