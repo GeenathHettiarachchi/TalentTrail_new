@@ -24,3 +24,5 @@ export { default as Login } from './Login/Login';
 export { default as ProtectedRoute } from './ProtectedRoute/ProtectedRoute';
 export { default as RoleBasedAccess } from './RoleBasedAccess/RoleBasedAccess';
 export { default as DocumentationSection } from './DocumentationSection/DocumentationSection';
+export { default as PmBaForm } from './PmBaForm/PmBaForm';
+export { default as PmBaTable} from './PmBaTable/PmBaTable';
