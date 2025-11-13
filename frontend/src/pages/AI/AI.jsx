@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { DeveloperForm, DeveloperTable } from '../../components';
+import { AIForm, AITable } from '../../components'; 
 import { internService, categoryService } from '../../services/api';
-import styles from './Developer.module.css';
+import styles from './AI.module.css'; // Assuming you create an AI.module.css (it can be a copy of DevOps.module.css)
 import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
-import MasterDataModal from '../../components/MasterDataModal/MasterDataModal';
+// MasterDataModal is no longer needed
 
-const Developer = () => {
-  const [developerInterns, setDeveloperInterns] = useState([]);
+const AI = () => {
+  const [aiInterns, setAiInterns] = useState([]); // Renamed state
   const [filteredInterns, setFilteredInterns] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -16,8 +16,7 @@ const Developer = () => {
   const [error, setError] = useState('');
   const [sortOption, setSortOption] = useState('internCode:asc');
   const [currentLeadId, setCurrentLeadId] = useState(null);
-  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
-  const DEVELOPER_CATEGORY_ID = 1;
+  const AI_CATEGORY_ID = 4;
 
 
   // Simulate loading data
@@ -27,12 +26,12 @@ const Developer = () => {
       setError('');
       
       try {
-        // Step 1: Fetch all interns for the Developer category
-        const internsResponse = await internService.getInternsByCategoryId(DEVELOPER_CATEGORY_ID);
-        setDeveloperInterns(internsResponse.data);
+        // Step 1: Fetch all interns for the AI category
+        const internsResponse = await internService.getInternsByCategoryId(AI_CATEGORY_ID);
+        setAiInterns(internsResponse.data);
 
         // Step 2: Fetch the current lead from the backend
-        const categoryResponse = await categoryService.getCategoryById(DEVELOPER_CATEGORY_ID);
+        const categoryResponse = await categoryService.getCategoryById(AI_CATEGORY_ID);
         if (categoryResponse.data && categoryResponse.data.leadInternId) {
           setCurrentLeadId(categoryResponse.data.leadInternId);
         }
@@ -46,20 +45,21 @@ const Developer = () => {
       }
     };
     loadData();
-  }, [DEVELOPER_CATEGORY_ID]);
+  }, [AI_CATEGORY_ID]); // Dependency updated
 
   const asText = (v) => Array.isArray(v) ? v.join(', ') : (v ?? '');
 
   // Filter interns based on search term
   useEffect(() => {
     const term = searchTerm.toLowerCase().trim();
-    let list = !term ? [...developerInterns] : developerInterns.filter(intern => {
+    let list = !term ? [...aiInterns] : aiInterns.filter(intern => { // Use aiInterns state
       const name = (intern.name || '').toLowerCase();
       const code = (intern.internCode || '').toLowerCase();
-      const langType = asText(intern.skills).toLowerCase();
+      // 'resType' (skills) logic is removed
       const proj = asText(intern.projects).toLowerCase();
       const mobile = (intern.mobileNumber || '').toLowerCase();
-      return name.includes(term) || code.includes(term) || langType.includes(term) || proj.includes(term) || mobile.includes(term);
+      // Updated return
+      return name.includes(term) || code.includes(term) || proj.includes(term) || mobile.includes(term);
     });
 
     // Sorting
@@ -77,10 +77,7 @@ const Developer = () => {
             aVal = a.trainingEndDate;
             bVal = b.trainingEndDate;
             break;
-          case 'languageType':
-            aVal = asText(a.skills);
-            bVal = asText(b.skills);
-            break;
+          // 'resourceType' case is removed
           case 'projects':
             aVal = asText(a.projects);
             bVal = asText(b.projects);
@@ -104,16 +101,16 @@ const Developer = () => {
       });
     }
     setFilteredInterns(list);
-  }, [developerInterns, searchTerm, sortOption]);
+  }, [aiInterns, searchTerm, sortOption]); // Dependency updated
 
   // Assign new lead
   const handleAssignLead = async (internId) => {
     try {
       setError('');
-      await categoryService.assignLead(DEVELOPER_CATEGORY_ID, internId);
+      await categoryService.assignLead(AI_CATEGORY_ID, internId); // Use AI_CATEGORY_ID
 
       setCurrentLeadId(internId);
-      alert('New Developer lead has been assigned successfully!');
+      alert('New AI lead has been assigned successfully!'); // Updated text
 
     } catch (err) {
       console.error('Error assigning lead:', err);
@@ -133,7 +130,7 @@ const Developer = () => {
   };
 
   const handleDeleteIntern = async (internId) => {
-    const internName = developerInterns.find(i => i.internId === internId)?.name || 'this intern';
+    const internName = aiInterns.find(i => i.internId === internId)?.name || 'this intern'; // Use aiInterns
     if (!window.confirm(`Are you sure you want to delete ${internName}?`)) {
       return;
     }
@@ -142,9 +139,9 @@ const Developer = () => {
       setError('');
       await internService.deleteIntern(internId);
       // Update state *after* successful API call
-      setDeveloperInterns(prev => prev.filter(intern => intern.internId !== internId));
+      setAiInterns(prev => prev.filter(intern => intern.internId !== internId)); // Use setAiInterns
     } catch (err) {
-      console.error('Error deleting Developer intern:', err);
+      console.error('Error deleting AI intern:', err); // Updated text
       const errorMsg = err.response?.data?.message || 'Failed to delete intern.';
       setError(errorMsg);
     }
@@ -159,7 +156,7 @@ const Developer = () => {
         // --- EDIT MODE ---
         const response = await internService.updateIntern(payload.internId, payload);
         // Update the list with the fresh data from the server
-        setDeveloperInterns(prev =>
+        setAiInterns(prev => // Use setAiInterns
           prev.map(intern =>
             intern.internId === payload.internId ? response.data : intern
           )
@@ -168,7 +165,7 @@ const Developer = () => {
         // --- ADD NEW MODE ---
         const response = await internService.createIntern(payload);
         // Add the new intern (from the server) to our list
-        setDeveloperInterns(prev => [...prev, response.data]);
+        setAiInterns(prev => [...prev, response.data]); // Use setAiInterns
       }
 
       setIsFormOpen(false);
@@ -199,9 +196,9 @@ const Developer = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Developer Interns Management</h1>
+        <h1 className={styles.title}>AI Interns Management</h1> {/* Updated title */}
         <p className={styles.subtitle}>
-          Manage Developer interns, skills, and project assignments
+          Manage AI interns, model development, and project tracking {/* Updated subtitle */}
         </p>
       </div>
 
@@ -228,19 +225,14 @@ const Developer = () => {
               + Add New Intern
             </button>
 
-            <button 
-              className={styles.secondaryBtn}
-              onClick={() => setIsManageModalOpen(true)}
-            >
-              Manage Languages and Frameworks
-            </button>
+            {/* "Manage Resource Types" button is removed */}
           </div>
           <div className={styles.filterSection}>
-            <CategoryDropdown current="developers" />
+            <CategoryDropdown current="ai" /> {/* Updated current prop */}
             <form onSubmit={handleSearch} className={styles.searchSection}>
               <input 
                 type="text" 
-                placeholder="Search by name, code, language type, projects, or mobile..." 
+                placeholder="Search by name, code, projects, or mobile..." // Updated placeholder
                 className={styles.searchInput}
                 value={searchTerm}
                 onChange={handleSearchChange}
@@ -258,8 +250,7 @@ const Developer = () => {
                 <option value="internCode:desc">Intern Code (Descending)</option>
                 <option value="endDate:asc">End Date (Ascending)</option>
                 <option value="endDate:desc">End Date (Descending)</option>
-                <option value="languageType:asc">Language Type (Ascending)</option>
-                <option value="languageType:desc">Language Type (Descending)</option>
+                {/* "resourceType" sort options are removed */}
               </select>
             </div>
           </div>
@@ -268,7 +259,7 @@ const Developer = () => {
         <div className={styles.tableSection}>
           <div className={styles.tableHeader}>
             <h3 className={styles.tableTitle}>
-              All Developer Interns ({filteredInterns.length})
+              All AI Interns ({filteredInterns.length}) {/* Updated title */}
             </h3>
             {searchTerm && (
               <p className={styles.searchInfo}>
@@ -282,8 +273,9 @@ const Developer = () => {
               </p>
             )}
           </div>
-
-          <DeveloperTable
+          
+          {/* Use AITable component */}
+          <AITable
             interns={filteredInterns}
             onEdit={handleEditIntern}
             onDelete={handleDeleteIntern}
@@ -294,7 +286,8 @@ const Developer = () => {
         </div>
       </div>
 
-      <DeveloperForm
+      {/* Use AIForm component */}
+      <AIForm
         isOpen={isFormOpen}
         onClose={handleCloseForm}
         onSubmit={handleFormSubmit}
@@ -302,14 +295,9 @@ const Developer = () => {
         isLoading={isSubmitting}
       />
 
-      <MasterDataModal
-        isOpen={isManageModalOpen}
-        onClose={() => setIsManageModalOpen(false)}
-        category="WEB_DEVELOPER"
-        title="Manage Languages and Frameworks"
-      />
+      {/* MasterDataModal component is removed */}
     </div>
   );
 };
 
-export default Developer;
+export default AI;

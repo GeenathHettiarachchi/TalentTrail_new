@@ -1,94 +1,72 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { FiMoreVertical, FiChevronRight } from 'react-icons/fi'; // Changed FiChevronDown to FiChevronRight
-import styles from './QATable.module.css';
+import { FiMoreVertical, FiChevronRight } from 'react-icons/fi';
+import styles from './AITable.module.css'; // Assuming you rename the CSS file
 
-const QATable = React.memo(({ 
+const AITable = React.memo(({ 
   interns, 
   onEdit, 
   onDelete, 
-  onAssignLead,
-  currentLeadId,
+  onAssignLead,   // Prop for assigning lead
+  currentLeadId,  // The ID of the current lead intern
   isLoading = false 
 }) => {
+  const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [openMenuId, setOpenMenuId] = useState(null);
   const tableRef = useRef(null);
-  
-  // NEW: Single expanded state Set, like in DevOpsTable
   const [expanded, setExpanded] = useState(() => new Set());
 
-  // Close action menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (tableRef.current && !tableRef.current.contains(e.target)) {
         setOpenMenuId(null);
       }
     };
-    if (openMenuId !== null) document.addEventListener('mousedown', handleClickOutside);
+    
+    if (openMenuId !== null) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openMenuId]);
-
-  /**
-   * Format ISO date strings to "MMM DD, YYYY".
-   */
+  
   const formatDate = useCallback((dateString) => {
-    if (!dateString) return '—';
+    if (!dateString) return '-';
     try {
       return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
       });
     } catch {
       return dateString;
     }
   }, []);
 
-  /**
-   * Check if end date is within 1 month (30 days) from today
-   * Returns true if within 1 month, false otherwise
-   */
-  const isWithinOneMonth = (endDate) => {
-    if (!endDate) return false;
-    
+  // Check if date is within 30 days from today
+  const isDueSoon = useCallback((dateString) => {
+    if (!dateString) return false;
+    const end = new Date(dateString);
+    if (isNaN(end)) return false;
     const today = new Date();
-    const end = new Date(endDate);
-    
-    today.setHours(0, 0, 0, 0);
     end.setHours(0, 0, 0, 0);
-    
-    const timeDiff = end.getTime() - today.getTime();
-    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    
-    return daysDiff <= 30 && daysDiff >= 0;
-  };
+    today.setHours(0, 0, 0, 0);
+    const diffDays = (end - today) / (1000 * 60 * 60 * 24);
+    return diffDays < 30;
+  }, []);
 
-  /**
-   * NEW: Simplified data normalization function (like DevOpsTable's toList)
-   * Handles string (CSV), array of strings, or array of {name: '...'} objects.
-   */
   const toList = useCallback((value) => {
-    if (!value) return [];
     if (Array.isArray(value)) {
-      return value.map(v => {
-        if (typeof v === 'string') {
-          // Case 1: Simple string (from form submission)
-          return v.trim();
-        }
-        // Case 2: Complex object (from API response)
-        // Explicitly check for 'projectName' (from ProjectDTO) or 'name' (from other lists)
-        return (v?.projectName?.trim() || v?.name?.trim() || '').filter(Boolean); 
-      }).filter(Boolean);
+      return value.map(v => String(v).trim()).filter(Boolean);
     }
-    // Handle CSV string for non-array fields
     if (typeof value === 'string' && value.trim()) {
       return value.split(',').map(v => v.trim()).filter(Boolean);
     }
     return [];
   }, []);
 
-  /**
-   * NEW: Toggle function for the main 'expanded' Set.
-   */
   const toggleExpand = useCallback((id) => {
     setExpanded(prev => {
       const next = new Set(prev);
@@ -97,49 +75,46 @@ const QATable = React.memo(({
     });
   }, []);
 
-  /**
-   * NEW: Row click handler now also toggles expansion (like DevOpsTable)
-   */
   const handleRowClick = useCallback((intern, e) => {
-    // Ignore clicks on buttons/menus
+    // Don't trigger if edit or delete button was clicked
     if (
       e.target.closest(`.${styles.menuButton}`) ||
       e.target.closest(`.${styles.menu}`) ||
       e.target.closest(`.${styles.menuItem}`) ||
-      e.target.closest(`.${styles.expanderBtn}`) // Ignore expander button click
-    ) return;
+      e.target.closest(`.${styles.expanderBtn}`)
+    ) {
+      return;
+    }
     
-    // Logic to check if row *should* be expandable, then toggle
-    const tools = toList(intern?.tools ?? intern?.skills);
-    const projects = toList(intern.projects);
-    if (tools.length > 2 || projects.length > 2) {
+    // Updated logic: only check projects for expansion
+    const pjs = toList(intern.projects);
+    if (pjs.length > 2) {
       toggleExpand(intern.internId);
     }
   }, [toList, toggleExpand]);
-
-
-  // ---------- Loading / Empty states (Unchanged) ----------
 
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.spinner}></div>
-        <p>Loading QA interns...</p>
+        {/* Updated text */}
+        <p>Loading AI interns...</p>
       </div>
     );
   }
 
-  if (!interns?.length) {
+  if (interns.length === 0) {
     return (
       <div className={styles.emptyState}>
-        <div className={styles.emptyIcon}>🔍</div>
-        <h3 className={styles.emptyTitle}>No QA Interns Found</h3>
-        <p className={styles.emptyText}>Start by adding your first QA intern to the system.</p>
+        {/* Updated icon and text */}
+        <div className={styles.emptyIcon}>🤖</div>
+        <h3 className={styles.emptyTitle}>No AI Interns Found</h3>
+        <p className={styles.emptyText}>
+          Start by adding your first AI intern to the system.
+        </p>
       </div>
     );
   }
-
-  // ---------- Main table (Refactored) ----------
 
   return (
     <div className={styles.tableContainer} ref={tableRef}>
@@ -147,30 +122,22 @@ const QATable = React.memo(({
         <table className={styles.table}>
           <thead className={styles.thead}>
             <tr>
-              {/* NEW: Expander column */}
               <th className={`${styles.th} ${styles.expanderTh}`}></th>
-              <th className={styles.th}>Trainee ID</th>
+              <th className={styles.th}>Intern Code</th>
               <th className={styles.th}>Name</th>
               <th className={styles.th}>Email</th>
-              <th className={styles.th}>Mobile</th>
+              <th className={styles.th}>Mobile Number</th>
               <th className={styles.th}>End Date</th>
-              <th className={styles.th}>Tools</th>
               <th className={styles.th}>Projects</th>
               {isAdmin && <th className={styles.th} style={{ width: '50px' }}></th>}
             </tr>
           </thead>
-
           <tbody className={styles.tbody}>
             {interns.map((intern) => {
-              // Normalize data
-              const tools = toList(intern?.tools ?? intern?.skills); // Handle 'tools' or legacy 'skills'
               const projects = toList(intern.projects);
-              
-              // Expansion logic
               const isExpanded = expanded.has(intern.internId);
-              const toolsHidden = Math.max(0, tools.length - 2);
-              const projHidden = Math.max(0, projects.length - 2);
-              const canExpand = toolsHidden > 0 || projHidden > 0;
+              const pjHidden = Math.max(0, projects.length - 2);
+              const canExpand = pjHidden > 0;
 
               return (
                 <React.Fragment key={intern.internId}>
@@ -179,9 +146,8 @@ const QATable = React.memo(({
                     onClick={(e) => handleRowClick(intern, e)}
                     aria-expanded={isExpanded}
                     role={canExpand ? 'button' : undefined}
-                    title="QA intern details"
+                    title="AI intern details" // Updated title
                   >
-                    {/* NEW: Expander Cell */}
                     <td className={`${styles.td} ${styles.expanderCell}`}>
                       {canExpand ? (
                         <button
@@ -189,6 +155,7 @@ const QATable = React.memo(({
                           className={`${styles.expanderBtn} ${isExpanded ? styles.expanderBtnOpen : ''}`}
                           onClick={(e) => { e.stopPropagation(); toggleExpand(intern.internId); }}
                           aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
+                          aria-expanded={isExpanded}
                           title={isExpanded ? 'Collapse' : 'Expand'}
                         >
                           <FiChevronRight />
@@ -197,69 +164,49 @@ const QATable = React.memo(({
                         <span className={styles.expanderSpacer} />
                       )}
                     </td>
-
                     <td className={styles.td}>
-                      <span className={styles.internCode}>{intern.internCode || '—'}</span>
+                      <span className={styles.internCode}>{intern.internCode}</span>
                     </td>
-
                     <td className={styles.td}>
                       <div className={styles.nameCell}>
-                        <span className={styles.name}>{intern.name || '—'}</span>
-                        {/* NEW: Lead Badge (from DevOpsTable) */}
+                        <span className={styles.name}>{intern.name}</span>
+                        {/* Lead badge logic remains */}
                         {intern.internId === currentLeadId && (
-                           <span className={styles.leadBadge}>⭐ Lead</span>
+                          <span className={styles.leadBadge}>⭐ Lead</span>
                         )}
                       </div>
                     </td>
-
                     <td className={styles.td}>
-                      <span className={styles.email}>{intern.email || '—'}</span>
+                      <span className={styles.email}>{intern.email}</span>
                     </td>
-
                     <td className={styles.td}>
-                      <span className={styles.mobile}>{intern.mobileNumber || '—'}</span>
+                      <span className={styles.mobile}>
+                        {intern.mobileNumber}
+                      </span>
                     </td>
-
-                    {/* END DATE (Unchanged logic, just CSS) */}
                     <td className={styles.td}>
-                      <span 
+                      <span
                         className={`${styles.endDate} ${
-                          isWithinOneMonth(intern.trainingEndDate) 
-                            ? styles.endDateWarning 
-                            : styles.endDateNormal
+                          isDueSoon(intern.trainingEndDate)
+                            ? styles.endDateSoon
+                            : styles.endDateSafe
                         }`}
                       >
                         {formatDate(intern.trainingEndDate)}
                       </span>
                     </td>
 
-                    {/* REFACTORED: Tools Cell (now shows pills) */}
-                    <td className={styles.td}>
-                      {tools.length === 0 ? (
-                        <span className={styles.muted}>—</span>
-                      ) : (
-                        <div className={styles.cellPills} aria-label="Tools">
-                          {tools.slice(0, 2).map((tool, idx) => (
-                            <span key={idx} className={styles.listItemTool}>{tool}</span>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-
-                    {/* REFACTORED: Projects Cell (now shows pills) */}
                     <td className={styles.td}>
                       {projects.length === 0 ? (
-                        <span className={styles.muted}>—</span>
+                        <span className={styles.projects}>-</span>
                       ) : (
                         <div className={styles.cellPills} aria-label="Projects">
-                          {projects.slice(0, 2).map((proj, idx) => (
-                            <span key={idx} className={styles.listItemProject}>{proj}</span>
+                          {projects.slice(0, 2).map((p, idx) => (
+                            <span key={idx} className={styles.projectBadge}>{p}</span>
                           ))}
                         </div>
                       )}
                     </td>
-
-                    {/* Row actions (Unchanged logic) */}
                     {isAdmin && (
                       <td className={styles.actionsCell}>
                         <button
@@ -274,7 +221,6 @@ const QATable = React.memo(({
                         >
                           <FiMoreVertical />
                         </button>
-
                         {openMenuId === intern.internId && (
                           <div className={styles.menu} role="menu">
                             <button
@@ -288,7 +234,7 @@ const QATable = React.memo(({
                             >
                               Edit
                             </button>
-                            {/* Assign as Lead button logic */}
+                            {/* Assign as Lead logic remains */}
                             {intern.internId !== currentLeadId && (
                               <button
                                 className={styles.menuItem}
@@ -308,6 +254,7 @@ const QATable = React.memo(({
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setOpenMenuId(null);
+                                // Using a custom modal/confirm is better, but window.confirm is here from original
                                 if (window.confirm(`Are you sure you want to delete ${intern.name}?`)) {
                                   onDelete(intern.internId);
                                 }
@@ -320,28 +267,18 @@ const QATable = React.memo(({
                       </td>
                     )}
                   </tr>
-                  
-                  {/* NEW: Expanded Row */}
                   {isExpanded && (
                     <tr className={styles.expandedRow}>
-                      <td className={styles.expandedCell} colSpan={isAdmin ? 9 : 8}>
+                      {/* Updated colSpan (e.g., 9->8 and 8->7) */}
+                      <td className={styles.expandedCell} colSpan={isAdmin ? 8 : 7}>
                         <div className={styles.expandedContent}>
-                          {toolsHidden > 0 && (
-                            <div className={styles.expandedSection}>
-                              <div className={styles.sectionTitle}>All Tools</div>
-                              <div className={styles.projectsList}>
-                                {tools.map((tool, i) => (
-                                  <span key={i} className={styles.listItemTool}>{tool}</span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          {projHidden > 0 && (
+                          
+                          {projects.length > 2 && (
                             <div className={styles.expandedSection}>
                               <div className={styles.sectionTitle}>All Projects</div>
                               <div className={styles.projectsList}>
-                                {projects.map((proj, i) => (
-                                  <span key={i} className={styles.listItemProject}>{proj}</span>
+                                {projects.map((p, i) => (
+                                  <span key={i} className={styles.projectBadge}>{p}</span>
                                 ))}
                               </div>
                             </div>
@@ -360,4 +297,4 @@ const QATable = React.memo(({
   );
 });
 
-export default QATable;
+export default AITable;

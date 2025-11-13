@@ -1,19 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { 
-  FiX, 
-  FiUser, 
-  FiMail, 
-  FiCalendar, 
-  FiPhone, 
-  FiTool,        // Changed from FiServer
-  FiFolderPlus,  // Changed from FiLayers
-  FiChevronDown 
-} from 'react-icons/fi';
-import { projectService, masterDataService } from '../../services/api';
-import styles from './QAForm.module.css'; // This CSS file will need to be updated!
+import { FiX, FiUser, FiMail, FiCalendar, FiPhone, FiLayers, FiChevronDown } from 'react-icons/fi';
+import { projectService } from '../../services/api';
+import styles from './AIForm.module.css';
 
-const QAForm = ({
+const AIForm = ({
   isOpen,
   onClose,
   onSubmit,
@@ -26,35 +17,23 @@ const QAForm = ({
     email: '',
     mobileNumber: '',
     trainingEndDate: '',
-    skills: [], // Was 'skills' in DevOpsForm
     projects: []
   });
 
-  const [isToolsOpen, setIsToolsOpen] = useState(false); // Was 'isRTOpen'
   const [isProjOpen, setIsProjOpen] = useState(false);
   const [errors, setErrors] = useState({});
-  
-  // Project state
   const [projectOptions, setProjectOptions] = useState([]);
   const [projLoading, setProjLoading] = useState(false);
   const [projError, setProjError] = useState('');
 
-  // Tool state
-  const [toolOptions, setToolOptions] = useState([]); // Was 'resourceTypes'
-  const [toolsLoading, setToolsLoading] = useState(false); // Was 'rtLoading'
-  const [toolsError, setToolsError] = useState(''); // Was 'rtError'
-
   // Check if we're in edit mode
   const isEditMode = !!editingIntern;
 
-  // Hydrate form on open/edit
   useEffect(() => {
     if (editingIntern) {
-      // Helper to normalize incoming data to an array
       const toList = (v) =>
         Array.isArray(v) ? v
         : (typeof v === 'string' && v.trim() ? v.split(',').map(s => s.trim()).filter(Boolean) : []);
-      
       setFormData({
         internCode: editingIntern.internCode || '',
         name: editingIntern.name || '',
@@ -62,44 +41,23 @@ const QAForm = ({
         mobileNumber: editingIntern.mobileNumber || '',
         trainingEndDate: editingIntern.trainingEndDate ? 
           editingIntern.trainingEndDate.split('T')[0] : '',
-        // Use 'tools' or 'skills' from incoming data
-        skills: toList(editingIntern.skills),
         projects: toList(editingIntern.projects)
       });
     } else {
-      // Reset for "Add New"
       setFormData({
         internCode: '',
         name: '',
         email: '',
         mobileNumber: '',
         trainingEndDate: '',
-        skills: [],
         projects: []
       });
     }
     setErrors({});
   }, [editingIntern, isOpen]);
 
-  // --- Data Fetching ---
 
-  // Fetch QA Tools from Master Data
-  const fetchTools = async () => {
-    setToolsLoading(true);
-    setToolsError('');
-    try {
-      // *** IMPORTANT: Using "TOOLS" as the category. Match this to your backend! ***
-      const response = await masterDataService.getActiveItemNamesForCategory("QA");
-      setToolOptions(response.data);
-    } catch (err) {
-      console.error('Failed to load QA tools', err);
-      setToolsError('Failed to load tools');
-    } finally {
-      setToolsLoading(false);
-    }
-  };
-
-  // Fetch Projects (copied directly from DevOpsForm)
+  // FETCH Projects
   const fetchProjects = async () => {
     setProjLoading(true);
     setProjError('');
@@ -119,15 +77,14 @@ const QAForm = ({
     }
   };
 
+
   // FETCH when the modal opens
   useEffect(() => {
     if (isOpen) {
-      fetchTools(); // Call the new fetchTools function
       fetchProjects();
     }
   }, [isOpen]);
 
-  // --- Validation ---
   const validateForm = () => {
     const newErrors = {};
 
@@ -162,20 +119,13 @@ const QAForm = ({
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      if (endDate < today && !isEditMode) { // Only check for past dates in ADD mode
+      if (endDate < today) {
         newErrors.trainingEndDate = 'End date cannot be in the past';
       }
     }
 
-    // Updated for 'tools'
-    if (!Array.isArray(formData.skills) || formData.skills.length === 0) {
-      newErrors.skills = 'Select at least one tool';
-    }
-
     return newErrors;
   };
-
-  // --- Handlers (copied from DevOpsForm) ---
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -186,7 +136,6 @@ const QAForm = ({
       return;
     }
 
-    // Submit the whole formData object, plus the internId for edits
     onSubmit({
       ...formData,
       internId: editingIntern?.internId ?? null,
@@ -210,33 +159,31 @@ const QAForm = ({
 
   const handleClose = () => {
     if (!isLoading) {
-      setIsToolsOpen(false); // Close tools dropdown
       setIsProjOpen(false);
       onClose();
     }
   };
 
-  // Generic helper for multi-select arrays in formData
+  if (!isOpen) return null;
+
   const toggleMulti = (field, value) => {
     setFormData(prev => {
       const set = new Set(prev[field]);
       set.has(value) ? set.delete(value) : set.add(value);
       return { ...prev, [field]: Array.from(set) };
     });
-    // Clear errors for this field
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
-
-  if (!isOpen) return null;
 
   return createPortal(
     <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.header}>
           <h2 className={styles.title}>
-            {editingIntern ? 'Edit QA Intern' : 'Add QA Intern'}
+            {/* Title updated to 'AI Intern' */}
+            {editingIntern ? 'Edit AI Intern' : 'Add AI Intern'}
           </h2>
           <button
             type="button"
@@ -251,9 +198,6 @@ const QAForm = ({
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.formGrid}>
-            
-            {/* --- Basic Info Fields (Copied from DevOpsForm) --- */}
-
             {/* Intern Code */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="internCode">
@@ -267,7 +211,7 @@ const QAForm = ({
                 value={formData.internCode}
                 onChange={handleInputChange}
                 className={`${styles.input} ${errors.internCode ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
-                placeholder="e.g., QA001"
+                placeholder="e.g., AI001" // Updated placeholder
                 disabled={isLoading || isEditMode}
                 readOnly={isEditMode}
                 required
@@ -341,6 +285,7 @@ const QAForm = ({
                 title="Enter a valid phone number"
                 disabled={isLoading || isEditMode}
                 readOnly={isEditMode}
+                // required
               />
               {errors.mobileNumber && (
                 <span className={styles.errorText}>{errors.mobileNumber}</span>
@@ -367,68 +312,14 @@ const QAForm = ({
                 <span className={styles.errorText}>{errors.trainingEndDate}</span>
               )}
             </div>
-
-            {/* --- QA Tools (Adapted from Resource Type) --- */}
+            
+            {/* Projects */}
             <div className={styles.inputGroup}>
               <label className={styles.label}>
-                <FiTool className={styles.labelIcon} />
-                QA Tools
-              </label>
-              <div
-                className={`${styles.multiSelect} ${errors.tools ? styles.inputError : ''}`}
-                onClick={() => !isLoading && !toolsLoading && setIsToolsOpen(v => !v)}
-                role="button"
-                aria-expanded={isToolsOpen}
-              >
-                <div className={styles.multiControl}>
-                  <div className={styles.multiValue}>
-                    {formData.skills.length
-                      ? formData.skills.join(', ')
-                      : (toolsLoading ? 'Loading…' : 'Select one or more…')}
-                  </div>
-                  <FiChevronDown className={styles.caret} />
-                </div>
-                {isToolsOpen && (
-                  <div
-                    className={styles.multiMenu}
-                    onClick={(e) => e.stopPropagation()}
-                    role="listbox"
-                  >
-                    {toolsLoading && (
-                      <div className={styles.optionRow}><span>Loading tools…</span></div>
-                    )}
-                    {!toolsLoading && toolsError && (
-                      <div className={styles.optionRow}><span>{toolsError}</span></div>
-                    )}
-                    {!toolsLoading && !toolsError && toolOptions.length === 0 && (
-                      <div className={styles.optionRow}><span>No tools found</span></div>
-                    )}
-
-                    {!toolsLoading && !toolsError && toolOptions.map(opt => (
-                      <label key={opt} className={styles.optionRow}>
-                        <input
-                          type="checkbox"
-                          checked={formData.skills.includes(opt)}
-                          onChange={() => toggleMulti('skills', opt)}
-                          disabled={isLoading}
-                        />
-                        <span>{opt}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {errors.skills && (
-                <span className={styles.errorText}>{errors.skills}</span>
-              )}
-            </div>
-
-            {/* --- Projects (Copied directly from DevOpsForm) --- */}
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>
-                <FiFolderPlus className={styles.labelIcon} />
+                <FiLayers className={styles.labelIcon} />
                 Projects
               </label>
+
               <div
                 className={`${styles.multiSelect} ${projError ? styles.inputError : ''}`}
                 onClick={() => !isLoading && setIsProjOpen(v => !v)}
@@ -443,6 +334,7 @@ const QAForm = ({
                   </div>
                   <FiChevronDown className={styles.caret} />
                 </div>
+
                 {isProjOpen && (
                   <div
                     className={styles.multiMenu}
@@ -454,16 +346,19 @@ const QAForm = ({
                         <span>Loading projects…</span>
                       </div>
                     )}
+
                     {!projLoading && projError && (
                       <div className={styles.optionRow}>
                         <span>{projError}</span>
                       </div>
                     )}
+
                     {!projLoading && !projError && projectOptions.length === 0 && (
                       <div className={styles.optionRow}>
                         <span>No projects found</span>
                       </div>
                     )}
+
                     {!projLoading && !projError && projectOptions.map(opt => (
                       <label key={opt} className={styles.optionRow}>
                         <input
@@ -479,10 +374,8 @@ const QAForm = ({
                 )}
               </div>
             </div>
-            
           </div>
 
-          {/* --- Actions (Copied from DevOpsForm) --- */}
           <div className={styles.formActions}>
             <button
               type="button"
@@ -514,4 +407,4 @@ const QAForm = ({
   );
 };
 
-export default QAForm;
+export default AIForm;

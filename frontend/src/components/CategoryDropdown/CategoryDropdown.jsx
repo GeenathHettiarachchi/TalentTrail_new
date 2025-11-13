@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUsers, FaFlask, FaCogs, FaLaptopCode, FaUserTie, FaChevronDown } from 'react-icons/fa';
+import { FaUsers, FaFlask, FaCogs, FaLaptopCode, FaRobot, FaUserTie, FaChevronDown } from 'react-icons/fa';
 import styles from './CategoryDropdown.module.css';
 
 const categories = [
@@ -9,6 +9,7 @@ const categories = [
   { id: 'devops', name: 'DevOps Engineers', icon: <FaCogs /> },
   { id: 'developers', name: 'Developers', icon: <FaLaptopCode /> },
   { id: 'pmba', name: 'PM & BA', icon: <FaUserTie /> },
+  { id: 'ai', name: 'AI Team', icon: <FaRobot /> },
 ];
 
 const CategoryDropdown = ({ current = 'all' }) => {
@@ -43,6 +44,9 @@ const CategoryDropdown = ({ current = 'all' }) => {
         break;
       case 'pmba':
         navigate('/pmba');
+        break;
+      case 'ai':
+        navigate('/ai');
         break;
       default:
         navigate('/interns');

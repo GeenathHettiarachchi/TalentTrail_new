@@ -20,6 +20,8 @@ export { default as DevOpsForm } from './DevOpsForm/DevOpsForm';
 export { default as DeveloperForm } from './DeveloperForm/DeveloperForm';
 export { default as QATable } from './QATable/QATable';
 export { default as QAForm } from './QAForm/QAForm';
+export { default as AITable } from './AITable/AITable';
+export { default as AIForm } from './AIForm/AIForm';
 export { default as Login } from './Login/Login';
 export { default as ProtectedRoute } from './ProtectedRoute/ProtectedRoute';
 export { default as RoleBasedAccess } from './RoleBasedAccess/RoleBasedAccess';

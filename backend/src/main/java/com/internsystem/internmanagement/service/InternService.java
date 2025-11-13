@@ -260,6 +260,7 @@ public class InternService {
             return internCategoryRepository.findByCategoryName("Web Developer").orElse(null);
         }
 
+
         if (specLower.contains("pm")) {
                 
             return internCategoryRepository.findByCategoryName("PM").orElse(null);
@@ -268,6 +269,10 @@ public class InternService {
         if (specLower.contains("ba")) {
                 
             return internCategoryRepository.findByCategoryName("BA").orElse(null);
+
+        if (specLower.contains("ai")) {
+            return internCategoryRepository.findByCategoryName("AI").orElse(null);
+
         }
 
         // If no match is found, you can return null or a "General" category
