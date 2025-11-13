@@ -1,117 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import Cookies from 'js-cookie';
+import React, { useState, useEffect } from 'react';
 import { DeveloperForm, DeveloperTable } from '../../components';
-import DeveloperReport from '../../components/Reports/DeveloperReport';
+import { internService, categoryService } from '../../services/api';
 import styles from './Developer.module.css';
 import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
-
-const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8080/api';
-const DEVELOPER_CATEGORY_KEYWORDS = ['web developer', 'developer', 'developers'];
-
-const parseJsonResponse = async (response, contextLabel) => {
-  const rawBody = await response.text();
-
-  if (!rawBody) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(rawBody);
-  } catch (parseError) {
-    const preview = rawBody.length > 160 ? `${rawBody.slice(0, 157)}...` : rawBody;
-    console.error(`Invalid JSON while parsing ${contextLabel}:`, preview);
-    throw new Error(`Received invalid data from the server while loading ${contextLabel}.`);
-  }
-};
-
-const toStringArray = (value, extractor) => {
-  if (!value) return [];
-
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => {
-        if (typeof item === 'string') {
-          return item.trim();
-        }
-
-        if (typeof item === 'object' && item !== null) {
-          const extracted = extractor
-            ? extractor(item)
-            : item?.name ?? item?.title ?? item?.value ?? item?.label;
-          if (typeof extracted === 'string') {
-            return extracted.trim();
-          }
-          if (extracted != null) {
-            return String(extracted).trim();
-          }
-          return '';
-        }
-
-        return String(item ?? '').trim();
-      })
-      .filter(Boolean);
-  }
-
-  if (typeof value === 'string' && value.trim()) {
-    return value
-      .split(',')
-      .map((part) => part.trim())
-      .filter(Boolean);
-  }
-
-  return [];
-};
-
-const normaliseDeveloperIntern = (intern) => {
-  if (!intern || typeof intern !== 'object') {
-    return {
-      internId: intern?.internId ?? null,
-      internCode: intern?.internCode ?? '',
-      name: intern?.name ?? '',
-      email: intern?.email ?? '',
-      mobileNumber:
-        intern?.mobileNumber ??
-        intern?.mobile ??
-        intern?.phoneNumber ??
-        intern?.phone ??
-        intern?.contactNumber ??
-        intern?.contactNo ??
-        '',
-      trainingEndDate: intern?.trainingEndDate ?? intern?.trainingEnDate ?? '',
-      languagesAndFrameworks: [],
-      projects: [],
-    };
-  }
-
-  const mobileNumber =
-    intern.mobileNumber ??
-    intern.mobile ??
-    intern.phoneNumber ??
-    intern.phone ??
-    intern.contactNumber ??
-    intern.contactNo ??
-    '';
-
-  return {
-    ...intern,
-    mobileNumber,
-    languagesAndFrameworks: toStringArray(intern.languagesAndFrameworks),
-    projects: toStringArray(intern.projects, (item) => item?.name ?? item?.projectName ?? item?.title),
-  };
-};
-
-const findDeveloperCategory = (categories) => {
-  if (!Array.isArray(categories)) {
-    return null;
-  }
-
-  return (
-    categories.find((category) => {
-      const name = (category?.categoryName || '').toLowerCase();
-      return DEVELOPER_CATEGORY_KEYWORDS.some((keyword) => name.includes(keyword));
-    }) ?? null
-  );
-};
+import MasterDataModal from '../../components/MasterDataModal/MasterDataModal';
 
 const Developer = () => {
   const [developerInterns, setDeveloperInterns] = useState([]);
@@ -123,228 +15,59 @@ const Developer = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [sortOption, setSortOption] = useState('internCode:asc');
-
-  // 🔹 New state for language filter dropdown
-  const [languageFilter, setLanguageFilter] = useState('All');
-  const [developerCategoryId, setDeveloperCategoryId] = useState(null);
   const [currentLeadId, setCurrentLeadId] = useState(null);
-  const [isCategoryMissing, setIsCategoryMissing] = useState(false);
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const DEVELOPER_CATEGORY_ID = 1;
 
-  // Mock data for Developer interns (retained for reference only)
-  /*
-  const mockDeveloperData = [
-    {
-      internId: 1,
-      internCode: 'DEV001',
-      name: 'John Smith',
-      email: 'john.smith@example.com',
-      mobileNumber: '0712356172',
-      trainingEndDate: '2025-12-15',
-      languagesAndFrameworks: ['JavaScript', 'React', 'Node.js', 'Springboot'],
-      projects: ['Portfolio Website', 'Inventory System', 'Task Manager']
-    },
-    {
-      internId: 2,
-      internCode: 'DEV002',
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2025-11-30',
-      languagesAndFrameworks: ['Java', 'Spring Boot', 'React'],
-      projects: ['E-Commerce Platform']
-    },
-    {
-      internId: 3,
-      internCode: 'DEV003',
-      name: 'Michael Brown',
-      email: 'michael.brown@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2026-01-20',
-      languagesAndFrameworks: ['Python', 'Django'],
-      projects: ['Analytics Dashboard', 'ML Model API']
-    },
-    {
-      internId: 4,
-      internCode: 'DEV004',
-      name: 'Emily Davis',
-      email: 'emily.davis@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2025-12-10',
-      languagesAndFrameworks: ['C#', '.NET'],
-      projects: ['Student Management System']
-    },
-    {
-      internId: 5,
-      internCode: 'DEV005',
-      name: 'David Wilson',
-      email: 'david.wilson@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2025-10-22',
-      languagesAndFrameworks: ['PHP', 'Laravel'],
-      projects: ['Task Tracker', 'CRM System']
-    },
-    {
-      internId: 6,
-      internCode: 'DEV006',
-      name: 'Lisa Anderson',
-      email: 'lisa.anderson@example.com',
-      mobileNumber: '0776502837',
-      trainingEndDate: '2025-12-28',
-      languagesAndFrameworks: ['Flutter', 'Firebase'],
-      projects: ['Mobile E-Learning App']
-    }
-  ];
-  */
 
-  // Load developer interns from backend
+  // Simulate loading data
   useEffect(() => {
-    let isMounted = true;
-
     const loadData = async () => {
-  setIsLoading(true);
-  setError('');
-  setIsCategoryMissing(false);
-
-      const token = Cookies.get('authToken');
-      if (!token) {
-        setError('Authorization failed. Please log in.');
-        setIsLoading(false);
-        return;
-      }
-
-      const authHeader = { Authorization: `Bearer ${token}` };
-
+      setIsLoading(true);
+      setError('');
+      
       try {
-        const categoriesResponse = await fetch(`${API_BASE_URL}/categories`, {
-          headers: authHeader,
-        });
+        // Step 1: Fetch all interns for the Developer category
+        const internsResponse = await internService.getInternsByCategoryId(DEVELOPER_CATEGORY_ID);
+        setDeveloperInterns(internsResponse.data);
 
-        if (!categoriesResponse.ok) {
-          throw new Error('Failed to fetch categories from the server.');
+        // Step 2: Fetch the current lead from the backend
+        const categoryResponse = await categoryService.getCategoryById(DEVELOPER_CATEGORY_ID);
+        if (categoryResponse.data && categoryResponse.data.leadInternId) {
+          setCurrentLeadId(categoryResponse.data.leadInternId);
         }
 
-  const categoriesData = (await parseJsonResponse(categoriesResponse, 'categories')) ?? [];
-        const developerCategory = findDeveloperCategory(categoriesData);
-
-        if (!developerCategory) {
-          if (!isMounted) {
-            return;
-          }
-
-          setDeveloperCategoryId(null);
-          setDeveloperInterns([]);
-          setLanguageFilter('All');
-          setIsCategoryMissing(true);
-          setError(
-            'Developer category is missing in the backend. Please create a "Web Developer" category (or similar) to enable this view.'
-          );
-          return;
-        }
-
-        if (!isMounted) {
-          return;
-        }
-
-        setDeveloperCategoryId(developerCategory.categoryId);
-
-        const internsResponse = await fetch(
-          `${API_BASE_URL}/interns/category/${developerCategory.categoryId}`,
-          { headers: authHeader }
-        );
-
-        if (!internsResponse.ok) {
-          throw new Error('Failed to fetch Developer interns from the server.');
-        }
-
-  const internsData = (await parseJsonResponse(internsResponse, 'developer interns')) ?? [];
-
-        if (!isMounted) {
-          return;
-        }
-
-        const normalisedInterns = Array.isArray(internsData)
-          ? internsData.map((intern) => normaliseDeveloperIntern(intern))
-          : [];
-
-        setDeveloperInterns(normalisedInterns);
-        setLanguageFilter('All');
-
-        const categoryDetailResponse = await fetch(
-          `${API_BASE_URL}/categories/${developerCategory.categoryId}`,
-          { headers: authHeader }
-        );
-
-        if (categoryDetailResponse.ok) {
-          const categoryDetail = await parseJsonResponse(categoryDetailResponse, 'developer lead details');
-          if (isMounted) {
-            const leadId =
-              categoryDetail?.leadInternId ??
-              categoryDetail?.leadIntern?.internId ??
-              null;
-            setCurrentLeadId(leadId);
-          }
-        } else {
-          console.warn('Could not fetch current lead information.');
-        }
       } catch (err) {
-        if (!isMounted) {
-          return;
-        }
-        console.error('Error loading Developer interns:', err);
-        setDeveloperInterns([]);
-        setError(err.message || 'Could not load Developer interns from the server.');
+        console.error("Error loading initial data:", err);
+        setError("Could not load lead information from the server.");
+
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     };
-
     loadData();
+  }, [DEVELOPER_CATEGORY_ID]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Helper: normalize values for search/sort
   const asText = (v) => Array.isArray(v) ? v.join(', ') : (v ?? '');
 
-  // Filter interns based on search term & language dropdown
+  // Filter interns based on search term
   useEffect(() => {
     const term = searchTerm.toLowerCase().trim();
-    let list = !term
-      ? [...developerInterns]
-      : developerInterns.filter(intern => {
-          const name = (intern.name || '').toLowerCase();
-          const code = (intern.internCode || '').toLowerCase();
-          const langs = asText(intern.languagesAndFrameworks).toLowerCase();
-          const proj = asText(intern.projects).toLowerCase();
-          const mobile = (intern.mobileNumber || '').toLowerCase();
-          return (
-            name.includes(term) ||
-            code.includes(term) ||
-            langs.includes(term) ||
-            proj.includes(term) ||
-            mobile.includes(term)
-          );
-        });
-
-    // 🔹 Apply language filter if not "All"
-    if (languageFilter !== 'All' ) {
-      list = list.filter(intern =>
-        toStringArray(intern.languagesAndFrameworks).some(lang =>
-          lang.toLowerCase() === languageFilter.toLowerCase()
-        )
-      );
-    }
+    let list = !term ? [...developerInterns] : developerInterns.filter(intern => {
+      const name = (intern.name || '').toLowerCase();
+      const code = (intern.internCode || '').toLowerCase();
+      const langType = asText(intern.skills).toLowerCase();
+      const proj = asText(intern.projects).toLowerCase();
+      const mobile = (intern.mobileNumber || '').toLowerCase();
+      return name.includes(term) || code.includes(term) || langType.includes(term) || proj.includes(term) || mobile.includes(term);
+    });
 
     // Sorting
     const [sortField, sortOrder] = (sortOption || 'none').split(':');
     if (sortField && sortOrder && sortField !== 'none') {
       list.sort((a, b) => {
         let aVal, bVal;
-
+        
         switch (sortField) {
           case 'internCode':
             aVal = a.internCode;
@@ -354,9 +77,9 @@ const Developer = () => {
             aVal = a.trainingEndDate;
             bVal = b.trainingEndDate;
             break;
-          case 'languagesAndFrameworks':
-            aVal = asText(a.languagesAndFrameworks);
-            bVal = asText(b.languagesAndFrameworks);
+          case 'languageType':
+            aVal = asText(a.skills);
+            bVal = asText(b.skills);
             break;
           case 'projects':
             aVal = asText(a.projects);
@@ -374,41 +97,30 @@ const Developer = () => {
           else if (aDate && !bDate) cmp = 1;
           else if (aDate && bDate) cmp = aDate - bDate;
         } else {
-          cmp = (aVal || '').localeCompare(bVal || '', undefined, {
-            numeric: true,
-            sensitivity: 'base'
-          });
+          cmp = (aVal || '').localeCompare(bVal || '', undefined, { numeric: true, sensitivity: 'base' });
         }
-
+        
         return sortOrder === 'asc' ? cmp : -cmp;
       });
     }
-
     setFilteredInterns(list);
-  }, [developerInterns, searchTerm, sortOption, languageFilter]);
+  }, [developerInterns, searchTerm, sortOption]);
 
-  const allLanguages = useMemo(() => {
-    const unique = new Set();
+  // Assign new lead
+  const handleAssignLead = async (internId) => {
+    try {
+      setError('');
+      await categoryService.assignLead(DEVELOPER_CATEGORY_ID, internId);
 
-    developerInterns.forEach((intern) => {
-      const languages = Array.isArray(intern.languagesAndFrameworks)
-        ? intern.languagesAndFrameworks
-        : toStringArray(intern.languagesAndFrameworks);
-      languages.forEach((lang) => {
-        if (lang) {
-          unique.add(lang);
-        }
-      });
-    });
+      setCurrentLeadId(internId);
+      alert('New Developer lead has been assigned successfully!');
 
-    return ['All', ...Array.from(unique).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))];
-  }, [developerInterns]);
-
-  useEffect(() => {
-    if (!allLanguages.includes(languageFilter)) {
-      setLanguageFilter('All');
+    } catch (err) {
+      console.error('Error assigning lead:', err);
+      setError(err.message);
     }
-  }, [allLanguages, languageFilter]);
+  };
+
 
   const handleAddIntern = () => {
     setSelectedIntern(null);
@@ -421,48 +133,54 @@ const Developer = () => {
   };
 
   const handleDeleteIntern = async (internId) => {
+    const internName = developerInterns.find(i => i.internId === internId)?.name || 'this intern';
+    if (!window.confirm(`Are you sure you want to delete ${internName}?`)) {
+      return;
+    }
+
     try {
       setError('');
-      setDeveloperInterns(prev =>
-        prev.filter(intern => intern.internId !== internId)
-      );
-      if (currentLeadId === internId) {
-        setCurrentLeadId(null);
-      }
+      await internService.deleteIntern(internId);
+      // Update state *after* successful API call
+      setDeveloperInterns(prev => prev.filter(intern => intern.internId !== internId));
     } catch (err) {
       console.error('Error deleting Developer intern:', err);
-      setError('Failed to delete Developer intern. Please try again.');
+      const errorMsg = err.response?.data?.message || 'Failed to delete intern.';
+      setError(errorMsg);
     }
   };
 
   const handleFormSubmit = async (payload) => {
+    setIsSubmitting(true);
+    setError('');
+      
     try {
-      setIsSubmitting(true);
-      setError('');
-
-      if (payload?.internId != null) {
-        // Update existing
+      if (payload.internId) {
+        // --- EDIT MODE ---
+        const response = await internService.updateIntern(payload.internId, payload);
+        // Update the list with the fresh data from the server
         setDeveloperInterns(prev =>
           prev.map(intern =>
-            intern.internId === payload.internId
-              ? { ...intern, ...normaliseDeveloperIntern(payload) }
-              : intern
+            intern.internId === payload.internId ? response.data : intern
           )
         );
       } else {
-        // Add new
-        const newIntern = normaliseDeveloperIntern({ ...payload, internId: Date.now() });
-        setDeveloperInterns(prev => [...prev, newIntern]);
+        // --- ADD NEW MODE ---
+        const response = await internService.createIntern(payload);
+        // Add the new intern (from the server) to our list
+        setDeveloperInterns(prev => [...prev, response.data]);
       }
 
       setIsFormOpen(false);
       setSelectedIntern(null);
+
     } catch (err) {
-      console.error('Error saving Developer intern:', err);
-      setError(`Failed to ${payload?.internId ? 'update' : 'create'} Developer intern. Please try again.`);
+      console.error('Error saving intern:', err);
+      const errorMsg = err.response?.data?.message || `Failed to save intern.`;
+      setError(errorMsg);
     } finally {
       setIsSubmitting(false);
-    }
+    }      
   };
 
   const handleCloseForm = () => {
@@ -474,47 +192,8 @@ const Developer = () => {
     setSearchTerm(e.target.value);
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-  };
-
-  const handleAssignLead = async (internId) => {
-    if (!developerCategoryId) {
-      setError('Developer category is not loaded yet. Please try again shortly.');
-      return;
-    }
-
-    const token = Cookies.get('authToken');
-    if (!token) {
-      setError('Authorization failed. Please log in.');
-      return;
-    }
-
-    try {
-      setError('');
-      const response = await fetch(
-        `${API_BASE_URL}/categories/${developerCategoryId}/assign-lead/${internId}`,
-        {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Failed to assign lead. The intern ID might be invalid.');
-      }
-
-      setCurrentLeadId(internId);
-      return true;
-    } catch (err) {
-      console.error('Error assigning lead:', err);
-      setError(err.message || 'Failed to assign Developer lead. Please try again.');
-      throw err;
-    }
+  const handleSearch = (e) => { 
+    e.preventDefault(); 
   };
 
   return (
@@ -522,7 +201,7 @@ const Developer = () => {
       <div className={styles.header}>
         <h1 className={styles.title}>Developer Interns Management</h1>
         <p className={styles.subtitle}>
-          Manage Developer interns, programming stacks, and project assignments
+          Manage Developer interns, skills, and project assignments
         </p>
       </div>
 
@@ -531,7 +210,7 @@ const Developer = () => {
           <div className={styles.errorAlert}>
             <span className={styles.errorIcon}>⚠️</span>
             <span className={styles.errorText}>{error}</span>
-            <button
+            <button 
               className={styles.errorClose}
               onClick={() => setError('')}
             >
@@ -540,57 +219,33 @@ const Developer = () => {
           </div>
         )}
 
-        {isCategoryMissing && (
-          <div className={styles.infoAlert}>
-            <h3>Developer category not found</h3>
-            <p>
-              We could not locate a developer-focused category in the backend. Please create a
-              category named something like <strong>"Web Developer"</strong> and assign the relevant
-              interns to it. Once it is available, refresh this page to load the developer roster.
-            </p>
-          </div>
-        )}
-
         <div className={styles.actionSection}>
-          <button
-            className={styles.primaryBtn}
-            onClick={handleAddIntern}
-            disabled={isCategoryMissing}
-            title={
-              isCategoryMissing
-                ? 'Create the Developer category in the backend before adding new interns.'
-                : undefined
-            }
-          >
-            + Add New Developer Intern
-          </button>
+          <div className={styles.buttonGroup}>
+            <button 
+              className={styles.primaryBtn}
+              onClick={handleAddIntern}
+            >
+              + Add New Intern
+            </button>
 
+            <button 
+              className={styles.secondaryBtn}
+              onClick={() => setIsManageModalOpen(true)}
+            >
+              Manage Languages and Frameworks
+            </button>
+          </div>
           <div className={styles.filterSection}>
             <CategoryDropdown current="developers" />
             <form onSubmit={handleSearch} className={styles.searchSection}>
-              <input
-                type="text"
-                placeholder="Search by name, code, languages, projects, or mobile..."
+              <input 
+                type="text" 
+                placeholder="Search by name, code, language type, projects, or mobile..." 
                 className={styles.searchInput}
                 value={searchTerm}
                 onChange={handleSearchChange}
               />
             </form>
-
-            {/* 🔹 Added Language Dropdown Filter */}
-            <select
-              className={styles.filterSelect}
-              value={languageFilter}
-              onChange={(e) => setLanguageFilter(e.target.value)}
-              title="Filter by Language"
-            >
-              {allLanguages.map((lang) => (
-                <option key={lang} value={lang}>
-                  {lang}
-                </option>
-              ))}
-            </select>
-
             <div className={styles.sortSection}>
               <select
                 className={styles.filterSelect}
@@ -603,17 +258,10 @@ const Developer = () => {
                 <option value="internCode:desc">Intern Code (Descending)</option>
                 <option value="endDate:asc">End Date (Ascending)</option>
                 <option value="endDate:desc">End Date (Descending)</option>
-                <option value="languagesAndFrameworks:asc">Languages & Frameworks (Ascending)</option>
-                <option value="languagesAndFrameworks:desc">Languages & Frameworks (Descending)</option>
-                <option value="projects:asc">Projects (Ascending)</option>
-                <option value="projects:desc">Projects (Descending)</option>
+                <option value="languageType:asc">Language Type (Ascending)</option>
+                <option value="languageType:desc">Language Type (Descending)</option>
               </select>
             </div>
-          </div>
-
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
-            <DeveloperReport interns={filteredInterns} />
-            
           </div>
         </div>
 
@@ -625,7 +273,7 @@ const Developer = () => {
             {searchTerm && (
               <p className={styles.searchInfo}>
                 Showing results for "{searchTerm}"
-                <button
+                <button 
                   className={styles.clearSearch}
                   onClick={() => setSearchTerm('')}
                 >
@@ -640,7 +288,7 @@ const Developer = () => {
             onEdit={handleEditIntern}
             onDelete={handleDeleteIntern}
             isLoading={isLoading}
-            onAssignLead={developerCategoryId ? handleAssignLead : undefined}
+            onAssignLead={handleAssignLead}
             currentLeadId={currentLeadId}
           />
         </div>
@@ -652,6 +300,13 @@ const Developer = () => {
         onSubmit={handleFormSubmit}
         editingIntern={selectedIntern}
         isLoading={isSubmitting}
+      />
+
+      <MasterDataModal
+        isOpen={isManageModalOpen}
+        onClose={() => setIsManageModalOpen(false)}
+        category="WEB_DEVELOPER"
+        title="Manage Languages and Frameworks"
       />
     </div>
   );
