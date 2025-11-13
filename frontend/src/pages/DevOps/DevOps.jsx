@@ -3,6 +3,7 @@ import { DevOpsForm, DevOpsTable } from '../../components';
 import { internService, categoryService } from '../../services/api';
 import styles from './DevOps.module.css';
 import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
+import MasterDataModal from '../../components/MasterDataModal/MasterDataModal';
 
 const DevOps = () => {
   const [devOpsInterns, setDevOpsInterns] = useState([]);
@@ -15,71 +16,8 @@ const DevOps = () => {
   const [error, setError] = useState('');
   const [sortOption, setSortOption] = useState('internCode:asc');
   const [currentLeadId, setCurrentLeadId] = useState(null);
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
   const DEVOPS_CATEGORY_ID = 3;
-
-  // Mock data for DevOps interns
-  // const mockDevOpsData = [
-  //   {
-  //     internId: 367,
-  //     internCode: '3142',
-  //     name: 'John Smith',
-  //     email: 'john.smith@example.com',
-  //     mobileNumber: '0712356172',
-  //     trainingEndDate: '2024-12-15',
-  //     resourceType: 'Cloud Engineer',
-  //     projects: ['CI/CD', 'MERN']
-  //   },
-  //   {
-  //     internId: 368,
-  //     internCode: '3143',
-  //     name: 'Sarah Johnson',
-  //     email: 'sarah.johnson@example.com',
-  //     mobileNumber: '0776502837',
-  //     trainingEndDate: '2024-11-30',
-  //     resourceType: 'DevOps Engineer',
-  //     projects: ['CI/CD', 'MERN', 'AWS']
-  //   },
-  //   {
-  //     internId: 369,
-  //     internCode: '3145',
-  //     name: 'Michael Brown',
-  //     email: 'michael.brown@example.com',
-  //     mobileNumber: '0776502837',
-  //     trainingEndDate: '2025-01-20',
-  //     resourceType: 'Site Reliability Engineer',
-  //     projects: ['CI/CD', 'MERN', 'AWS']
-  //   },
-  //   {
-  //     internId: 370,
-  //     internCode: '3146',
-  //     name: 'Emily Davis',
-  //     email: 'emily.davis@example.com',
-  //     mobileNumber: '0776502837',
-  //     trainingEndDate: '2024-12-10',
-  //     resourceType: 'Infrastructure Engineer',
-  //     projects: ['CI/CD', 'MERN', 'AWS']
-  //   },
-  //   {
-  //     internId: 371,
-  //     internCode: '3147',
-  //     name: 'David Wilson',
-  //     email: 'david.wilson@example.com',
-  //     mobileNumber: '0776502837',
-  //     trainingEndDate: '2025-02-05',
-  //     resourceType: 'Platform Engineer',
-  //     projects: ['CI/CD', 'MERN', 'AWS']
-  //   },
-  //   {
-  //     internId: 372,
-  //     internCode: '3148',
-  //     name: 'Lisa Anderson',
-  //     email: 'lisa.anderson@example.com',
-  //     mobileNumber: '0776502837',
-  //     trainingEndDate: '2024-12-28',
-  //     resourceType: 'Cloud Architect',
-  //     projects: ['CI/CD', 'MERN', 'AWS']
-  //   }
-  // ];
 
 
   // Simulate loading data
@@ -118,7 +56,7 @@ const DevOps = () => {
     let list = !term ? [...devOpsInterns] : devOpsInterns.filter(intern => {
       const name = (intern.name || '').toLowerCase();
       const code = (intern.internCode || '').toLowerCase();
-      const resType = asText(intern.resourceType).toLowerCase();
+      const resType = asText(intern.skills).toLowerCase();
       const proj = asText(intern.projects).toLowerCase();
       const mobile = (intern.mobileNumber || '').toLowerCase();
       return name.includes(term) || code.includes(term) || resType.includes(term) || proj.includes(term) || mobile.includes(term);
@@ -140,8 +78,8 @@ const DevOps = () => {
             bVal = b.trainingEndDate;
             break;
           case 'resourceType':
-            aVal = asText(a.resourceType);
-            bVal = asText(b.resourceType);
+            aVal = asText(a.skills);
+            bVal = asText(b.skills);
             break;
           case 'projects':
             aVal = asText(a.projects);
@@ -195,44 +133,54 @@ const DevOps = () => {
   };
 
   const handleDeleteIntern = async (internId) => {
+    const internName = devOpsInterns.find(i => i.internId === internId)?.name || 'this intern';
+    if (!window.confirm(`Are you sure you want to delete ${internName}?`)) {
+      return;
+    }
+
     try {
       setError('');
-      // Mock delete functionality
+      await internService.deleteIntern(internId);
+      // Update state *after* successful API call
       setDevOpsInterns(prev => prev.filter(intern => intern.internId !== internId));
     } catch (err) {
       console.error('Error deleting DevOps intern:', err);
-      setError('Failed to delete DevOps intern. Please try again.');
+      const errorMsg = err.response?.data?.message || 'Failed to delete intern.';
+      setError(errorMsg);
     }
   };
 
   const handleFormSubmit = async (payload) => {
-    try {
-      setIsSubmitting(true);
-      setError('');
+    setIsSubmitting(true);
+    setError('');
       
-      // Mock form submission
-      if (payload?.internId != null) {
+    try {
+      if (payload.internId) {
+        // --- EDIT MODE ---
+        const response = await internService.updateIntern(payload.internId, payload);
+        // Update the list with the fresh data from the server
         setDevOpsInterns(prev =>
           prev.map(intern =>
-            intern.internId === payload.internId ? { ...intern, ...payload } : intern
+            intern.internId === payload.internId ? response.data : intern
           )
         );
       } else {
-        const newIntern = {
-        ...payload,
-          internId: Date.now()
-        };
-        setDevOpsInterns(prev => [...prev, newIntern]);
+        // --- ADD NEW MODE ---
+        const response = await internService.createIntern(payload);
+        // Add the new intern (from the server) to our list
+        setDevOpsInterns(prev => [...prev, response.data]);
       }
-      
+
       setIsFormOpen(false);
       setSelectedIntern(null);
+
     } catch (err) {
-      console.error('Error saving DevOps intern:', err);
-      setError(`Failed to ${payload?.internId ? 'update' : 'create'} DevOps intern. Please try again.`);
+      console.error('Error saving intern:', err);
+      const errorMsg = err.response?.data?.message || `Failed to save intern.`;
+      setError(errorMsg);
     } finally {
       setIsSubmitting(false);
-    }
+    }      
   };
 
   const handleCloseForm = () => {
@@ -272,12 +220,21 @@ const DevOps = () => {
         )}
 
         <div className={styles.actionSection}>
-          <button 
-            className={styles.primaryBtn}
-            onClick={handleAddIntern}
-          >
-            + Add New DevOps Intern
-          </button>
+          <div className={styles.buttonGroup}>
+            <button 
+              className={styles.primaryBtn}
+              onClick={handleAddIntern}
+            >
+              + Add New Intern
+            </button>
+
+            <button 
+              className={styles.secondaryBtn}
+              onClick={() => setIsManageModalOpen(true)}
+            >
+              Manage Resource Types
+            </button>
+          </div>
           <div className={styles.filterSection}>
             <CategoryDropdown current="devops" />
             <form onSubmit={handleSearch} className={styles.searchSection}>
@@ -343,6 +300,13 @@ const DevOps = () => {
         onSubmit={handleFormSubmit}
         editingIntern={selectedIntern}
         isLoading={isSubmitting}
+      />
+
+      <MasterDataModal
+        isOpen={isManageModalOpen}
+        onClose={() => setIsManageModalOpen(false)}
+        category="DEVOPS"
+        title="Manage DevOps Resources"
       />
     </div>
   );

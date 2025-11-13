@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FiX, FiUser, FiMail, FiCalendar, FiServer, FiPhone, FiLayers, FiChevronDown } from 'react-icons/fi';
-import { projectService, excelService } from '../../services/api';
+import { projectService, masterDataService } from '../../services/api';
 import styles from './DevOpsForm.module.css';
 
 const DevOpsForm = ({
@@ -17,7 +17,7 @@ const DevOpsForm = ({
     email: '',
     mobileNumber: '',
     trainingEndDate: '',
-    resourceType: [],
+    skills: [],
     projects: []
   });
 
@@ -46,7 +46,7 @@ const DevOpsForm = ({
         mobileNumber: editingIntern.mobileNumber || '',
         trainingEndDate: editingIntern.trainingEndDate ? 
           editingIntern.trainingEndDate.split('T')[0] : '',
-        resourceType: toList(editingIntern.resourceType),
+        skills: toList(editingIntern.skills),
         projects: toList(editingIntern.projects)
       });
     } else {
@@ -56,7 +56,7 @@ const DevOpsForm = ({
         email: '',
         mobileNumber: '',
         trainingEndDate: '',
-        resourceType: [],
+        skills: [],
         projects: []
       });
     }
@@ -68,7 +68,7 @@ const DevOpsForm = ({
     setRtLoading(true);
     setRtError('');
     try {
-      const response = await excelService.getDevOpsResourceTypes();
+      const response = await masterDataService.getActiveItemNamesForCategory("DEVOPS");
       setResourceTypes(response.data);
     } catch (err) {
       console.error('Failed to load resource types', err);
@@ -126,10 +126,17 @@ const DevOpsForm = ({
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (!formData.mobileNumber.trim()) {
-      newErrors.mobileNumber = 'Mobile number is required';
-    } else if (!/^(\+?\d{9,15}|0\d{9})$/.test(formData.mobileNumber.trim())) {
-      newErrors.mobileNumber = 'Enter a valid phone number';
+    // if (!formData.mobileNumber.trim()) {
+    //   newErrors.mobileNumber = 'Mobile number is required';
+    // } else 
+    //   if (!/^(\+?\d{9,15}|0\d{9})$/.test(formData.mobileNumber.trim())) {
+    //   newErrors.mobileNumber = 'Enter a valid phone number';
+    // }
+
+    if (formData.mobileNumber.trim()) {
+      if (!/^(\+?\d{9,15}|0\d{9})$/.test(formData.mobileNumber.trim())) {
+        newErrors.mobileNumber = 'Enter a valid phone number';
+      }
     }
 
     if (!formData.trainingEndDate) {
@@ -144,8 +151,8 @@ const DevOpsForm = ({
       }
     }
 
-    if (!Array.isArray(formData.resourceType) || formData.resourceType.length === 0) {
-      newErrors.resourceType = 'Select at least one resource type';
+    if (!Array.isArray(formData.skills) || formData.skills.length === 0) {
+      newErrors.skills = 'Select at least one resource type';
     }
 
     return newErrors;
@@ -309,7 +316,7 @@ const DevOpsForm = ({
                 title="Enter a valid phone number"
                 disabled={isLoading || isEditMode}
                 readOnly={isEditMode}
-                required
+                // required
               />
               {errors.mobileNumber && (
                 <span className={styles.errorText}>{errors.mobileNumber}</span>
@@ -344,15 +351,15 @@ const DevOpsForm = ({
                 Resource Type
               </label>
               <div
-                className={`${styles.multiSelect} ${errors.resourceType ? styles.inputError : ''}`}
+                className={`${styles.multiSelect} ${errors.skills ? styles.inputError : ''}`}
                 onClick={() => !isLoading && !rtLoading && setIsRTOpen(v => !v)}
                 role="button"
                 aria-expanded={isRTOpen}
               >
                 <div className={styles.multiControl}>
                   <div className={styles.multiValue}>
-                    {formData.resourceType.length
-                      ? formData.resourceType.join(', ')
+                    {formData.skills.length
+                      ? formData.skills.join(', ')
                       : (rtLoading ? 'Loading…' : 'Select one or more…')}
                   </div>
                   <FiChevronDown className={styles.caret} />
@@ -377,8 +384,8 @@ const DevOpsForm = ({
                       <label key={opt} className={styles.optionRow}>
                         <input
                           type="checkbox"
-                          checked={formData.resourceType.includes(opt)}
-                          onChange={() => toggleMulti('resourceType', opt)}
+                          checked={formData.skills.includes(opt)}
+                          onChange={() => toggleMulti('skills', opt)}
                           disabled={isLoading}
                         />
                         <span>{opt}</span>
@@ -387,8 +394,8 @@ const DevOpsForm = ({
                   </div>
                 )}
               </div>
-              {errors.resourceType && (
-                <span className={styles.errorText}>{errors.resourceType}</span>
+              {errors.skills && (
+                <span className={styles.errorText}>{errors.skills}</span>
               )}
             </div>
 

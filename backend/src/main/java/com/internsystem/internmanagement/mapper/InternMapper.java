@@ -15,6 +15,9 @@ public class InternMapper {
         dto.setInstitute(intern.getInstitute());
         dto.setTrainingStartDate(intern.getTrainingStartDate());
         dto.setTrainingEndDate(intern.getTrainingEndDate());
+        dto.setMobileNumber(intern.getMobileNumber());
+        dto.setSkills(intern.getSkills());
+        dto.setProjects(intern.getProjects());
         return dto;
     }
 
@@ -27,6 +30,9 @@ public class InternMapper {
         intern.setInstitute(dto.getInstitute());
         intern.setTrainingStartDate(dto.getTrainingStartDate());
         intern.setTrainingEndDate(dto.getTrainingEndDate());
+        intern.setMobileNumber(dto.getMobileNumber());
+        intern.setSkills(dto.getSkills());
+        intern.setProjects(dto.getProjects());
         return intern;
     }
 }

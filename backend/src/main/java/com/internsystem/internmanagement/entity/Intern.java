@@ -9,6 +9,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "interns")
@@ -28,20 +30,30 @@ public class Intern {
     @Column(nullable = false)
     private String name;
 
-     @Column(name = "training_end_date") // Make sure this matches your column name
-    private LocalDate trainingEndDate;
-
     // --- ADD THE NEW FIELD FOR THE ALERT FLAG ---
     @Column(name = "end_date_alert_sent") // This will create a new column in your database
     private Boolean endDateAlertSent = false; // <-- ADD THIS. It defaults to false.
 
     private String email;
     private LocalDate trainingStartDate;
-    private LocalDate trainingEnDate;
+    private LocalDate trainingEndDate;
     private String institute;
 
     @Column(name = "specialization")
     private String specialization;
+
+    @Column(name = "mobile_number")
+    private String mobileNumber;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "intern_skills", joinColumns = @JoinColumn(name = "intern_id"))
+    @Column(name = "skill_name")
+    private List<String> skills = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "intern_projects", joinColumns = @JoinColumn(name = "intern_id"))
+    @Column(name = "project_name")
+    private List<String> projects = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
