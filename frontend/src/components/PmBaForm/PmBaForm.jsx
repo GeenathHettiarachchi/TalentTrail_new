@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FiX, FiUser, FiMail, FiCalendar, FiPhone, FiLayers } from 'react-icons/fi';
+import { FiX, FiUser, FiMail, FiCalendar, FiPhone, FiLayers, FiChevronDown } from 'react-icons/fi';
 import { projectService } from '../../services/api';
-import styles from './PmBaForm.module.css'; // reuse same CSS
+import styles from './PmBaForm.module.css';
 
-const PmBaForm = ({ isOpen, onClose, onSubmit, editingIntern = null, isLoading = false }) => {
+const PmBaForm = ({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  editingIntern = null, 
+  isLoading = false
+}) => {
   const [formData, setFormData] = useState({
     internCode: '',
     name: '',
@@ -20,11 +26,13 @@ const PmBaForm = ({ isOpen, onClose, onSubmit, editingIntern = null, isLoading =
   const [projLoading, setProjLoading] = useState(false);
   const [projError, setProjError] = useState('');
 
+  // Check if we're in edit mode
   const isEditMode = !!editingIntern;
 
   useEffect(() => {
     if (editingIntern) {
-      const toList = (v) => Array.isArray(v) ? v
+      const toList = (v) => 
+        Array.isArray(v) ? v
         : (typeof v === 'string' && v.trim() ? v.split(',').map(s => s.trim()).filter(Boolean) : []);
       setFormData({
         internCode: editingIntern.internCode || '',
@@ -53,7 +61,10 @@ const PmBaForm = ({ isOpen, onClose, onSubmit, editingIntern = null, isLoading =
     try {
       const response = await projectService.getAllProjects();
       const data = response.data;
-      const names = Array.from(new Set((data || []).map(p => p?.projectName?.trim()).filter(Boolean))).sort();
+      const names = Array.from(new Set(
+        (data || []).map(p => p?.projectName?.trim()).filter(Boolean)
+      )).sort((a,b) => a.localeCompare(b));
+
       setProjectOptions(names);
     } catch (err) {
       console.error('Failed to load projects', err);
@@ -63,6 +74,7 @@ const PmBaForm = ({ isOpen, onClose, onSubmit, editingIntern = null, isLoading =
     }
   };
 
+  // FETCH when the modal opens
   useEffect(() => {
     if (isOpen) fetchProjects();
   }, [isOpen]);
@@ -125,14 +137,25 @@ const PmBaForm = ({ isOpen, onClose, onSubmit, editingIntern = null, isLoading =
       set.has(value) ? set.delete(value) : set.add(value);
       return { ...prev, [field]: Array.from(set) };
     });
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   return createPortal(
     <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2 className={styles.title}>{editingIntern ? 'Edit PM & BA Intern' : 'Add PM & BA Intern'}</h2>
-          <button type="button" className={styles.closeButton} onClick={handleClose} disabled={isLoading} aria-label="Close">
+          <h2 className={styles.title}>
+            {editingIntern ? 'Edit PM & BA Intern' : 'Add PM & BA Intern'}
+          </h2>
+          <button 
+            type="button" 
+            className={styles.closeButton} 
+            onClick={handleClose} 
+            disabled={isLoading} 
+            aria-label="Close"
+          >
             <FiX />
           </button>
         </div>
@@ -142,7 +165,8 @@ const PmBaForm = ({ isOpen, onClose, onSubmit, editingIntern = null, isLoading =
             {/* Intern Code */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="internCode">
-                <FiUser className={styles.labelIcon} /> Intern Code
+                <FiUser className={styles.labelIcon} /> 
+                Intern Code
               </label>
               <input
                 type="text"
@@ -156,13 +180,16 @@ const PmBaForm = ({ isOpen, onClose, onSubmit, editingIntern = null, isLoading =
                 readOnly={isEditMode}
                 required
               />
-              {errors.internCode && <span className={styles.errorText}>{errors.internCode}</span>}
+              {errors.internCode && (
+                <span className={styles.errorText}>{errors.internCode}</span>
+              )}
             </div>
 
             {/* Name */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="name">
-                <FiUser className={styles.labelIcon} /> Full Name
+                <FiUser className={styles.labelIcon} /> 
+                Full Name
               </label>
               <input
                 type="text"
@@ -170,19 +197,22 @@ const PmBaForm = ({ isOpen, onClose, onSubmit, editingIntern = null, isLoading =
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.name ? styles.inputError : ''}`}
+                className={`${styles.input} ${errors.name ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
                 placeholder="Enter full name"
                 disabled={isLoading || isEditMode}
                 readOnly={isEditMode}
                 required
               />
-              {errors.name && <span className={styles.errorText}>{errors.name}</span>}
+              {errors.name && (
+                <span className={styles.errorText}>{errors.name}</span>
+              )}
             </div>
 
             {/* Email */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="email">
-                <FiMail className={styles.labelIcon} /> Email Address
+                <FiMail className={styles.labelIcon} /> 
+                Email Address
               </label>
               <input
                 type="email"
@@ -190,19 +220,22 @@ const PmBaForm = ({ isOpen, onClose, onSubmit, editingIntern = null, isLoading =
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
-                placeholder="Enter email"
+                className={`${styles.input} ${errors.email ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
+                placeholder="Enter email address"
                 disabled={isLoading || isEditMode}
                 readOnly={isEditMode}
                 required
               />
-              {errors.email && <span className={styles.errorText}>{errors.email}</span>}
+              {errors.email && ( 
+                <span className={styles.errorText}>{errors.email}</span>
+              )}
             </div>
 
             {/* Mobile Number */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="mobileNumber">
-                <FiPhone className={styles.labelIcon} /> Mobile Number
+                <FiPhone className={styles.labelIcon} /> 
+                Mobile Number
               </label>
               <input
                 type="tel"
@@ -210,17 +243,23 @@ const PmBaForm = ({ isOpen, onClose, onSubmit, editingIntern = null, isLoading =
                 name="mobileNumber"
                 value={formData.mobileNumber}
                 onChange={handleInputChange}
-                className={`${styles.input} ${errors.mobileNumber ? styles.inputError : ''}`}
+                className={`${styles.input} ${errors.mobileNumber ? styles.inputError : ''} ${isEditMode ? styles.readOnlyInput : ''}`}
                 placeholder="e.g., 0771234567"
+                pattern="^(\+?\d{9,15}|0\d{9})$"
+                title="Enter a valid phone number"
                 disabled={isLoading || isEditMode}
+                readOnly={isEditMode}
               />
-              {errors.mobileNumber && <span className={styles.errorText}>{errors.mobileNumber}</span>}
+              {errors.mobileNumber && (
+                <span className={styles.errorText}>{errors.mobileNumber}</span>
+              )}
             </div>
 
             {/* Training End Date */}
             <div className={styles.inputGroup}>
               <label className={styles.label} htmlFor="trainingEndDate">
-                <FiCalendar className={styles.labelIcon} /> Training End Date
+                <FiCalendar className={styles.labelIcon} /> 
+                Training End Date
               </label>
               <input
                 type="date"
@@ -232,32 +271,65 @@ const PmBaForm = ({ isOpen, onClose, onSubmit, editingIntern = null, isLoading =
                 disabled={isLoading}
                 required
               />
-              {errors.trainingEndDate && <span className={styles.errorText}>{errors.trainingEndDate}</span>}
+              {errors.trainingEndDate && (
+                <span className={styles.errorText}>{errors.trainingEndDate}</span>
+              )}
             </div>
 
             {/* Projects */}
             <div className={styles.inputGroup}>
               <label className={styles.label}>
-                <FiLayers className={styles.labelIcon} /> Projects
+                <FiLayers className={styles.labelIcon} />
+                Projects
               </label>
+
               <div
                 className={`${styles.multiSelect} ${projError ? styles.inputError : ''}`}
                 onClick={() => !isLoading && setIsProjOpen(v => !v)}
+                role="button"
+                aria-expanded={isProjOpen}
               >
                 <div className={styles.multiControl}>
                   <div className={styles.multiValue}>
-                    {formData.projects.length ? formData.projects.join(', ') : (projLoading ? 'Loading…' : 'Select one or more…')}
+                    {formData.projects.length
+                      ? formData.projects.join(', ')
+                      : (projLoading ? 'Loading…' : 'Select one or more…')}
                   </div>
+                  <FiChevronDown className={styles.caret} />
                 </div>
 
                 {isProjOpen && (
-                  <div className={styles.multiMenu} onClick={e => e.stopPropagation()}>
-                    {projLoading && <div className={styles.optionRow}><span>Loading projects…</span></div>}
-                    {!projLoading && projError && <div className={styles.optionRow}><span>{projError}</span></div>}
-                    {!projLoading && !projError && projectOptions.length === 0 && <div className={styles.optionRow}><span>No projects found</span></div>}
+                  <div
+                    className={styles.multiMenu}
+                    onClick={(e) => e.stopPropagation()}
+                    role="listbox"
+                  >
+                    {projLoading && (
+                      <div className={styles.optionRow}>
+                        <span>Loading projects…</span>
+                      </div>
+                    )}
+
+                    {!projLoading && projError && (
+                      <div className={styles.optionRow}>
+                        <span>{projError}</span>
+                      </div>
+                    )}
+
+                    {!projLoading && !projError && projectOptions.length === 0 && (
+                      <div className={styles.optionRow}>
+                        <span>No projects found</span>
+                      </div>
+                    )}
+
                     {!projLoading && !projError && projectOptions.map(opt => (
                       <label key={opt} className={styles.optionRow}>
-                        <input type="checkbox" checked={formData.projects.includes(opt)} onChange={() => toggleMulti('projects', opt)} disabled={isLoading} />
+                        <input
+                          type="checkbox"
+                          checked={formData.projects.includes(opt)}
+                          onChange={() => toggleMulti('projects', opt)}
+                          disabled={isLoading}
+                        />
                         <span>{opt}</span>
                       </label>
                     ))}

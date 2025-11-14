@@ -261,14 +261,11 @@ public class InternService {
         }
 
 
-        if (specLower.contains("pm")) {
+        if (specLower.contains("pm") || 
+            specLower.contains("ba")) {
                 
-            return internCategoryRepository.findByCategoryName("PM").orElse(null);
+            return internCategoryRepository.findByCategoryName("PMBA").orElse(null);
         }
-
-        if (specLower.contains("ba")) {
-                
-            return internCategoryRepository.findByCategoryName("BA").orElse(null);
 
         if (specLower.contains("ai")) {
             return internCategoryRepository.findByCategoryName("AI").orElse(null);

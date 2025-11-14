@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { FiMoreVertical, FiChevronRight, FiLayers } from 'react-icons/fi';
-import styles from './PmBaTable.module.css'; // reuse same CSS
+import styles from './PmBaTable.module.css';
 
 const PmBaTable= React.memo(({ 
   interns, 
@@ -45,20 +45,25 @@ const PmBaTable= React.memo(({
     }
   }, []);
 
+  // Check if date is within 30 days from today
   const isDueSoon = useCallback((dateString) => {
     if (!dateString) return false;
     const end = new Date(dateString);
     if (isNaN(end)) return false;
     const today = new Date();
-    end.setHours(0,0,0,0);
-    today.setHours(0,0,0,0);
-    const diffDays = (end - today) / (1000*60*60*24);
+    end.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    const diffDays = (end - today) / (1000 * 60 * 60 * 24);
     return diffDays < 30;
   }, []);
 
   const toList = useCallback((value) => {
-    if (Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean);
-    if (typeof value === 'string' && value.trim()) return value.split(',').map(v => v.trim()).filter(Boolean);
+    if (Array.isArray(value)) {
+      return value.map(v => String(v).trim()).filter(Boolean);
+    } 
+    if (typeof value === 'string' && value.trim()) {
+      return value.split(',').map(v => v.trim()).filter(Boolean);
+    }
     return [];
   }, []);
 
@@ -71,30 +76,42 @@ const PmBaTable= React.memo(({
   }, []);
 
   const handleRowClick = useCallback((intern, e) => {
-    // Only expand if projects > 2
-    if (e.target.closest(`.${styles.menuButton}`) ||
-        e.target.closest(`.${styles.menu}`) ||
-        e.target.closest(`.${styles.menuItem}`) ||
-        e.target.closest(`.${styles.expanderBtn}`)) return;
+    // Don't trigger if edit or delete button was clicked
+    if (
+      e.target.closest(`.${styles.menuButton}`) ||
+      e.target.closest(`.${styles.menu}`) ||
+      e.target.closest(`.${styles.menuItem}`) ||
+      e.target.closest(`.${styles.expanderBtn}`)
+    ) {
+      return;
+    }
 
-    const projects = toList(intern.projects);
-    if (projects.length > 2) toggleExpand(intern.internId);
+    const pjs = toList(intern.projects);
+    if (pjs.length > 2) {
+       toggleExpand(intern.internId);
+    }
   }, [toList, toggleExpand]);
 
-  if (isLoading) return (
-    <div className={styles.loadingContainer}>
-      <div className={styles.spinner}></div>
-      <p>Loading PM & BA interns...</p>
-    </div>
-  );
+  if (isLoading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner}></div>
+        <p>Loading PM & BA interns...</p>
+      </div>
+    );
+  }
 
-  if (interns.length === 0) return (
-    <div className={styles.emptyState}>
-      <div className={styles.emptyIcon}>📊</div>
-      <h3 className={styles.emptyTitle}>No PM & BA Interns Found</h3>
-      <p className={styles.emptyText}>Start by adding your first PM & BA intern.</p>
-    </div>
-  );
+  if (interns.length === 0) {
+    return (
+      <div className={styles.emptyState}>
+        <div className={styles.emptyIcon}>📊</div>
+        <h3 className={styles.emptyTitle}>No PM & BA Interns Found</h3>
+        <p className={styles.emptyText}>
+          Start by adding your first PM & BA intern.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.tableContainer} ref={tableRef}>
@@ -121,11 +138,13 @@ const PmBaTable= React.memo(({
 
               return (
                 <React.Fragment key={intern.internId}>
-                  <tr className={`${styles.tr} ${canExpand ? styles.trInteractive : ''}`}
-                      onClick={(e) => handleRowClick(intern, e)}
-                      aria-expanded={isExpanded}
-                      role={canExpand ? 'button' : undefined}
-                      title="PM & BA intern details">
+                  <tr 
+                  className={`${styles.tr} ${canExpand ? styles.trInteractive : ''}`}
+                  onClick={(e) => handleRowClick(intern, e)}
+                  aria-expanded={isExpanded}
+                  role={canExpand ? 'button' : undefined}
+                  title="PM & BA intern details"
+                  >
                     
                     <td className={`${styles.td} ${styles.expanderCell}`}>
                       {canExpand ? (
@@ -135,29 +154,46 @@ const PmBaTable= React.memo(({
                           onClick={(e) => { e.stopPropagation(); toggleExpand(intern.internId); }}
                           aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
                           aria-expanded={isExpanded}
-                          title={isExpanded ? 'Collapse' : 'Expand'}>
+                          title={isExpanded ? 'Collapse' : 'Expand'}
+                        >
                           <FiChevronRight />
                         </button>
                       ) : <span className={styles.expanderSpacer} />}
                     </td>
 
-                    <td className={styles.td}>{intern.internCode}</td>
+                    <td className={styles.td}>
+                      <span className={styles.internCode}>{intern.internCode}</span>
+                    </td>
                     <td className={styles.td}>
                       <div className={styles.nameCell}>
-                        {intern.name}
-                        {intern.internId === currentLeadId && <span className={styles.leadBadge}>⭐ Lead</span>}
+                        <span className={styles.name}>{intern.name}</span>
+                        {intern.internId === currentLeadId && (
+                          <span className={styles.leadBadge}>⭐ Lead</span>
+                        )}
                       </div>
                     </td>
-                    <td className={styles.td}>{intern.email}</td>
-                    <td className={styles.td}>{intern.mobileNumber || '-'}</td>
                     <td className={styles.td}>
-                      <span className={`${styles.endDate} ${isDueSoon(intern.trainingEndDate) ? styles.endDateSoon : styles.endDateSafe}`}>
+                      <span className={styles.email}>{intern.email}</span>
+                    </td>
+                    <td className={styles.td}>
+                      <span className={styles.mobile}>         
+                        {intern.mobileNumber}          
+                      </span>
+                    </td>
+                    <td className={styles.td}>
+                      <span
+                        className={`${styles.endDate} ${
+                          isDueSoon(intern.trainingEndDate)
+                            ? styles.endDateSoon
+                            : styles.endDateSafe
+                        }`}
+                      >
                         {formatDate(intern.trainingEndDate)}
                       </span>
                     </td>
                     <td className={styles.td}>
                       {projects.length === 0 ? '-' :
-                        <div className={styles.cellPills}>
+                        <div className={styles.cellPills} aria-label="Projects">
                           {projects.slice(0, 2).map((p, idx) => (
                             <span key={idx} className={styles.projectBadge}>{p}</span>
                           ))}
@@ -168,19 +204,55 @@ const PmBaTable= React.memo(({
                       <td className={styles.actionsCell}>
                         <button
                           className={styles.menuButton}
-                          onClick={(e) => { e.stopPropagation(); setOpenMenuId(prev => prev === intern.internId ? null : intern.internId); }}
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            setOpenMenuId(prev => prev === intern.internId ? null : intern.internId); 
+                          }}
                           aria-haspopup="menu"
                           aria-expanded={openMenuId === intern.internId}
-                          title="Actions">
+                          title="Actions"
+                        >
                           <FiMoreVertical />
                         </button>
                         {openMenuId === intern.internId && (
                           <div className={styles.menu} role="menu">
-                            <button className={styles.menuItem} role="menuitem" onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); onEdit(intern); }}>Edit</button>
+                            <button
+                              className={styles.menuItem}
+                              role="menuitem"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(null);
+                                onEdit(intern);
+                              }}
+                            >
+                              Edit
+                            </button>
                             {intern.internId !== currentLeadId && (
-                              <button className={styles.menuItem} role="menuitem" onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); onAssignLead(intern.internId); }}>Assign as Lead</button>
+                              <button
+                                className={styles.menuItem}
+                                role="menuitem"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(null);
+                                  onAssignLead(intern.internId);
+                                }}
+                              >
+                                Assign as Lead
+                              </button>
                             )}
-                            <button className={styles.menuItem} role="menuitem" onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); if(window.confirm(`Are you sure you want to delete ${intern.name}?`)) onDelete(intern.internId); }}>Delete</button>
+                            <button
+                              className={styles.menuItem}
+                              role="menuitem"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(null);
+                                if (window.confirm(`Are you sure you want to delete ${intern.name}?`)) {
+                                  onDelete(intern.internId);
+                                }
+                              }}
+                            >
+                              Delete
+                            </button>
                           </div>
                         )}
                       </td>

@@ -63,7 +63,7 @@ const DevOpsForm = ({
     setErrors({});
   }, [editingIntern, isOpen]);
 
-  // Fetch resource types from Excel
+  // Fetch resource types
   const fetchResourceTypes = async () => {
     setRtLoading(true);
     setRtError('');
@@ -104,6 +104,7 @@ const DevOpsForm = ({
       fetchProjects();
     }
   }, [isOpen]);
+  
 
   const validateForm = () => {
     const newErrors = {};

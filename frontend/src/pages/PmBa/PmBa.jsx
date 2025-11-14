@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { PmBaForm,PmBaTable} from '../../components'; // reuse DevOpsForm
+import { PmBaForm, PmBaTable} from '../../components';
 import { internService, categoryService } from '../../services/api';
 import styles from './PmBa.module.css';
 import CategoryDropdown from '../../components/CategoryDropdown/CategoryDropdown';
-import MasterDataModal from '../../components/MasterDataModal/MasterDataModal';
-
-const PM_CATEGORY_ID = 4;
-const BA_CATEGORY_ID = 5;
 
 const PmBa = () => {
   const [interns, setInterns] = useState([]);
@@ -19,37 +15,33 @@ const PmBa = () => {
   const [error, setError] = useState('');
   const [sortOption, setSortOption] = useState('internCode:asc');
   const [currentLeadId, setCurrentLeadId] = useState(null);
-  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const PMBA_CATEGORY_ID = 5;
 
   // Load PM & BA interns and lead
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       setError('');
+
       try {
-        const [pmResponse, baResponse] = await Promise.all([
-          internService.getInternsByCategoryId(PM_CATEGORY_ID),
-          internService.getInternsByCategoryId(BA_CATEGORY_ID)
-        ]);
+        const internsResponse = await internService.getInternsByCategoryId(PMBA_CATEGORY_ID);
+        setInterns(internsResponse.data);
 
-        const combinedInterns = [...pmResponse.data, ...baResponse.data];
-        setInterns(combinedInterns);
-
-        // Optionally, set lead from PM category
-        const pmCategoryResponse = await categoryService.getCategoryById(PM_CATEGORY_ID);
-        if (pmCategoryResponse.data?.leadInternId) {
-          setCurrentLeadId(pmCategoryResponse.data.leadInternId);
+        const categoryResponse = await categoryService.getCategoryById(PMBA_CATEGORY_ID);
+        if (categoryResponse.data && categoryResponse.data.leadInternId) {
+          setCurrentLeadId(categoryResponse.data.leadInternId);
         }
 
       } catch (err) {
         console.error('Error loading PM & BA interns:', err);
         setError('Could not load PM & BA intern data.');
+
       } finally {
         setIsLoading(false);
       }
     };
     loadData();
-  }, []);
+  }, [PMBA_CATEGORY_ID]);
 
   const asText = (v) => Array.isArray(v) ? v.join(', ') : (v ?? '');
 
@@ -64,32 +56,55 @@ const PmBa = () => {
       return name.includes(term) || code.includes(term) || proj.includes(term) || mobile.includes(term);
     });
 
+    // Sorting
     const [sortField, sortOrder] = (sortOption || 'none').split(':');
     if (sortField && sortOrder && sortField !== 'none') {
       list.sort((a, b) => {
         let aVal, bVal;
+
         switch (sortField) {
-          case 'internCode': aVal = a.internCode; bVal = b.internCode; break;
-          case 'endDate': aVal = a.trainingEndDate; bVal = b.trainingEndDate; break;
-          case 'projects': aVal = asText(a.projects); bVal = asText(b.projects); break;
-          default: return 0;
+          case 'internCode': 
+            aVal = a.internCode; 
+            bVal = b.internCode; 
+            break;
+          case 'endDate':
+            aVal = a.trainingEndDate; 
+            bVal = b.trainingEndDate; 
+            break;
+          case 'projects':
+            aVal = asText(a.projects); 
+            bVal = asText(b.projects); 
+            break;
+          default:
+            return 0;
         }
-        let cmp = sortField === 'endDate'
-          ? ((aVal ? new Date(aVal) : 0) - (bVal ? new Date(bVal) : 0))
-          : (aVal || '').localeCompare(bVal || '', undefined, { numeric: true, sensitivity: 'base' });
+
+        let cmp = 0;
+        if (sortField === 'endDate') {
+          const aDate = aVal ? new Date(aVal) : null;
+          const bDate = bVal ? new Date(bVal) : null;
+          if (!aDate && bDate) cmp = -1;
+          else if (aDate && !bDate) cmp = 1;
+          else if (aDate && bDate) cmp = aDate - bDate;
+        } else {
+          cmp = (aVal || '').localeCompare(bVal || '', undefined, { numeric: true, sensitivity: 'base' });
+        }
+
         return sortOrder === 'asc' ? cmp : -cmp;
       });
     }
     setFilteredInterns(list);
   }, [interns, searchTerm, sortOption]);
 
-  // Assign lead
+  // Assign new lead
   const handleAssignLead = async (internId) => {
     try {
       setError('');
-      await categoryService.assignLead(PM_CATEGORY_ID, internId); // can modify if needed for BA separately
+      await categoryService.assignLead(PMBA_CATEGORY_ID, internId);
+
       setCurrentLeadId(internId);
       alert('New PM & BA lead has been assigned successfully!');
+
     } catch (err) {
       console.error('Error assigning lead:', err);
       setError(err.message);
@@ -108,7 +123,10 @@ const PmBa = () => {
 
   const handleDeleteIntern = async (internId) => {
     const internName = interns.find(i => i.internId === internId)?.name || 'this intern';
-    if (!window.confirm(`Are you sure you want to delete ${internName}?`)) return;
+    if (!window.confirm(`Are you sure you want to delete ${internName}?`)) {
+      return;
+    }
+
     try {
       setError('');
       await internService.deleteIntern(internId);
@@ -123,19 +141,27 @@ const PmBa = () => {
   const handleFormSubmit = async (payload) => {
     setIsSubmitting(true);
     setError('');
+
     try {
       if (payload.internId) {
         const response = await internService.updateIntern(payload.internId, payload);
-        setInterns(prev => prev.map(i => i.internId === payload.internId ? response.data : i));
+        setInterns(prev => 
+          prev.map(i => 
+            i.internId === payload.internId ? response.data : i
+          )
+        );
       } else {
         const response = await internService.createIntern(payload);
         setInterns(prev => [...prev, response.data]);
       }
+
       setIsFormOpen(false);
       setSelectedIntern(null);
+
     } catch (err) {
       console.error('Error saving intern:', err);
       setError(err.response?.data?.message || 'Failed to save intern.');
+
     } finally {
       setIsSubmitting(false);
     }
@@ -153,7 +179,9 @@ const PmBa = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>PM & BA Interns Management</h1>
-        <p className={styles.subtitle}>Manage PM & BA interns and their project assignments</p>
+        <p className={styles.subtitle}>
+          Manage PM & BA interns and their project assignments
+        </p>
       </div>
 
       <div className={styles.content}>
@@ -161,14 +189,23 @@ const PmBa = () => {
           <div className={styles.errorAlert}>
             <span className={styles.errorIcon}>⚠️</span>
             <span className={styles.errorText}>{error}</span>
-            <button className={styles.errorClose} onClick={() => setError('')}>×</button>
+            <button
+              className={styles.errorClose} 
+              onClick={() => setError('')}
+            >
+              ×
+            </button>
           </div>
         )}
 
         <div className={styles.actionSection}>
           <div className={styles.buttonGroup}>
-            <button className={styles.primaryBtn} onClick={handleAddIntern}>+ Add New Intern</button>
-            <button className={styles.secondaryBtn} onClick={() => setIsManageModalOpen(true)}>Manage Projects</button>
+            <button 
+              className={styles.primaryBtn} 
+              onClick={handleAddIntern}
+            >
+              + Add New Intern
+            </button>
           </div>
 
           <div className={styles.filterSection}>
@@ -194,8 +231,6 @@ const PmBa = () => {
                 <option value="internCode:desc">Intern Code (Descending)</option>
                 <option value="endDate:asc">End Date (Ascending)</option>
                 <option value="endDate:desc">End Date (Descending)</option>
-                <option value="projects:asc">Projects (Ascending)</option>
-                <option value="projects:desc">Projects (Descending)</option>
               </select>
             </div>
           </div>
@@ -203,11 +238,18 @@ const PmBa = () => {
 
         <div className={styles.tableSection}>
           <div className={styles.tableHeader}>
-            <h3 className={styles.tableTitle}>All PM & BA Interns ({filteredInterns.length})</h3>
+            <h3 className={styles.tableTitle}>
+              All PM & BA Interns ({filteredInterns.length})
+            </h3>
             {searchTerm && (
               <p className={styles.searchInfo}>
                 Showing results for "{searchTerm}"
-                <button className={styles.clearSearch} onClick={() => setSearchTerm('')}>Clear</button>
+                <button 
+                  className={styles.clearSearch} 
+                  onClick={() => setSearchTerm('')}
+                >
+                  Clear
+                </button>
               </p>
             )}
           </div>
@@ -229,13 +271,6 @@ const PmBa = () => {
         onSubmit={handleFormSubmit}
         editingIntern={selectedIntern}
         isLoading={isSubmitting}
-      />
-
-      <MasterDataModal
-        isOpen={isManageModalOpen}
-        onClose={() => setIsManageModalOpen(false)}
-        category="PMBA"
-        title="Manage PM & BA Projects"
       />
     </div>
   );

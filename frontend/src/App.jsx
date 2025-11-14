@@ -3,8 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Navigation, Sidebar, Footer, Login, ProtectedRoute } from './components';
 import './App.css';
-import PmBa from './pages/PmBa/PmBa';
-import { Home, Interns, InternProfile, Teams, TeamProfile, Projects, ProjectProfile, QA, AddBulkData, DevOps, Developer, AI } from './pages';
+import { Home, Interns, InternProfile, Teams, TeamProfile, Projects, ProjectProfile, QA, AddBulkData, DevOps, Developer, AI, PmBa } from './pages';
 
 
 const AppContent = () => {

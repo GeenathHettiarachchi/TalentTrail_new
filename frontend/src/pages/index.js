@@ -9,4 +9,5 @@ export { default as DevOps } from './DevOps/DevOps';
 export { default as QA } from './QA/QA';
 export { default as Developer } from './Developer/Developer';
 export { default as AI } from './AI/AI';
+export { default as PmBa } from './PmBa/PmBa';
 export { default as AddBulkData } from './AddBulkData/AddBulkData';
