@@ -15,8 +15,10 @@ import org.springframework.web.client.RestTemplate;
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class InternService {
@@ -74,13 +76,22 @@ public class InternService {
             }
         }
 
-        // Update all fields including intern code
+        // Update all fields including new fields
         intern.setInternCode(updatedIntern.getInternCode());
         intern.setName(updatedIntern.getName());
         intern.setEmail(updatedIntern.getEmail());
         intern.setTrainingStartDate(updatedIntern.getTrainingStartDate());
         intern.setTrainingEndDate(updatedIntern.getTrainingEndDate());
         intern.setInstitute(updatedIntern.getInstitute());
+        
+        // NEW FIELDS update
+        intern.setFieldOfSpecialization(updatedIntern.getFieldOfSpecialization());
+        intern.setSkills(updatedIntern.getSkills());
+        intern.setWorkingBranch(updatedIntern.getWorkingBranch());
+        intern.setDegree(updatedIntern.getDegree());
+        intern.setRole(updatedIntern.getRole());
+        intern.setLanguagesAndFrameworks(updatedIntern.getLanguagesAndFrameworks());
+        intern.setProjects(updatedIntern.getProjects());
 
         return internRepository.save(intern);
     }
@@ -90,6 +101,62 @@ public class InternService {
             throw new ResourceNotFoundException("Intern not found with ID: " + id);
         }
         internRepository.deleteById(id);
+    }
+
+    // NEW METHODS for FOS and Skills
+    public List<Intern> getInternsByFieldOfSpecialization(String fieldOfSpecialization) {
+        return internRepository.findByFieldOfSpecialization(fieldOfSpecialization);
+    }
+    
+    public List<Intern> getInternsBySkill(String skill) {
+        return internRepository.findBySkillContaining(skill);
+    }
+    
+    public List<Intern> getInternsByWorkingBranch(String workingBranch) {
+        return internRepository.findByWorkingBranch(workingBranch);
+    }
+    
+    public List<Intern> getInternsByDegree(String degree) {
+        return internRepository.findByDegree(degree);
+    }
+    
+    // Utility methods for dropdowns
+    public List<String> getAllFieldsOfSpecialization() {
+        return internRepository.findAll()
+                .stream()
+                .map(Intern::getFieldOfSpecialization)
+                .filter(fos -> fos != null && !fos.trim().isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+    
+    public List<String> getAllSkills() {
+        return internRepository.findAll()
+                .stream()
+                .map(Intern::getSkills)
+                .filter(skills -> skills != null && !skills.trim().isEmpty())
+                .flatMap(skills -> Arrays.stream(skills.split(",")))
+                .map(String::trim)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+    
+    public List<String> getAllWorkingBranches() {
+        return internRepository.findAll()
+                .stream()
+                .map(Intern::getWorkingBranch)
+                .filter(branch -> branch != null && !branch.trim().isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+    
+    public List<String> getAllDegrees() {
+        return internRepository.findAll()
+                .stream()
+                .map(Intern::getDegree)
+                .filter(degree -> degree != null && !degree.trim().isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     @PostConstruct
@@ -157,6 +224,13 @@ public class InternService {
                         intern.setEmail(traineeEmail);
                         intern.setTrainingStartDate(startDate);
                         intern.setTrainingEndDate(endDate);
+                        
+                        // For API-synced interns, set default values for new fields if they don't exist
+                        if (isNewIntern) {
+                            intern.setFieldOfSpecialization("Not Specified");
+                            intern.setWorkingBranch("Not Specified");
+                            intern.setDegree("Not Specified");
+                        }
 
                         Intern savedIntern = internRepository.save(intern);
                         
