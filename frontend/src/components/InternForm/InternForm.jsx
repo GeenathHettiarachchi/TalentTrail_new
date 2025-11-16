@@ -159,8 +159,14 @@ const InstitutePopup = ({
   // Initialize with current values
   useEffect(() => {
     if (currentInstitute && isOpen) {
-      setSelectedUniversity(currentInstitute.university || null);
-      setSelectedFaculty(currentInstitute.faculty || null);
+      setSelectedUniversity(
+        currentInstitute.university
+          ? { name: currentInstitute.university }
+          : null
+      );
+      setSelectedFaculty(
+        currentInstitute.faculty ? { name: currentInstitute.faculty } : null
+      );
       setSelectedDegree(currentInstitute.degree || null);
     } else {
       setSelectedUniversity(null);
@@ -240,9 +246,7 @@ const InstitutePopup = ({
       onInstituteSelect({
         university: selectedUniversity.name,
         faculty: selectedFaculty.name,
-        degree: selectedDegree,
-        universityId: selectedUniversity.id,
-        facultyId: selectedFaculty.id
+        degree: selectedDegree
       });
       onClose();
     }
@@ -599,7 +603,7 @@ const AcademicDetailsForm = ({
 
     if (formData.yearOfCompletion) {
       const currentYear = new Date().getFullYear();
-      const year = parseInt(formData.yearOfCompletion);
+      const year = parseInt(formData.yearOfCompletion, 10);
       if (year < 1900 || year > currentYear + 5) {
         newErrors.yearOfCompletion = "Please enter a valid year";
       }
@@ -731,7 +735,7 @@ const AcademicDetailsForm = ({
                 value={formData.yearOfCompletion}
                 onChange={handleChange}
                 min="1900"
-                max="2030"
+                max="2035"
                 disabled={formData.isCurrent || isLoading}
                 className={`${styles.input} ${
                   errors.yearOfCompletion ? styles.inputError : ""
@@ -864,13 +868,12 @@ const AcademicDetailsList = () => {
     setEditingDetail(null);
   };
 
-  const getStatusBadge = (isCurrent) => {
-    return isCurrent ? (
+  const getStatusBadge = (isCurrent) =>
+    isCurrent ? (
       <span className={styles.academicCurrentBadge}>Current</span>
     ) : (
       <span className={styles.academicCompletedBadge}>Completed</span>
     );
-  };
 
   return (
     <div className={styles.academicContainer}>
@@ -985,7 +988,6 @@ const InternForm = ({
     degree: "",
     trainingStartDate: "",
     trainingEndDate: "",
-    role: "",
     fieldOfSpecialization: "",
     skills: [],
     workingBranch: "",
@@ -1023,7 +1025,6 @@ const InternForm = ({
         degree: intern.degree || "",
         trainingStartDate: intern.trainingStartDate || "",
         trainingEndDate: intern.trainingEndDate || "",
-        role: intern.role || "",
         fieldOfSpecialization: intern.fieldOfSpecialization || "",
         skills: toList(intern.skills),
         workingBranch: intern.workingBranch || "",
@@ -1039,7 +1040,6 @@ const InternForm = ({
         degree: "",
         trainingStartDate: "",
         trainingEndDate: "",
-        role: "",
         fieldOfSpecialization: "",
         skills: [],
         workingBranch: "",
@@ -1111,8 +1111,7 @@ const InternForm = ({
       newErrors.trainingEndDate = "End date is required";
 
     if (!formData.fieldOfSpecialization)
-      newErrors.fieldOfSpecialization =
-        "Field of specialization is required";
+      newErrors.fieldOfSpecialization = "Field of specialization is required";
     if (!formData.skills || formData.skills.length === 0)
       newErrors.skills = "At least one skill is required";
     if (!formData.workingBranch)
@@ -1356,21 +1355,6 @@ const InternForm = ({
                       {errors.trainingEndDate}
                     </span>
                   )}
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label htmlFor="role" className={styles.label}>
-                    Role
-                  </label>
-                  <input
-                    type="text"
-                    id="role"
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    className={styles.input}
-                    placeholder="e.g., Full Stack Developer"
-                  />
                 </div>
 
                 <div className={styles.inputGroup}>
