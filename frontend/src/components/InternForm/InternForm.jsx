@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   FiX,
-  FiServer,
-  FiLayers,
   FiChevronDown,
   FiPlus,
   FiEdit2,
@@ -28,21 +26,27 @@ const ProgressIndicator = ({ currentStep }) => {
         {steps.map((step, index) => (
           <React.Fragment key={step.number}>
             <div className={styles.progressStep}>
-              <div className={`${styles.stepNumber} ${
-                step.number <= currentStep ? styles.active : ''
-              }`}>
+              <div
+                className={`${styles.stepNumber} ${
+                  step.number <= currentStep ? styles.active : ""
+                }`}
+              >
                 {step.number}
               </div>
-              <span className={`${styles.stepLabel} ${
-                step.number <= currentStep ? styles.active : ''
-              }`}>
+              <span
+                className={`${styles.stepLabel} ${
+                  step.number <= currentStep ? styles.active : ""
+                }`}
+              >
                 {step.label}
               </span>
             </div>
             {index < steps.length - 1 && (
-              <div className={`${styles.progressConnector} ${
-                step.number < currentStep ? styles.active : ''
-              }`} />
+              <div
+                className={`${styles.progressConnector} ${
+                  step.number < currentStep ? styles.active : ""
+                }`}
+              />
             )}
           </React.Fragment>
         ))}
@@ -63,7 +67,7 @@ const InstitutePopup = ({
   const [selectedFaculty, setSelectedFaculty] = useState(null);
   const [selectedDegree, setSelectedDegree] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Data
   const universities = [
     { id: 1, name: "University of Moratuwa" },
@@ -92,7 +96,7 @@ const InstitutePopup = ({
   const universityDegrees = {
     "University of Moratuwa": [
       "BSc in Computer Science & Engineering",
-      "BSc in Electrical Engineering", 
+      "BSc in Electrical Engineering",
       "BSc in Civil Engineering",
       "BSc in Mechanical Engineering",
       "BSc in Electronics & Telecommunication Engineering"
@@ -170,7 +174,7 @@ const InstitutePopup = ({
   // Filter universities based on search
   useEffect(() => {
     if (searchTerm) {
-      const filtered = universities.filter(uni =>
+      const filtered = universities.filter((uni) =>
         uni.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredUniversities(filtered);
@@ -194,7 +198,7 @@ const InstitutePopup = ({
       const universityName = selectedUniversity.name;
       const availableDegrees = universityDegrees[universityName] || [
         "BSc in Computer Science",
-        "BSc in Information Technology", 
+        "BSc in Information Technology",
         "BSc in Software Engineering",
         "BSc in Information Systems",
         "Bachelor of Business Administration"
@@ -281,23 +285,27 @@ const InstitutePopup = ({
 
   const getCurrentStepNumber = () => {
     switch (step) {
-      case "university": return 1;
-      case "faculty": return 2;
-      case "degree": return 3;
-      default: return 1;
+      case "university":
+        return 1;
+      case "faculty":
+        return 2;
+      case "degree":
+        return 3;
+      default:
+        return 1;
     }
   };
 
   return (
     <div className={styles.overlay} onClick={handleClose}>
-      <div className={styles.institutePopup} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={styles.institutePopup}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className={styles.popupHeader}>
           {step !== "university" && (
-            <button 
-              className={styles.backButton} 
-              onClick={handleBack}
-            >
+            <button className={styles.backButton} onClick={handleBack}>
               <FiChevronLeft />
             </button>
           )}
@@ -305,10 +313,7 @@ const InstitutePopup = ({
             <h2 className={styles.popupTitle}>{getStepTitle()}</h2>
             <p className={styles.popupSubtitle}>{getStepSubtitle()}</p>
           </div>
-          <button 
-            className={styles.closeButton} 
-            onClick={handleClose}
-          >
+          <button className={styles.closeButton} onClick={handleClose}>
             <FiX />
           </button>
         </div>
@@ -316,7 +321,7 @@ const InstitutePopup = ({
         {/* Progress Indicator */}
         <ProgressIndicator currentStep={getCurrentStepNumber()} />
 
-        {/* Search Bar - Only show for university and faculty selection */}
+        {/* Search Bar */}
         {(step === "university" || step === "faculty") && (
           <div className={styles.searchContainer}>
             <div className={styles.searchInputWrapper}>
@@ -324,8 +329,8 @@ const InstitutePopup = ({
               <input
                 type="text"
                 placeholder={
-                  step === "university" 
-                    ? "Search universities..." 
+                  step === "university"
+                    ? "Search universities..."
                     : "Search faculties..."
                 }
                 value={searchTerm}
@@ -347,14 +352,19 @@ const InstitutePopup = ({
                     <button
                       key={university.id}
                       className={`${styles.listItem} ${
-                        selectedUniversity?.id === university.id ? styles.selected : ""
+                        selectedUniversity?.id === university.id
+                          ? styles.selected
+                          : ""
                       }`}
                       onClick={() => handleUniversitySelect(university)}
                     >
                       <div className={styles.universityInfo}>
-                        <span className={styles.itemText}>{university.name}</span>
+                        <span className={styles.itemText}>
+                          {university.name}
+                        </span>
                         <span className={styles.itemDescription}>
-                          {universityDegrees[university.name]?.length || 5} degrees available
+                          {universityDegrees[university.name]?.length || 5}{" "}
+                          degrees available
                         </span>
                       </div>
                       {selectedUniversity?.id === university.id && (
@@ -372,10 +382,14 @@ const InstitutePopup = ({
           ) : step === "faculty" ? (
             <div className={styles.listContainer}>
               <div className={styles.selectedSection}>
-                <span className={styles.selectedLabel}>Selected University:</span>
-                <span className={styles.selectedValue}>{selectedUniversity?.name}</span>
+                <span className={styles.selectedLabel}>
+                  Selected University:
+                </span>
+                <span className={styles.selectedValue}>
+                  {selectedUniversity?.name}
+                </span>
               </div>
-              
+
               <h3 className={styles.sectionTitle}>Faculties & Departments</h3>
               <div className={styles.list}>
                 {filteredFaculties.length > 0 ? (
@@ -383,7 +397,9 @@ const InstitutePopup = ({
                     <button
                       key={faculty.id}
                       className={`${styles.listItem} ${
-                        selectedFaculty?.id === faculty.id ? styles.selected : ""
+                        selectedFaculty?.id === faculty.id
+                          ? styles.selected
+                          : ""
                       }`}
                       onClick={() => handleFacultySelect(faculty)}
                     >
@@ -400,25 +416,30 @@ const InstitutePopup = ({
                   ))
                 ) : (
                   <div className={styles.emptyState}>
-                    <p>No faculties available for {selectedUniversity?.name}</p>
+                    <p>
+                      No faculties available for {selectedUniversity?.name}
+                    </p>
                   </div>
                 )}
               </div>
             </div>
           ) : (
-            // Degree Selection Step
             <div className={styles.listContainer}>
               <div className={styles.selectedSection}>
                 <div className={styles.selectedRow}>
                   <span className={styles.selectedLabel}>University:</span>
-                  <span className={styles.selectedValue}>{selectedUniversity?.name}</span>
+                  <span className={styles.selectedValue}>
+                    {selectedUniversity?.name}
+                  </span>
                 </div>
                 <div className={styles.selectedRow}>
                   <span className={styles.selectedLabel}>Faculty:</span>
-                  <span className={styles.selectedValue}>{selectedFaculty?.name}</span>
+                  <span className={styles.selectedValue}>
+                    {selectedFaculty?.name}
+                  </span>
                 </div>
               </div>
-              
+
               <h3 className={styles.sectionTitle}>
                 <FiBook className={styles.sectionTitleIcon} />
                 Available Degrees
@@ -426,7 +447,7 @@ const InstitutePopup = ({
               <p className={styles.sectionDescription}>
                 Select your degree program from the available options
               </p>
-              
+
               <div className={styles.degreeList}>
                 {filteredDegrees.length > 0 ? (
                   filteredDegrees.map((degree, index) => (
@@ -439,7 +460,9 @@ const InstitutePopup = ({
                     >
                       <div className={styles.degreeInfo}>
                         <span className={styles.degreeName}>{degree}</span>
-                        <span className={styles.degreeType}>Undergraduate Degree</span>
+                        <span className={styles.degreeType}>
+                          Undergraduate Degree
+                        </span>
                       </div>
                       {selectedDegree === degree && (
                         <FiCheck className={styles.checkIcon} />
@@ -449,10 +472,12 @@ const InstitutePopup = ({
                 ) : (
                   <div className={styles.emptyState}>
                     <p>No degrees available for this faculty</p>
-                    <button 
+                    <button
                       className={styles.customDegreeButton}
                       onClick={() => {
-                        const customDegree = prompt("Please enter your degree name:");
+                        const customDegree = prompt(
+                          "Please enter your degree name:"
+                        );
                         if (customDegree) {
                           setSelectedDegree(customDegree);
                         }
@@ -469,15 +494,12 @@ const InstitutePopup = ({
 
         {/* Footer Actions */}
         <div className={styles.popupFooter}>
-          <button 
-            className={styles.cancelButton} 
-            onClick={handleClose}
-          >
+          <button className={styles.cancelButton} onClick={handleClose}>
             Close
           </button>
-          
+
           {step === "degree" && (
-            <button 
+            <button
               className={`${styles.submitButton} ${
                 !selectedDegree ? styles.disabled : ""
               }`}
@@ -549,13 +571,13 @@ const AcademicDetailsForm = ({
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value
     }));
 
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -588,7 +610,7 @@ const AcademicDetailsForm = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -634,7 +656,9 @@ const AcademicDetailsForm = ({
                 name="university"
                 value={formData.university}
                 onChange={handleChange}
-                className={`${styles.input} ${errors.university ? styles.inputError : ""}`}
+                className={`${styles.input} ${
+                  errors.university ? styles.inputError : ""
+                }`}
                 disabled={isLoading}
               >
                 <option value="">Select University</option>
@@ -658,7 +682,9 @@ const AcademicDetailsForm = ({
                 name="faculty"
                 value={formData.faculty}
                 onChange={handleChange}
-                className={`${styles.input} ${errors.faculty ? styles.inputError : ""}`}
+                className={`${styles.input} ${
+                  errors.faculty ? styles.inputError : ""
+                }`}
                 disabled={isLoading}
               >
                 <option value="">Select Faculty</option>
@@ -683,7 +709,9 @@ const AcademicDetailsForm = ({
                 name="degree"
                 value={formData.degree}
                 onChange={handleChange}
-                className={`${styles.input} ${errors.degree ? styles.inputError : ""}`}
+                className={`${styles.input} ${
+                  errors.degree ? styles.inputError : ""
+                }`}
                 placeholder="e.g., BSc in Computer Science"
                 disabled={isLoading}
               />
@@ -705,15 +733,23 @@ const AcademicDetailsForm = ({
                 min="1900"
                 max="2030"
                 disabled={formData.isCurrent || isLoading}
-                className={`${styles.input} ${errors.yearOfCompletion ? styles.inputError : ""}`}
+                className={`${styles.input} ${
+                  errors.yearOfCompletion ? styles.inputError : ""
+                }`}
                 placeholder="e.g., 2024"
               />
               {errors.yearOfCompletion && (
-                <span className={styles.errorText}>{errors.yearOfCompletion}</span>
+                <span className={styles.errorText}>
+                  {errors.yearOfCompletion}
+                </span>
               )}
             </div>
 
-            <div className={`${styles.inputGroup} ${styles.academicCheckboxContainer}`}>
+            <div
+              className={`${styles.inputGroup} ${
+                styles.academicCheckboxContainer
+              }`}
+            >
               <label className={styles.academicCheckboxLabel}>
                 <input
                   type="checkbox"
@@ -723,10 +759,13 @@ const AcademicDetailsForm = ({
                   className={styles.academicCheckbox}
                   disabled={isLoading}
                 />
-                <span className={styles.academicCheckboxText}>Currently studying</span>
+                <span className={styles.academicCheckboxText}>
+                  Currently studying
+                </span>
               </label>
               <p className={styles.academicCheckboxHelp}>
-                Check this if you are currently studying. Year of completion will be disabled.
+                Check this if you are currently studying. Year of completion
+                will be disabled.
               </p>
             </div>
           </div>
@@ -771,14 +810,14 @@ const AcademicDetailsList = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const savedDetails = localStorage.getItem('academicDetails');
+    const savedDetails = localStorage.getItem("academicDetails");
     if (savedDetails) {
       setAcademicDetails(JSON.parse(savedDetails));
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('academicDetails', JSON.stringify(academicDetails));
+    localStorage.setItem("academicDetails", JSON.stringify(academicDetails));
   }, [academicDetails]);
 
   const handleAddNew = () => {
@@ -792,19 +831,21 @@ const AcademicDetailsList = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this academic detail?")) {
-      setAcademicDetails(prev => prev.filter(detail => detail.id !== id));
+    if (
+      window.confirm("Are you sure you want to delete this academic detail?")
+    ) {
+      setAcademicDetails((prev) => prev.filter((detail) => detail.id !== id));
     }
   };
 
   const handleSubmit = async (formData) => {
     setIsLoading(true);
-    
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     if (editingDetail) {
-      setAcademicDetails(prev =>
-        prev.map(detail =>
+      setAcademicDetails((prev) =>
+        prev.map((detail) =>
           detail.id === editingDetail.id
             ? { ...formData, id: editingDetail.id }
             : detail
@@ -815,9 +856,9 @@ const AcademicDetailsList = () => {
         ...formData,
         id: Date.now()
       };
-      setAcademicDetails(prev => [...prev, newDetail]);
+      setAcademicDetails((prev) => [...prev, newDetail]);
     }
-    
+
     setIsLoading(false);
     setIsFormOpen(false);
     setEditingDetail(null);
@@ -836,7 +877,9 @@ const AcademicDetailsList = () => {
       <div className={styles.academicHeader}>
         <div className={styles.academicTitleSection}>
           <FiBook className={styles.academicTitleIcon} />
-          <h2 className={styles.academicTitle}>Academic Details (Sri Lanka · Undergraduate)</h2>
+          <h2 className={styles.academicTitle}>
+            Academic Details (Sri Lanka · Undergraduate)
+          </h2>
         </div>
         <button
           type="button"
@@ -872,10 +915,9 @@ const AcademicDetailsList = () => {
                   </p>
                   <p className={styles.academicYear}>
                     <strong>Status:</strong>{" "}
-                    {detail.isCurrent 
-                      ? "Currently studying" 
-                      : `Completed in ${detail.yearOfCompletion}`
-                    }
+                    {detail.isCurrent
+                      ? "Currently studying"
+                      : `Completed in ${detail.yearOfCompletion}`}
                   </p>
                 </div>
               </div>
@@ -923,13 +965,16 @@ const InternForm = ({
   onSubmit,
   intern = null,
   isLoading = false,
-  internOnly = false,
+  internOnly = false
 }) => {
   const toList = (v) =>
     Array.isArray(v)
       ? v
       : typeof v === "string" && v.trim()
-      ? v.split(",").map((s) => s.trim()).filter(Boolean)
+      ? v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
       : [];
 
   const [formData, setFormData] = useState({
@@ -945,26 +990,26 @@ const InternForm = ({
     skills: [],
     workingBranch: "",
     languagesAndFrameworks: [],
-    projects: [],
+    projects: []
   });
 
   const [errors, setErrors] = useState({});
-  const [isLangOpen, setIsLangOpen] = useState(false);
-  const [isProjOpen, setIsProjOpen] = useState(false);
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
   const [isInstitutePopupOpen, setIsInstitutePopupOpen] = useState(false);
 
   // Data for dropdowns
-  const languagesList = [
-    "Java", "Python", "C#", "MERN", "Laravel", "Spring Boot", ".NET", "PHP", "React", "Angular", "Vue.js"
+  const skillsList = [
+    "JAVA",
+    "MERN",
+    "UI UX",
+    "Python",
+    "BA",
+    "QA",
+    "PM",
+    "AI",
+    "Flutter",
+    "Devops"
   ];
-
-  const projectsList = [
-    "Portfolio Website", "Task Tracker", "E-Commerce Platform", "Admin Dashboard", 
-    "Inventory Manager", "CRM Application", "HR Portal"
-  ];
-
-  const skillsList = ["JAVA", "MERN", "UI UX", "Python", "BA", "QA", "PM", "AI", "Flutter", "Devops"];
 
   const workingBranches = ["HQ SLT", "Moratuwa"];
 
@@ -983,7 +1028,7 @@ const InternForm = ({
         skills: toList(intern.skills),
         workingBranch: intern.workingBranch || "",
         languagesAndFrameworks: toList(intern.languagesAndFrameworks),
-        projects: toList(intern.projects),
+        projects: toList(intern.projects)
       });
     } else {
       setFormData({
@@ -999,12 +1044,10 @@ const InternForm = ({
         skills: [],
         workingBranch: "",
         languagesAndFrameworks: [],
-        projects: [],
+        projects: []
       });
     }
     setErrors({});
-    setIsLangOpen(false);
-    setIsProjOpen(false);
     setIsSkillsOpen(false);
   }, [intern, isOpen]);
 
@@ -1012,7 +1055,7 @@ const InternForm = ({
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
 
     if (errors[name]) {
@@ -1032,13 +1075,13 @@ const InternForm = ({
   };
 
   const handleInstituteSelect = (institute) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       institute: `${institute.university} - ${institute.faculty}`,
       degree: institute.degree
     }));
     if (errors.institute) {
-      setErrors(prev => ({ ...prev, institute: "" }));
+      setErrors((prev) => ({ ...prev, institute: "" }));
     }
   };
 
@@ -1052,23 +1095,34 @@ const InternForm = ({
       return newErrors;
     }
 
-    if (!formData.internCode.trim()) newErrors.internCode = "Intern code is required";
+    if (!formData.internCode.trim())
+      newErrors.internCode = "Intern code is required";
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid";
     }
-    if (!formData.institute.trim()) newErrors.institute = "Institute is required";
-    if (!formData.trainingStartDate) newErrors.trainingStartDate = "Start date is required";
-    if (!formData.trainingEndDate) newErrors.trainingEndDate = "End date is required";
-    
-    if (!formData.fieldOfSpecialization) newErrors.fieldOfSpecialization = "Field of specialization is required";
-    if (!formData.skills || formData.skills.length === 0) newErrors.skills = "At least one skill is required";
-    if (!formData.workingBranch) newErrors.workingBranch = "Working branch is required";
-    
+    if (!formData.institute.trim())
+      newErrors.institute = "Institute is required";
+    if (!formData.trainingStartDate)
+      newErrors.trainingStartDate = "Start date is required";
+    if (!formData.trainingEndDate)
+      newErrors.trainingEndDate = "End date is required";
+
+    if (!formData.fieldOfSpecialization)
+      newErrors.fieldOfSpecialization =
+        "Field of specialization is required";
+    if (!formData.skills || formData.skills.length === 0)
+      newErrors.skills = "At least one skill is required";
+    if (!formData.workingBranch)
+      newErrors.workingBranch = "Working branch is required";
+
     if (formData.trainingStartDate && formData.trainingEndDate) {
-      if (new Date(formData.trainingStartDate) >= new Date(formData.trainingEndDate)) {
+      if (
+        new Date(formData.trainingStartDate) >=
+        new Date(formData.trainingEndDate)
+      ) {
         newErrors.trainingEndDate = "End date must be after start date";
       }
     }
@@ -1091,7 +1145,7 @@ const InternForm = ({
       skills: formData.skills || [],
       workingBranch: formData.workingBranch || "",
       languagesAndFrameworks: formData.languagesAndFrameworks || [],
-      projects: formData.projects || [],
+      projects: formData.projects || []
     };
 
     if (intern && intern.internId) {
@@ -1114,7 +1168,11 @@ const InternForm = ({
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <h2 className={styles.title}>
-            {internOnly ? "Request End Date Update" : (intern ? "Edit Intern" : "Add New Intern")}
+            {internOnly
+              ? "Request End Date Update"
+              : intern
+              ? "Edit Intern"
+              : "Add New Intern"}
           </h2>
           <button
             type="button"
@@ -1144,7 +1202,9 @@ const InternForm = ({
                   }`}
                 />
                 {errors.trainingEndDate && (
-                  <span className={styles.errorText}>{errors.trainingEndDate}</span>
+                  <span className={styles.errorText}>
+                    {errors.trainingEndDate}
+                  </span>
                 )}
               </div>
             </div>
@@ -1152,60 +1212,88 @@ const InternForm = ({
             <>
               <div className={styles.formGrid}>
                 <div className={styles.inputGroup}>
-                  <label htmlFor="internCode" className={styles.label}>Intern Code </label>
+                  <label htmlFor="internCode" className={styles.label}>
+                    Intern Code{" "}
+                  </label>
                   <input
                     type="text"
                     id="internCode"
                     name="internCode"
                     value={formData.internCode}
                     onChange={handleChange}
-                    className={`${styles.input} ${errors.internCode ? styles.inputError : ""}`}
+                    className={`${styles.input} ${
+                      errors.internCode ? styles.inputError : ""
+                    }`}
                     placeholder="e.g., INT001"
                     disabled
                   />
-                  {errors.internCode && <span className={styles.errorText}>{errors.internCode}</span>}
+                  {errors.internCode && (
+                    <span className={styles.errorText}>
+                      {errors.internCode}
+                    </span>
+                  )}
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label htmlFor="name" className={styles.label}>Full Name </label>
+                  <label htmlFor="name" className={styles.label}>
+                    Full Name{" "}
+                  </label>
                   <input
                     type="text"
                     id="name"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className={`${styles.input} ${errors.name ? styles.inputError : ""}`}
+                    className={`${styles.input} ${
+                      errors.name ? styles.inputError : ""
+                    }`}
                     placeholder="Enter full name"
                     disabled
                   />
-                  {errors.name && <span className={styles.errorText}>{errors.name}</span>}
+                  {errors.name && (
+                    <span className={styles.errorText}>{errors.name}</span>
+                  )}
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label htmlFor="email" className={styles.label}>Email </label>
+                  <label htmlFor="email" className={styles.label}>
+                    Email{" "}
+                  </label>
                   <input
                     type="email"
                     id="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
+                    className={`${styles.input} ${
+                      errors.email ? styles.inputError : ""
+                    }`}
                     placeholder="Enter email address"
                     disabled
                   />
-                  {errors.email && <span className={styles.errorText}>{errors.email}</span>}
+                  {errors.email && (
+                    <span className={styles.errorText}>{errors.email}</span>
+                  )}
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label htmlFor="institute" className={styles.label}>Institute *</label>
+                  <label htmlFor="institute" className={styles.label}>
+                    Institute *
+                  </label>
                   <div className={styles.instituteSelector}>
                     <input
                       type="text"
                       id="institute"
                       name="institute"
-                      value={formData.institute ? `${formData.institute} - ${formData.degree}` : ''}
+                      value={
+                        formData.institute
+                          ? `${formData.institute} - ${formData.degree}`
+                          : ""
+                      }
                       readOnly
-                      className={`${styles.input} ${errors.institute ? styles.inputError : ""}`}
+                      className={`${styles.input} ${
+                        errors.institute ? styles.inputError : ""
+                      }`}
                       placeholder="Select your university and degree"
                       onClick={() => setIsInstitutePopupOpen(true)}
                     />
@@ -1218,43 +1306,62 @@ const InternForm = ({
                     </button>
                   </div>
                   {errors.institute && (
-                    <span className={styles.errorText}>{errors.institute}</span>
+                    <span className={styles.errorText}>
+                      {errors.institute}
+                    </span>
                   )}
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label htmlFor="trainingStartDate" className={styles.label}>Training Start Date </label>
+                  <label
+                    htmlFor="trainingStartDate"
+                    className={styles.label}
+                  >
+                    Training Start Date{" "}
+                  </label>
                   <input
                     type="date"
                     id="trainingStartDate"
                     name="trainingStartDate"
                     value={formData.trainingStartDate}
                     onChange={handleChange}
-                    className={`${styles.input} ${errors.trainingStartDate ? styles.inputError : ""}`}
+                    className={`${styles.input} ${
+                      errors.trainingStartDate ? styles.inputError : ""
+                    }`}
                     disabled
                   />
                   {errors.trainingStartDate && (
-                    <span className={styles.errorText}>{errors.trainingStartDate}</span>
+                    <span className={styles.errorText}>
+                      {errors.trainingStartDate}
+                    </span>
                   )}
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label htmlFor="trainingEndDate" className={styles.label}>Training End Date *</label>
+                  <label htmlFor="trainingEndDate" className={styles.label}>
+                    Training End Date *
+                  </label>
                   <input
                     type="date"
                     id="trainingEndDate"
                     name="trainingEndDate"
                     value={formData.trainingEndDate}
                     onChange={handleChange}
-                    className={`${styles.input} ${errors.trainingEndDate ? styles.inputError : ""}`}
+                    className={`${styles.input} ${
+                      errors.trainingEndDate ? styles.inputError : ""
+                    }`}
                   />
                   {errors.trainingEndDate && (
-                    <span className={styles.errorText}>{errors.trainingEndDate}</span>
+                    <span className={styles.errorText}>
+                      {errors.trainingEndDate}
+                    </span>
                   )}
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label htmlFor="role" className={styles.label}>Role</label>
+                  <label htmlFor="role" className={styles.label}>
+                    Role
+                  </label>
                   <input
                     type="text"
                     id="role"
@@ -1267,7 +1374,10 @@ const InternForm = ({
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label htmlFor="fieldOfSpecialization" className={styles.label}>
+                  <label
+                    htmlFor="fieldOfSpecialization"
+                    className={styles.label}
+                  >
                     Field of Specialization *
                   </label>
                   <select
@@ -1275,7 +1385,9 @@ const InternForm = ({
                     name="fieldOfSpecialization"
                     value={formData.fieldOfSpecialization || ""}
                     onChange={handleChange}
-                    className={`${styles.input} ${errors.fieldOfSpecialization ? styles.inputError : ""}`}
+                    className={`${styles.input} ${
+                      errors.fieldOfSpecialization ? styles.inputError : ""
+                    }`}
                   >
                     <option value="">Select Field of Specialization</option>
                     {skillsList.map((skill) => (
@@ -1285,7 +1397,9 @@ const InternForm = ({
                     ))}
                   </select>
                   {errors.fieldOfSpecialization && (
-                    <span className={styles.errorText}>{errors.fieldOfSpecialization}</span>
+                    <span className={styles.errorText}>
+                      {errors.fieldOfSpecialization}
+                    </span>
                   )}
                 </div>
 
@@ -1298,7 +1412,9 @@ const InternForm = ({
                     name="workingBranch"
                     value={formData.workingBranch || ""}
                     onChange={handleChange}
-                    className={`${styles.input} ${errors.workingBranch ? styles.inputError : ""}`}
+                    className={`${styles.input} ${
+                      errors.workingBranch ? styles.inputError : ""
+                    }`}
                   >
                     <option value="">Select Working Branch</option>
                     {workingBranches.map((branch) => (
@@ -1308,19 +1424,21 @@ const InternForm = ({
                     ))}
                   </select>
                   {errors.workingBranch && (
-                    <span className={styles.errorText}>{errors.workingBranch}</span>
+                    <span className={styles.errorText}>
+                      {errors.workingBranch}
+                    </span>
                   )}
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label className={styles.label}>
-                    Skills *
-                  </label>
+                  <label className={styles.label}>Skills *</label>
                   <div
                     className={`${styles.multiSelect} ${
                       errors.skills ? styles.inputError : ""
                     }`}
-                    onClick={() => !isLoading && setIsSkillsOpen((v) => !v)}
+                    onClick={() =>
+                      !isLoading && setIsSkillsOpen((v) => !v)
+                    }
                     role="button"
                     aria-expanded={isSkillsOpen}
                   >
@@ -1340,11 +1458,19 @@ const InternForm = ({
                         role="listbox"
                       >
                         {skillsList.map((skill) => (
-                          <label key={skill} className={styles.optionRow}>
+                          <label
+                            key={skill}
+                            className={styles.optionRow}
+                          >
                             <input
                               type="checkbox"
-                              checked={formData.skills?.includes(skill) || false}
-                              onChange={() => toggleMulti("skills", skill)}
+                              checked={
+                                formData.skills?.includes(skill) ||
+                                false
+                              }
+                              onChange={() =>
+                                toggleMulti("skills", skill)
+                              }
                               disabled={isLoading}
                             />
                             <span>{skill}</span>
@@ -1354,109 +1480,9 @@ const InternForm = ({
                     )}
                   </div>
                   {errors.skills && (
-                    <span className={styles.errorText}>{errors.skills}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className={styles.formGrid}>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>
-                    <FiServer className={styles.labelIcon} />
-                    Languages & Frameworks
-                  </label>
-
-                  <div
-                    className={`${styles.multiSelect} ${
-                      errors.languagesAndFrameworks ? styles.inputError : ""
-                    }`}
-                    onClick={() => !isLoading && setIsLangOpen((v) => !v)}
-                    role="button"
-                    aria-expanded={isLangOpen}
-                  >
-                    <div className={styles.multiControl}>
-                      <div className={styles.multiValue}>
-                        {formData.languagesAndFrameworks?.length
-                          ? formData.languagesAndFrameworks.join(", ")
-                          : "Select one or more…"}
-                      </div>
-                      <FiChevronDown className={styles.caret} />
-                    </div>
-
-                    {isLangOpen && (
-                      <div
-                        className={styles.multiMenu}
-                        onClick={(e) => e.stopPropagation()}
-                        role="listbox"
-                      >
-                        {languagesList.map((opt) => (
-                          <label key={opt} className={styles.optionRow}>
-                            <input
-                              type="checkbox"
-                              checked={formData.languagesAndFrameworks.includes(opt)}
-                              onChange={() => toggleMulti("languagesAndFrameworks", opt)}
-                              disabled={isLoading}
-                            />
-                            <span>{opt}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {errors.languagesAndFrameworks && (
                     <span className={styles.errorText}>
-                      {errors.languagesAndFrameworks}
+                      {errors.skills}
                     </span>
-                  )}
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>
-                    <FiLayers className={styles.labelIcon} />
-                    Projects
-                  </label>
-
-                  <div
-                    className={`${styles.multiSelect} ${
-                      errors.projects ? styles.inputError : ""
-                    }`}
-                    onClick={() => !isLoading && setIsProjOpen((v) => !v)}
-                    role="button"
-                    aria-expanded={isProjOpen}
-                  >
-                    <div className={styles.multiControl}>
-                      <div className={styles.multiValue}>
-                        {formData.projects?.length
-                          ? formData.projects.join(", ")
-                          : "Select one or more…"}
-                      </div>
-                      <FiChevronDown className={styles.caret} />
-                    </div>
-
-                    {isProjOpen && (
-                      <div
-                        className={styles.multiMenu}
-                        onClick={(e) => e.stopPropagation()}
-                        role="listbox"
-                      >
-                        {projectsList.map((opt) => (
-                          <label key={opt} className={styles.optionRow}>
-                            <input
-                              type="checkbox"
-                              checked={formData.projects.includes(opt)}
-                              onChange={() => toggleMulti("projects", opt)}
-                              disabled={isLoading}
-                            />
-                            <span>{opt}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {errors.projects && (
-                    <span className={styles.errorText}>{errors.projects}</span>
                   )}
                 </div>
               </div>
@@ -1499,11 +1525,15 @@ const InternForm = ({
         isOpen={isInstitutePopupOpen}
         onClose={() => setIsInstitutePopupOpen(false)}
         onInstituteSelect={handleInstituteSelect}
-        currentInstitute={formData.institute ? {
-          university: formData.institute.split(' - ')[0],
-          faculty: formData.institute.split(' - ')[1],
-          degree: formData.degree
-        } : null}
+        currentInstitute={
+          formData.institute
+            ? {
+                university: formData.institute.split(" - ")[0],
+                faculty: formData.institute.split(" - ")[1],
+                degree: formData.degree
+              }
+            : null
+        }
       />
     </div>
   );
