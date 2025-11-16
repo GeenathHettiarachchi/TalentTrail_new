@@ -32,10 +32,29 @@ public class Intern {
     private LocalDate trainingEndDate;
     private String institute;
 
+    // NEW FIELDS
+    @Column(name = "field_of_specialization")
+    private String fieldOfSpecialization;
+    
+    @Column(name = "skills", length = 1000)
+    private String skills;
+    
+    @Column(name = "working_branch")
+    private String workingBranch;
+    
+    private String degree;
+    
+    private String role;
+    
+    @Column(name = "languages_frameworks", length = 1000)
+    private String languagesAndFrameworks;
+    
+    @Column(name = "projects", length = 1000)
+    private String projects;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 }
-
